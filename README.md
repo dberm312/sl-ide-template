@@ -7,7 +7,51 @@ fixed 16:9 size. You watch them change in the browser, comment on any
 element to steer, and print a vector PDF. A layout audit catches clipped,
 crowded and overlapping pages before they ship.
 
+## Start a new deck
+
+sl-ide is the starter; each deck gets its own repo made from it. Don't build
+a deck in this repo itself.
+
+**Recommended: a clone that keeps sl-ide's history**, so later fixes to the
+harness can be pulled into decks you're still working on:
+
+```sh
+git clone https://github.com/dberm312/sl-ide acme-pitch && cd acme-pitch
+git remote rename origin upstream          # sl-ide, for harness updates
+gh repo create acme-pitch --private --source . --push   # the deck's own repo
+```
+
+Later, to pick up sl-ide's improvements:
+
+```sh
+git pull upstream main
+```
+
+**Or: a one-off from the template.** sl-ide is a GitHub template repository,
+so you can click **Use this template** on GitHub, or run:
+
+```sh
+gh repo create acme-pitch --private --template dberm312/sl-ide --clone
+```
+
+That repo starts from one clean commit with no shared history, so
+`git pull upstream` won't work. Pick this when the deck won't need harness
+updates.
+
+GitHub's Fork button won't work here, because it can't fork a repo into the
+account that already owns it.
+
+**Keeping pulls clean.** Harness files belong to sl-ide: `src/components/`,
+`src/lab/` (except `takes/`), `scripts/`, `vite.config.js`, `.githooks/`,
+`.github/` and the skills in `.agents/skills/`. A deck's own work goes in
+`src/deck/content.js`, `src/slides/`, its blocks in `src/styles.css`,
+`PRODUCT.md`, `DESIGN.md` and the "This deck" section of `AGENTS.md`. Fix a
+harness bug in sl-ide first, then pull it into the decks, so it never has to
+be redone per deck.
+
 ## Get started
+
+In the new deck's folder:
 
 ```sh
 pnpm install          # deps, plus the pre-commit hook

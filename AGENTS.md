@@ -14,6 +14,16 @@ the user asks for slides, run the **new-deck** skill first. It runs
 from a brand source (DESIGN.md and the tokens), then outlines the story.
 `node scripts/doctor.js` reports what's left; `pnpm dev` prints the same.
 
+## Harness vs. deck
+
+Each deck is its own repo made from sl-ide (README, "Start a new deck"),
+usually with sl-ide as the `upstream` remote. Harness files belong to sl-ide:
+`src/components/`, `src/lab/` (except `takes/`), `scripts/`,
+`vite.config.js`, `.githooks/`, `.github/` and `.agents/skills/`. When a fix
+belongs in the harness rather than one deck, say so and suggest making it in
+sl-ide and pulling it in (`git pull upstream main`), so decks don't drift
+apart. In the sl-ide repo itself, keep everything brand-neutral.
+
 ## This deck
 
 <!-- new-deck fills this in: the page list in order (one line each: label,
