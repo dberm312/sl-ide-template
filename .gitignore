@@ -1,0 +1,19 @@
+.DS_Store
+.env
+.env.*
+node_modules/
+dist/
+output/
+.lab/
+.playwright-cli/
+
+# Third-party agent skills, restored from skills-lock.json by
+# `npx skills experimental_install`. sl-ide's own skills are committed.
+.agents/skills/impeccable/
+.agents/skills/copy-editing/
+.agents/skills/copywriting/
+.claude/skills/impeccable
+.claude/skills/copy-editing
+.claude/skills/copywriting
+.impeccable/live/
+.impeccable/config.local.json

@@ -1,0 +1,557 @@
+/* =========================================================================
+   sl-ide deck styles
+   Fixed 1280 x 720 px pages (13.333 x 7.5 in, 16:9), printed to PDF by
+   scripts/pdf.sh through headless Chrome. No @media print block: the screen
+   preview and the printed page are the same render.
+
+   Three parts, in order:
+     1. fonts and DESIGN TOKENS (:root). The starter's tokens are a neutral
+        placeholder. /new-deck has impeccable replace them with your visual
+        system and record it in DESIGN.md. Slides never hard-code a colour.
+     2. the page frame and shared building blocks, then one block per page
+     3. the screen-only IDE chrome (dev bar, rail, sorter), which has its
+        own --ide-* tokens so restyling the deck never restyles the IDE
+   ========================================================================= */
+
+/* --- fonts: self-hosted (scripts/fonts.sh) ------------------------------
+   One rule per exact weight. A missing face falls back silently at print,
+   which scripts/check-fonts.sh catches in the PDF. */
+@font-face { font-family: "Inter Tight"; src: url("./fonts/inter-tight-400.woff2") format("woff2"); font-weight: 400; font-display: block; }
+@font-face { font-family: "Inter Tight"; src: url("./fonts/inter-tight-500.woff2") format("woff2"); font-weight: 500; font-display: block; }
+@font-face { font-family: "Inter Tight"; src: url("./fonts/inter-tight-600.woff2") format("woff2"); font-weight: 600; font-display: block; }
+@font-face { font-family: "Inter Tight"; src: url("./fonts/inter-tight-700.woff2") format("woff2"); font-weight: 700; font-display: block; }
+@font-face { font-family: "Inter Tight"; src: url("./fonts/inter-tight-800.woff2") format("woff2"); font-weight: 800; font-display: block; }
+/* The latin subset lacks → and ≈; these two-glyph files cover them. Each
+   needs an exact weight: a weight range is never loaded. */
+@font-face { font-family: "Inter Tight"; src: url("./fonts/inter-tight-400-symbols.woff2") format("woff2"); font-weight: 400; unicode-range: U+2192, U+2248; font-display: block; }
+@font-face { font-family: "Inter Tight"; src: url("./fonts/inter-tight-400-symbols.woff2") format("woff2"); font-weight: 500; unicode-range: U+2192, U+2248; font-display: block; }
+@font-face { font-family: "Inter Tight"; src: url("./fonts/inter-tight-600-symbols.woff2") format("woff2"); font-weight: 600; unicode-range: U+2192, U+2248; font-display: block; }
+@font-face { font-family: "Inter Tight"; src: url("./fonts/inter-tight-700-symbols.woff2") format("woff2"); font-weight: 700; unicode-range: U+2192, U+2248; font-display: block; }
+@font-face { font-family: "Inter Tight"; src: url("./fonts/inter-tight-700-symbols.woff2") format("woff2"); font-weight: 800; unicode-range: U+2192, U+2248; font-display: block; }
+@font-face { font-family: "Source Serif 4"; src: url("./fonts/source-serif-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: block; }
+@font-face { font-family: "Source Serif 4"; src: url("./fonts/source-serif-600.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: block; }
+@font-face { font-family: "Source Serif 4"; src: url("./fonts/source-serif-400i.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: block; }
+@font-face { font-family: "JetBrains Mono"; src: url("./fonts/jetbrains-mono-400.woff2") format("woff2"); font-weight: 400; font-display: block; }
+
+/* --- design tokens (placeholder until /new-deck) ------------------------- */
+:root {
+  --ink:      #1d1f24;   /* body and headline type */
+  --paper:    #ffffff;   /* page ground */
+  --accent:   #2f5bd3;   /* the one brand colour; must carry text on --paper (6.1:1) */
+  --accent-ink: #2449b0; /* accent type on --card */
+  --on-accent: #ffffff;
+  --card:     #f3f4f6;   /* panel ground */
+  --rule:     #d5d8de;   /* section rules and hairlines */
+  --muted:    #565b66;   /* de-emphasised type, 6.4:1 on --card */
+  --chrome:   #8a8f99;   /* footer chrome only */
+  --confirm:  #fff1bf;   /* [CONFIRM]/[TBD] highlight: unmissable until filled */
+  --draft:    #c2570c;   /* draft tab (META.watermark); white on it is 5.2:1 */
+
+  --sans:  "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --mono:  "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Type floors on the 1280 px page: 12 pt = 16 px body, 9 pt = 12 px footer. */
+  --body: 16px;
+  --foot: 12px;
+  --title: 40px;
+}
+
+/* =========================================================================
+   PAGE FRAME
+   ========================================================================= */
+@page { size: 13.333in 7.5in; margin: 0; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+@media screen { html, body { background: #15161a; } }
+
+::selection { background: var(--accent); color: var(--on-accent); }
+
+.slide {
+  width: 1280px; height: 720px;
+  position: relative; overflow: hidden;      /* NOTE: overflow is clipped silently */
+  background: var(--paper); color: var(--ink);
+  font-family: var(--sans); font-size: var(--body); line-height: 1.3;
+  font-variant-numeric: lining-nums;
+  break-after: page; page-break-after: always;
+  -webkit-font-smoothing: antialiased;
+}
+@media screen {
+  body { padding: 24px 0; }
+  .slide {
+    zoom: var(--preview-scale, 1);
+    margin: 0 auto 24px auto;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* Every region is one of these, placed by box() in inches. */
+.region { position: absolute; }
+b, strong { font-weight: 700; }
+
+/* Action title: the title zone, one line where it fits, two at most. */
+.slide h1.action-title {
+  font-family: var(--sans); font-weight: 700;
+  font-size: var(--title); line-height: 1.15; letter-spacing: -0.018em;
+  color: var(--ink); text-wrap: balance;
+}
+
+/* Draft tab, hard in the top-right corner while META.watermark is set. */
+.corner-flags {
+  position: absolute; top: 0; right: 0; z-index: 10;
+  display: flex; align-items: flex-start; gap: 6px;
+}
+.draft-flag {
+  max-width: 220px; padding: 7px 14px 8px;
+  background: var(--draft); color: var(--on-accent);
+  font-weight: 700; font-size: 15px; line-height: 1.1; letter-spacing: 0.06em;
+  text-transform: uppercase; white-space: pre-line;
+}
+.slide.has-draft h1.action-title { padding-right: 110px; }
+
+/* Sticker at the right end of the title zone: PRELIMINARY and the like. */
+.title-sticker {
+  position: absolute; top: 72px; right: 48px; z-index: 5;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 5px 12px 6px; border: 2px solid var(--ink); background: var(--paper);
+  color: var(--ink); line-height: 1.15; white-space: nowrap;
+}
+.title-sticker b { font-size: 14px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.title-sticker span { font-size: 12px; font-weight: 600; font-style: italic; color: var(--muted); }
+.slide:has(.title-sticker) h1.action-title { padding-right: 180px; }
+
+/* Sources footer and page chrome. */
+.sources {
+  font-size: var(--foot); line-height: 1.32; color: var(--muted);
+  display: flex; align-items: flex-start;
+}
+.slide-footer {
+  position: absolute; left: 48px; right: 48px; top: 694px;
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: var(--foot); color: var(--chrome); letter-spacing: 0.02em;
+}
+.slide-footer .footer-page { font-variant-numeric: tabular-nums; font-weight: 600; }
+.deck-mark { position: absolute; left: 48px; bottom: 12px; display: block; color: var(--ink); }
+.deck-mark.is-text {
+  display: inline-flex; align-items: center; padding: 0 0.6em;
+  border: 2px solid currentColor; font-weight: 800; letter-spacing: 0.02em; line-height: 1;
+}
+
+/* =========================================================================
+   BUILDING BLOCKS — reuse these before inventing new ones
+   ========================================================================= */
+.lede { font-family: var(--serif); font-size: 21px; line-height: 1.3; color: var(--accent); }
+.eyebrow {
+  font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted);
+}
+/* Section title: serif, accent, over a 2px rule. */
+.section-title {
+  font-family: var(--serif); font-weight: 600; font-size: 20px; line-height: 1.2;
+  color: var(--accent); padding-bottom: 6px; border-bottom: 2px solid var(--rule);
+}
+.bullets { list-style: none; display: grid; row-gap: 12px; margin-top: 14px; }
+.bullets li { position: relative; padding-left: 18px; line-height: 1.32; text-wrap: pretty; }
+.bullets li::before {
+  content: ''; position: absolute; left: 2px; top: 0.55em;
+  width: 6px; height: 6px; background: var(--accent);
+}
+/* Card: a filled panel for one idea. The audit measures every .card. */
+.card { background: var(--card); padding: 16px 20px; }
+.card h3 { font-size: 18px; font-weight: 700; line-height: 1.2; }
+.card p { margin-top: 4px; line-height: 1.32; text-wrap: pretty; }
+/* Emphasis is an outline, never a fill or a recolour; one per page at most. */
+.is-outline { box-shadow: inset 0 0 0 2px var(--accent); }
+/* Stacked bands. The audit checks .fill children for overlap. */
+.fill { display: flex; flex-direction: column; gap: 12px; }
+.table { width: 100%; border-collapse: collapse; font-size: var(--body); }
+.table th {
+  text-align: left; font-size: 13px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted);
+  padding: 0 14px 8px 0; border-bottom: 2px solid var(--ink);
+}
+.table td { padding: 11px 14px 11px 0; border-bottom: 1px solid var(--rule); vertical-align: top; line-height: 1.3; }
+.is-muted { color: var(--muted); }
+/* [CONFIRM: …] and [TBD: …], exactly as written. */
+.confirm { background: var(--confirm); font-family: var(--serif); font-style: italic; padding: 0 3px; }
+
+/* =========================================================================
+   COVER
+   ========================================================================= */
+.cover-kicker { font-size: 15px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.cover-title {
+  margin-top: 14px; font-weight: 800; font-size: 72px; line-height: 0.98;
+  letter-spacing: -0.03em; color: var(--ink); text-wrap: balance;
+}
+.cover-by { margin-top: 26px; font-size: 19px; color: var(--muted); }
+.cover-mark { display: flex; align-items: flex-end; }
+.cover-mark .deck-mark { position: static; }
+.cover-brief {
+  display: flex; flex-direction: column; justify-content: center;
+  border-left: 2px solid var(--rule); padding-left: 32px;
+}
+.cover-list {
+  list-style: none; margin-top: 20px; display: grid; row-gap: 18px;
+  font-family: var(--serif); font-size: 23px; line-height: 1.26; color: var(--accent);
+}
+.cover-list li { position: relative; padding-left: 0.85em; text-wrap: pretty; }
+.cover-list li::before {
+  content: ''; position: absolute; left: 0; top: 0.5em;
+  width: 0.28em; height: 0.28em; border-radius: 50%; background: currentColor;
+}
+
+/* =========================================================================
+   START HERE
+   ========================================================================= */
+.sh-steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.sh-step { display: flex; flex-direction: column; gap: 10px; padding: 22px 24px; }
+.sh-n { font-size: 56px; font-weight: 800; line-height: 1; color: var(--accent); letter-spacing: -0.03em; }
+.sh-step .section-title { font-size: 22px; }
+.sh-cmd {
+  align-self: flex-start; font-family: var(--mono); font-size: 15px;
+  background: var(--paper); border: 1px solid var(--rule); padding: 3px 8px;
+}
+.sh-step p { margin-top: 0; }
+
+/* =========================================================================
+   ANATOMY · CHECKS · FILES
+   ========================================================================= */
+.an-cards .section-title { margin-bottom: 2px; }
+.ck-name { font-weight: 700; white-space: nowrap; width: 150px; }
+.fl-path { font-family: var(--mono); font-size: 15px; white-space: nowrap; width: 330px; }
+
+/* =========================================================================
+   APPENDIX DIVIDER
+   ========================================================================= */
+.divider { display: flex; flex-direction: column; justify-content: center; }
+.divider-title {
+  font-family: var(--serif); font-weight: 600; font-size: 64px; line-height: 1.05;
+  color: var(--accent); padding-bottom: 14px; border-bottom: 2px solid var(--rule);
+}
+.divider-list { list-style: none; margin-top: 22px; display: grid; gap: 10px; }
+.divider-list li { font-size: 21px; line-height: 1.25; display: flex; gap: 18px; }
+.divider-no { font-weight: 700; color: var(--accent-ink); min-width: 36px; font-variant-numeric: tabular-nums; }
+
+/* --- new pages go here, one block each ------------------------------------ */
+
+/* sl-ide's own palette for the IDE chrome. Independent of the deck tokens. */
+:root {
+  --ide-accent: #5b6cff;
+  --ide-accent-rgb: 91 108 255;
+  --ide-accent-soft: #aab4ff;
+}
+/* =========================================================================
+   SCREEN-ONLY CHROME — dev bar and sorter.
+   None of this is reachable from a #print route, and all of it is wrapped in
+   @media screen, so it cannot reach the exported PDF by any path.
+   ========================================================================= */
+@media screen {
+  /* The bar is fixed and its height depends on how the chip row wraps, so it
+     measures itself into --devbar-h (see DevBar.jsx). The literal is only the
+     value used for the first paint, before the measurement lands. */
+  /* Dark scrollbars to match the chrome, on the preview route only. */
+  html:has(body.has-devbar) { scrollbar-color: #3d3a37 #141413; }
+  body.has-devbar {
+    padding-top: var(--devbar-h, 104px);
+    padding-left: var(--rail-w, 0px);
+  }
+
+  /* --- dev bar (DevBar.jsx) --------------------------------------------- */
+  /* One fixed panel: the commands, then the slide rail beneath them. Docked
+     on top (.is-top) it spans the window and measures its height into
+     --devbar-h; docked left (.is-side) it is --rail-w wide, which App also
+     subtracts when it scales the slides. */
+  .devbar {
+    position: fixed; top: 0; left: 0; z-index: 50;
+    box-sizing: border-box; display: flex; flex-direction: column;
+    background: #1b1a18; color: #e8e6dc;
+    font-family: var(--sans); font-size: 12px;
+  }
+  .devbar.is-top { right: 0; border-bottom: 1px solid #343230; }
+  .devbar.is-side { bottom: 0; width: var(--rail-w, 0px); border-right: 1px solid #343230; }
+
+  .devbar-row { display: flex; align-items: center; gap: 14px; padding: 7px 14px; }
+  /* Minimised on top the head dissolves into one row, its tools staying
+     beside the title where they sit when the bar is open. */
+  .is-top.is-min .devbar-head { display: contents; }
+  .devbar-tools { display: flex; align-items: center; gap: 2px; }
+  .devbar-brand { font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; }
+  .devbar-count { margin-left: 8px; font-weight: 400; color: #828179; white-space: nowrap; }
+  /* center, not the default stretch: when the row wraps taller, stretched
+     pills grow into ovals with their label pinned to the top edge */
+  .devbar-routes { display: flex; align-items: center; gap: 4px; }
+  .devbar-route {
+    color: #b0aea5; text-decoration: none; padding: 3px 10px; border-radius: 999px;
+    white-space: nowrap;
+  }
+  .devbar-route:hover { background: #2a2825; color: #faf9f5; }
+  .devbar-route.is-on { background: var(--ide-accent); color: #fff; font-weight: 600; }
+  .devbar-keys { color: #828179; white-space: nowrap; }
+  .devbar kbd {
+    font-family: var(--mono); background: #343230; border-radius: 3px;
+    padding: 1px 5px; margin: 0 1px; color: #e8e6dc;
+  }
+  .devbar-icon {
+    display: grid; place-items: center; width: 26px; height: 26px; padding: 0;
+    background: none; border: 0; border-radius: 5px; color: #b0aea5; cursor: pointer;
+  }
+  .devbar-icon:hover { background: #2a2825; color: #faf9f5; }
+  .devbar-icon.is-on { color: var(--ide-accent-soft); }
+
+  /* Tooltips: a label under each button, shown at once on hover or focus.
+     Routes hang theirs from the left edge and icons from the right, so
+     neither runs off the panel. */
+  .devbar [data-tip] { position: relative; }
+  .devbar [data-tip]::after {
+    content: attr(data-tip); position: absolute; z-index: 60; top: calc(100% + 6px);
+    width: max-content; max-width: 220px; padding: 5px 8px; border-radius: 5px;
+    background: #faf9f5; color: #1b1a18; font-size: 12px; font-weight: 500;
+    line-height: 1.3; white-space: normal; text-align: left;
+    box-shadow: 0 4px 14px rgb(0 0 0 / 0.35);
+    pointer-events: none; opacity: 0; transition: opacity 0.1s;
+  }
+  .devbar .devbar-route[data-tip]::after { left: 0; }
+  .devbar .devbar-icon[data-tip]::after { right: 0; }
+  .devbar [data-tip]:is(:hover, :focus-visible)::after { opacity: 1; transition-delay: 0.25s; }
+  .is-top .devbar-icon[data-tip]::after { right: auto; left: 0; }
+  /* Docked left and open, the panel can be narrower than a tip hung from an
+     icon, so icon tips hang from the head instead: under it, flush with the
+     panel's right edge and wrapping to the panel's width. */
+  .is-side.is-open .devbar-head { position: relative; }
+  .is-side.is-open .devbar-icon[data-tip] { position: static; }
+  .is-side.is-open .devbar-icon[data-tip]::after { max-width: 100%; box-sizing: border-box; }
+  /* The thin minimised strip shows them to the side, over the slides. */
+  .is-side.is-min .devbar-icon[data-tip]::after {
+    top: 50%; right: auto; left: calc(100% + 8px); transform: translateY(-50%);
+  }
+
+  /* Docked left, or open on top: the commands stack, brand and tools on the
+     first line. On top they take a left column and the slides the rest. */
+  :is(.is-side, .is-top.is-open) .devbar-row {
+    flex-direction: column; align-items: stretch; gap: 10px;
+    padding: 10px 12px 12px;
+  }
+  .is-side .devbar-row { border-bottom: 1px solid #343230; }
+  .devbar.is-top.is-open { flex-direction: row; }
+  /* As narrow as the title and its icons allow; the hints wrap to fit. */
+  .is-top.is-open .devbar-row {
+    flex: none; width: min-content; gap: 8px; padding: 8px 10px 10px;
+    border-right: 1px solid #343230;
+  }
+  .devbar.is-top.is-open .devbar-brand { white-space: nowrap; }
+  .devbar.is-top.is-open .devbar-routes { flex-wrap: nowrap; margin-left: -4px; }
+  .devbar.is-top.is-open .devbar-route { padding: 3px 8px; }
+  :is(.is-side, .is-top.is-open) .devbar-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  :is(.is-side, .is-top.is-open) .devbar-brand { white-space: normal; }
+  :is(.is-side, .is-top.is-open) .devbar-routes { flex-wrap: wrap; }
+  :is(.is-side, .is-top.is-open) .devbar-keys { white-space: normal; line-height: 1.9; }
+  /* Minimised on the left: a thin strip of the two tools. */
+  .is-side.is-min .devbar-row { padding: 8px 0; align-items: center; border-bottom: 0; }
+  .is-side.is-min .devbar-head { flex-direction: column; }
+  .is-side.is-min .devbar-tools { flex-direction: column; gap: 4px; }
+  .is-side.is-min :is(.devbar-brand, .devbar-routes, .devbar-keys, .is-keys) { display: none; }
+
+  /* --- slide rail (SlideRail.jsx) ---------------------------------------- */
+  /* The resize handle: the right edge docked left, the bottom edge on top. */
+  .rail-grip { position: absolute; touch-action: none; z-index: 1; }
+  .rail-grip.is-x { top: 0; bottom: 0; right: -4px; width: 8px; cursor: col-resize; }
+  .rail-grip.is-y { left: 0; right: 0; bottom: -4px; height: 8px; cursor: row-resize; }
+  .rail-grip.is-x:hover, body.is-rail-resizing .rail-grip.is-x {
+    background: linear-gradient(to right, transparent 3px, var(--ide-accent) 3px, var(--ide-accent) 5px, transparent 5px);
+  }
+  .rail-grip.is-y:hover, body.is-rail-resizing-y .rail-grip.is-y {
+    background: linear-gradient(to bottom, transparent 3px, var(--ide-accent) 3px, var(--ide-accent) 5px, transparent 5px);
+  }
+  body.is-rail-resizing { cursor: col-resize; user-select: none; }
+  body.is-rail-resizing-y { cursor: row-resize; user-select: none; }
+
+  /* Right-click menu on a thumb (copy the page as an image). */
+  .rail-menu {
+    position: fixed; z-index: 70; padding: 4px; min-width: 180px;
+    background: #2a2825; border: 1px solid #3d3a37; border-radius: 7px;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.45);
+  }
+  .rail-menu-item {
+    display: block; width: 100%; text-align: left; padding: 6px 10px;
+    font: inherit; font-size: 13px; color: #faf9f5; background: none;
+    border: 0; border-radius: 4px; cursor: pointer;
+  }
+  .rail-menu-item:hover:not(:disabled) { background: var(--ide-accent); color: #fff; }
+  .rail-menu-item:disabled { color: #b0aea5; cursor: default; }
+  .rail-list {
+    display: flex; gap: 12px;
+    scrollbar-width: thin; scrollbar-color: #3d3a37 transparent;
+  }
+  .is-side .rail-list {
+    flex: 1; flex-direction: column; overflow-y: auto; overflow-x: hidden;
+    padding: 12px 12px 16px 6px;
+  }
+  .is-top .rail-list {
+    flex: 1; min-width: 0; align-items: center;
+    overflow-x: auto; overflow-y: hidden; padding: 10px 14px 10px 8px;
+  }
+  .rail-cell {
+    flex: none; display: flex; align-items: flex-start; gap: 6px; padding: 0;
+    background: none; border: 0; font: inherit; color: inherit; cursor: pointer;
+  }
+  /* Page label, then its word count, then its worst fault if it has one.
+     Faults carry a "+Npx" label as well as their colour. */
+  .rail-meta {
+    width: 30px; flex: none; padding-top: 2px;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+    font-size: 11px; font-variant-numeric: tabular-nums;
+  }
+  .rail-no { font-size: 12px; font-weight: 600; color: #828179; }
+  .rail-words { color: #6b6a64; }
+  .rail-words.is-over { color: #e8b04b; font-weight: 600; }
+  .rail-clip { color: #e06a5a; font-weight: 600; }
+  .rail-cell.is-clipped .thumb { outline: 2px solid #e06a5a; }
+  .rail-alert {
+    align-self: center; color: #e06a5a; font-weight: 700; font-size: 14px;
+  }
+  .is-top .rail-alert { position: absolute; right: 74px; top: 50%; transform: translateY(-50%); }
+  .rail-cell .thumb { flex: none; border-radius: 2px; }
+  .rail-list { user-select: none; -webkit-user-drag: none; }
+  .rail-list * { -webkit-user-drag: none; }
+  .rail-cell:hover .thumb { outline: 2px solid #5e5c58; }
+  .rail-cell.is-clipped:hover .thumb { outline-color: #e06a5a; }
+  /* The page in view: a thicker blue outline with a soft halo, and its label
+     as a filled blue tag, so it reads at a glance in either orientation. */
+  .rail-cell.is-on .rail-no {
+    color: #fff; background: var(--ide-accent); border-radius: 3px; padding: 0 4px; font-weight: 700;
+  }
+  .rail-cell.is-on .rail-words { color: #b0aea5; }
+  .rail-cell.is-on .thumb {
+    outline: 3px solid var(--ide-accent); outline-offset: 1px;
+    box-shadow: 0 0 0 7px rgb(var(--ide-accent-rgb) / 0.35);
+  }
+  .rail-cell.is-on.is-clipped .thumb { outline-color: #e06a5a; }
+
+  /* --- comment mode (Inspector.jsx) --------------------------------------- */
+  /* The toggle is a <button> styled as a route pill. */
+  button.devbar-route { background: none; border: 0; font: inherit; cursor: pointer; }
+  body.is-commenting #root > .slide,
+  body.is-commenting #root > .slide * { cursor: crosshair; }
+  .inspector-box {
+    position: fixed; pointer-events: none; box-sizing: border-box;
+    border: 1.5px solid var(--ide-accent); border-radius: 2px;
+    background: rgb(var(--ide-accent-rgb) / 0.08);
+  }
+  .inspector-box.is-picked { border-width: 2px; background: rgb(var(--ide-accent-rgb) / 0.14); }
+  .inspector-pop {
+    position: fixed; box-sizing: border-box; padding: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+    background: #1b1a18; color: #e8e6dc; border: 1px solid #3d3a37; border-radius: 8px;
+    box-shadow: 0 8px 28px rgb(0 0 0 / 0.35);
+  }
+  .ip-slide { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ip-path {
+    font-family: var(--mono); font-size: 11px; color: #b0aea5; overflow-wrap: anywhere;
+    background: #2a2825; border-radius: 4px; padding: 5px 7px;
+  }
+  .ip-text {
+    color: #828179; font-style: italic; max-height: 3.6em; overflow: hidden;
+  }
+  .ip-note {
+    font: inherit; font-size: 13px; color: #faf9f5; resize: vertical;
+    background: #141413; border: 1px solid #3d3a37; border-radius: 5px; padding: 7px 8px;
+  }
+  .ip-note:focus { outline: none; border-color: var(--ide-accent); }
+  .ip-actions { display: flex; align-items: center; gap: 6px; }
+  .ip-keys { flex: 1; color: #828179; white-space: nowrap; }
+  .ip-btn {
+    font: inherit; cursor: pointer; color: #e8e6dc; background: #2a2825;
+    border: 1px solid #3d3a37; border-radius: 5px; padding: 4px 10px;
+  }
+  .ip-btn:hover { border-color: var(--ide-accent); }
+  .ip-btn.is-primary { background: var(--ide-accent); border-color: var(--ide-accent); color: #fff; font-weight: 600; }
+  .ip-btn.is-primary kbd { background: rgb(0 0 0 / 0.15); color: inherit; }
+  .inspector-toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #1b1a18; color: #faf9f5; border: 1px solid var(--ide-accent);
+    border-radius: 999px; padding: 6px 14px;
+  }
+
+  /* --- find (FindBar.jsx) ------------------------------------------------ */
+  /* Hangs under the bar's right end, so opening it never changes the bar's
+     measured height. Its buttons borrow comment mode's .ip-btn. */
+  .findbar {
+    position: fixed; top: calc(var(--devbar-h, 104px) + 8px); right: 16px;
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    max-width: min(460px, calc(100vw - 32px)); box-sizing: border-box; padding: 8px;
+    background: #1b1a18; color: #e8e6dc; border: 1px solid #3d3a37; border-radius: 8px;
+    box-shadow: 0 8px 28px rgb(0 0 0 / 0.35);
+  }
+  .fb-input {
+    flex: 1; min-width: 160px; font: inherit; font-size: 13px; color: #faf9f5;
+    background: #141413; border: 1px solid #3d3a37; border-radius: 5px; padding: 5px 8px;
+  }
+  .fb-input:focus { outline: none; border-color: var(--ide-accent); }
+  .fb-count { color: #828179; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .findbar .ip-btn:disabled { opacity: 0.4; cursor: default; border-color: #3d3a37; }
+  .fb-where {
+    flex-basis: 100%; color: #828179; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  ::highlight(find) { background-color: rgb(232 176 75 / 0.45); }
+  ::highlight(find-current) { background-color: #e8b04b; color: #141413; }
+
+  /* --- sorter ------------------------------------------------------------ */
+  /* Columns and gap are set inline by SorterView, which sizes each thumb to
+     its column. */
+  .sorter { display: grid; padding: 0 24px 24px; }
+  .sorter-bar {
+    display: flex; align-items: center; gap: 4px; padding: 0 24px 16px;
+    font-family: var(--sans); font-size: 12px; color: #828179;
+  }
+  .sorter-bar-label { margin-right: 6px; }
+  .sorter-bar-btn {
+    background: #2a2825; border: 1px solid #3d3a37; color: #e8e6dc;
+    border-radius: 5px; padding: 2px 9px; font: inherit; cursor: pointer;
+  }
+  .sorter-bar-btn:hover { border-color: var(--ide-accent); }
+  .sorter-bar-btn.is-on {
+    background: var(--ide-accent); border-color: var(--ide-accent); color: #fff; font-weight: 600;
+  }
+  .sorter-bar-keys { margin-left: 12px; }
+  .sorter-bar kbd {
+    font-family: var(--mono); background: #343230; border-radius: 3px;
+    padding: 1px 5px; margin: 0 1px; color: #e8e6dc;
+  }
+  /* The thumb's wrapper does the scaling; the page inside renders at 1:1 with
+     none of the preview's spacing, or it lands short of the thumb's box. */
+  .thumb .slide { zoom: 1; margin: 0; box-shadow: none; }
+  /* Thumbs sit inside <button>s (sorter cells, rail cells), and a button
+     centres its text by default, which every slide inside would inherit. */
+  .thumb { text-align: start; }
+  .sorter-cell {
+    display: flex; flex-direction: column; gap: 8px; cursor: pointer;
+    background: none; border: 0; padding: 0; text-align: left; font: inherit;
+  }
+  .sorter-cell .thumb { border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+  .sorter-cell:hover .thumb { outline: 2px solid var(--ide-accent); }
+  .sorter-caption {
+    display: flex; gap: 8px; font-family: var(--sans); font-size: 12px; color: #b0aea5;
+  }
+  .sorter-caption .sc-page { color: var(--ide-accent-soft); font-weight: 600; flex: none; }
+  .sorter-caption .sc-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+
+
+@media screen {
+  /* sl-ide wordmark and deck name in the bar head. */
+  .devbar-brand { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; min-width: 0; }
+  .devbar-logo { font-weight: 800; font-size: 14px; letter-spacing: -0.01em; color: #faf9f5; white-space: nowrap; }
+  /* Docked left (or open on top) the deck name takes its own line. */
+  :is(.is-side, .is-top.is-open) .devbar-deck { order: 2; flex-basis: 100%; }
+  .devbar-logo i { font-style: normal; color: var(--ide-accent-soft); }
+  .devbar-deck { color: #b0aea5; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .devbar-count { margin-left: 0; }
+  /* Setup chip: shown until /new-deck is done. */
+  .devbar-setup {
+    align-self: flex-start; padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+    border: 1px dashed var(--ide-accent-soft); color: var(--ide-accent-soft); font-weight: 600;
+  }
+  .devbar .devbar-setup[data-tip]::after { left: 0; white-space: pre-line; max-width: 300px; }
+}

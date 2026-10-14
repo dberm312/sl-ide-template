@@ -1,0 +1,73 @@
+/* Slide lab chrome (lab.html, dev server only). The slides inside keep the
+   deck's own tokens from styles.css; this file styles only the board around
+   them, in the dev bar's dark palette. */
+body:has(.lab), body.lab-solo { padding: 0; }
+body.lab-solo { background: var(--paper); }
+body.lab-solo .slide { margin: 0; box-shadow: none; }
+
+.lab {
+  --lab-bg: #1f2228; --lab-panel: #2a2d34; --lab-line: #3a3e47;
+  --lab-text: #e8e6dc; --lab-dim: #a3a7b0; --lab-accent: #8fb0e0;
+  color: var(--lab-text); font-family: var(--sans); font-size: 14px; line-height: 1.4;
+  padding: 0 24px 48px;
+}
+.lab .slide { margin: 0; box-shadow: none; }
+.lab button { font: inherit; color: inherit; cursor: pointer; }
+
+/* --- sticky bar: brief, jump links, size, send ----------------------------- */
+.lab-bar {
+  position: sticky; top: 0; z-index: 20; background: var(--lab-bg);
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 10px 24px;
+  padding: 14px 0 12px; border-bottom: 1px solid var(--lab-line); margin-bottom: 20px;
+}
+.lab-round { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--lab-accent); }
+.lab-bar h1 { font-size: 20px; font-weight: 700; margin-top: 2px; }
+.lab-bar p { color: var(--lab-dim); max-width: 760px; margin-top: 2px; }
+.lab-bar-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.lab-status { color: var(--lab-dim); font-size: 13px; }
+
+.lab-seg { display: inline-flex; border: 1px solid var(--lab-line); }
+.lab-seg button, .lab-verdict button { background: none; border: 0; padding: 5px 11px; color: var(--lab-dim); }
+.lab-seg button + button, .lab-verdict button + button { border-left: 1px solid var(--lab-line); }
+.lab-seg button.is-on, .lab-verdict button.is-on { background: var(--lab-panel); color: var(--lab-text); font-weight: 600; }
+.lab-seg button:hover { color: var(--lab-text); }
+/* Verdicts show on the jump links as a shape, not a colour alone. */
+.lab-seg button.is-pick { box-shadow: inset 0 -3px 0 var(--lab-accent); color: var(--lab-text); }
+.lab-seg button.is-cut { text-decoration: line-through; }
+.lab-seg button.is-ref { font-style: italic; }
+.lab-send { background: var(--ide-accent); color: #fff; border: 0; padding: 7px 14px; font-weight: 600; }
+
+/* --- one row per take: the slide, then its notes beside it ----------------- */
+.lab-list { display: flex; flex-direction: column; gap: 20px; }
+.lab-row {
+  display: flex; gap: 20px; align-items: flex-start;
+  scroll-margin-top: 190px;
+}
+.lab-slide { flex: none; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45); outline: 3px solid transparent; outline-offset: 3px; }
+.lab-row.is-pick .lab-slide { outline-color: var(--lab-accent); }
+.lab-row.is-cut .lab-slide { opacity: 0.5; }
+.lab-row.is-ref { padding-top: 20px; border-top: 1px dashed var(--lab-line); }
+.lab-fit { overflow: hidden; }
+
+.lab-side { flex: 1; min-width: 260px; max-width: 520px; display: flex; flex-direction: column; gap: 8px; }
+.lab-side h2 { font-size: 17px; font-weight: 700; display: flex; align-items: center; }
+.lab-key {
+  display: inline-block; min-width: 24px; margin-right: 10px; padding: 0 6px;
+  background: var(--lab-text); color: var(--lab-bg); text-align: center;
+}
+.lab-idea { color: var(--lab-dim); }
+.lab-changes { color: var(--lab-text); }
+.lab-health { font-size: 12px; font-weight: 600; }
+.lab-health.is-ok { color: var(--lab-dim); }
+.lab-health.is-bad { color: #f0b46a; }
+.lab-verdict { display: inline-flex; align-self: flex-start; border: 1px solid var(--lab-line); }
+.lab-note {
+  display: block; width: 100%; padding: 8px 10px; resize: vertical;
+  background: var(--lab-panel); color: var(--lab-text); border: 1px solid var(--lab-line);
+  font: inherit;
+}
+
+.lab-measure { position: absolute; left: -10000px; top: 0; visibility: hidden; }
+
+/* Notes across all takes: full width under the bar's top row. */
+.lab-general { flex-basis: 100%; }

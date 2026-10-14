@@ -1,0 +1,27 @@
+{
+  "name": "sl-ide",
+  "private": true,
+  "type": "module",
+  "description": "sl-ide: an IDE for building slides with Claude Code or Codex",
+  "packageManager": "pnpm@11.24.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "audit": "./scripts/audit.sh",
+    "pdf": "./scripts/pdf.sh",
+    "shots": "./scripts/shots.sh",
+    "lab": "./scripts/lab.sh",
+    "fonts": "./scripts/fonts.sh",
+    "doctor": "node scripts/doctor.js",
+    "skills": "npx -y skills@latest experimental_install && node scripts/doctor.js",
+    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.2",
+    "vite": "^8.3.4"
+  }
+}
