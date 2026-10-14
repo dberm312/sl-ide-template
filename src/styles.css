@@ -555,3 +555,116 @@ b, strong { font-weight: 700; }
   }
   .devbar .devbar-setup[data-tip]::after { left: 0; white-space: pre-line; max-width: 300px; }
 }
+
+/* =========================================================================
+   VIEWER (Viewer.jsx) — the audience's view: #view, and a built deck's
+   default. Screen only, so it can't reach the PDF. Uses the --ide-* tokens:
+   it is sl-ide's frame around the deck, not part of the deck.
+   ========================================================================= */
+@media screen {
+  body.is-viewing { padding: 0; overflow: hidden; background: #0e0f12; }
+  .viewer {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    color: #e8e6dc; font-family: var(--sans); font-size: 13px;
+  }
+  .viewer .slide { zoom: 1; margin: 0; box-shadow: none; }
+
+  /* Title, top left; the controls, bottom centre. Both fade when idle. */
+  .vw-top {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+    display: flex; align-items: baseline; gap: 12px; padding: 14px 20px;
+    background: linear-gradient(rgb(14 15 18 / 0.85), rgb(14 15 18 / 0));
+    transition: opacity 0.35s;
+  }
+  .vw-title { font-weight: 700; font-size: 14px; color: #faf9f5; }
+  .vw-by { color: #8b8a84; }
+  .vw-edit { margin-left: auto; color: #b0aea5; text-decoration: none; }
+  .vw-edit:hover { color: #faf9f5; }
+  .viewer kbd {
+    font-family: var(--mono); font-size: 11px; background: #2a2b31; border-radius: 3px;
+    padding: 1px 5px; margin-left: 4px; color: #e8e6dc;
+  }
+
+  /* The page, as large as the window allows, with room for the bar. */
+  .vw-stage {
+    flex: 1; min-height: 0; position: relative;
+    display: grid; place-items: center; padding: 56px 24px 76px;
+    touch-action: pan-y;
+  }
+  /* Its own stacking context, so a slide's z-indexed parts (the draft tab)
+     stay under the bar and the grid. */
+  .vw-page { overflow: hidden; isolation: isolate; box-shadow: 0 10px 40px rgb(0 0 0 / 0.55); }
+  .vw-hit {
+    position: absolute; top: 0; bottom: 0; width: 30%; z-index: 1;
+    background: none; border: 0; padding: 0; cursor: pointer;
+  }
+  .vw-hit.is-prev { left: 0; cursor: w-resize; }
+  .vw-hit.is-next { right: 0; cursor: e-resize; }
+  .vw-hit:disabled { cursor: default; }
+
+  .vw-bar {
+    position: absolute; left: 50%; bottom: 18px; z-index: 2; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 2px; padding: 5px;
+    background: rgb(27 28 33 / 0.92); border: 1px solid #2f3037; border-radius: 999px;
+    box-shadow: 0 8px 28px rgb(0 0 0 / 0.45); backdrop-filter: blur(8px);
+    transition: opacity 0.35s, transform 0.35s;
+  }
+  .vw-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-width: 34px; height: 34px; padding: 0 9px; border-radius: 999px;
+    background: none; border: 0; color: #d6d4cc; font: inherit; cursor: pointer; text-decoration: none;
+  }
+  .vw-btn:hover:not(:disabled) { background: #2d2e35; color: #fff; }
+  .vw-btn:focus-visible { outline: 2px solid var(--ide-accent-soft); outline-offset: 1px; }
+  .vw-btn:disabled { color: #55565c; cursor: default; }
+  .vw-count {
+    min-width: 64px; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; color: #faf9f5;
+  }
+  .vw-count span { color: #8b8a84; font-weight: 500; }
+  .vw-sep { width: 1px; height: 18px; background: #34353c; margin: 0 4px; }
+  .vw-bar [data-tip] { position: relative; }
+  .vw-bar [data-tip]:hover::after {
+    content: attr(data-tip); position: absolute; bottom: calc(100% + 10px); left: 50%;
+    transform: translateX(-50%); white-space: nowrap; padding: 4px 8px; border-radius: 5px;
+    background: #faf9f5; color: #15161a; font-size: 12px; font-weight: 500; pointer-events: none;
+  }
+
+  .vw-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #1d1e23; }
+  .vw-progress span { display: block; height: 100%; background: var(--ide-accent); transition: width 0.25s; }
+
+  .viewer.is-idle { cursor: none; }
+  .viewer.is-idle :is(.vw-top, .vw-bar) { opacity: 0; pointer-events: none; }
+  .viewer.is-idle .vw-bar { transform: translate(-50%, 8px); }
+  .viewer.is-idle .vw-hit { cursor: none; }
+
+  /* All pages: a grid over the stage. */
+  .vw-grid {
+    position: absolute; inset: 0; z-index: 5; overflow-y: auto;
+    background: #0e0f12; padding: 0 24px 32px;
+  }
+  .vw-grid-head {
+    position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 0; background: #0e0f12; color: #8b8a84;
+  }
+  .vw-grid-list { isolation: isolate; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 22px 18px; justify-items: start; }
+  .vw-cell {
+    display: flex; flex-direction: column; gap: 8px; padding: 0; background: none; border: 0;
+    font: inherit; color: inherit; text-align: left; cursor: pointer;
+  }
+  .vw-cell .thumb { border-radius: 3px; outline: 2px solid transparent; outline-offset: 2px; }
+  .vw-cell:hover .thumb { outline-color: #55565c; }
+  .vw-cell.is-on .thumb { outline-color: var(--ide-accent); }
+  .vw-cell:focus-visible .thumb { outline-color: var(--ide-accent-soft); }
+  .vw-cell-cap { display: flex; gap: 8px; width: 260px; color: #b0aea5; font-size: 12px; }
+  .vw-cell-cap b { color: var(--ide-accent-soft); flex: none; }
+
+  @media (max-width: 700px) {
+    .vw-stage { padding: 48px 8px 72px; }
+    .vw-top { padding: 12px 14px; }
+    .vw-by { display: none; }
+    .vw-hit { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .vw-top, .vw-bar, .vw-progress span { transition: none; }
+  }
+}

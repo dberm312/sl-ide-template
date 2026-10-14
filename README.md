@@ -29,7 +29,7 @@ deck, it still clones sl-ide, via that deck's `upstream`.
 By hand, the same thing is:
 
 ```sh
-git clone https://github.com/dberm312/sl-ide acme-pitch && cd acme-pitch
+git clone https://github.com/dberm312/sl-ide-template acme-pitch && cd acme-pitch
 git remote rename origin upstream          # sl-ide, for harness updates
 gh repo create acme-pitch --private --source . --push   # the deck's own repo
 ```
@@ -44,7 +44,7 @@ git pull upstream main
 so you can click **Use this template** on GitHub, or run:
 
 ```sh
-gh repo create acme-pitch --private --template dberm312/sl-ide --clone
+gh repo create acme-pitch --private --template dberm312/sl-ide-template --clone
 ```
 
 That repo starts from one clean commit with no shared history, so
@@ -110,6 +110,7 @@ install it for real work.
 |---|---|
 | `j` / `k` | next / previous page |
 | `s` | slide sorter (`+` / `-` to resize) |
+| `v` | viewer: what an audience sees (Esc to come back) |
 | `c` | comment mode: click an element, write a note, ⌘↵ copies a prompt-ready block |
 | `⌘F` | find in slides |
 | `b` | show or hide the slide rail (each page's word count and layout faults) |
@@ -118,7 +119,9 @@ install it for real work.
 
 | Route | |
 |---|---|
-| `/` | scroll preview with the dev bar |
+| `/` | dev server: scroll preview with the dev bar · built deck: the viewer |
+| `/#view/3` | the viewer, at page 3: one page at a time, ← → to move, `g` all pages, `f` full screen, Download PDF when `deck.pdf` sits beside it |
+| `/#preview` | the scroll preview, also in a built deck |
 | `/#sorter` | thumbnails |
 | `/#print` | pages without chrome (what the PDF prints) |
 | `/#audit` | the layout report |

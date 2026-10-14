@@ -3,6 +3,7 @@ import slides, { pageNumbers, appendixLabels } from './slides/index.jsx';
 import SlideThumb from './components/SlideThumb.jsx';
 import DevBar, { devbarHeight, scrollToSlide } from './components/DevBar.jsx';
 import Audit from './components/Audit.jsx';
+import Viewer from './components/Viewer.jsx';
 import { RAIL_SHUT_PX, readDockPlace, readRailOpen, readRailWidth } from './components/SlideRail.jsx';
 
 // Slides are fixed 1280px pages; scale the screen preview so one whole slide
@@ -41,16 +42,21 @@ function usePreviewScale(active, inset = 0) {
 }
 
 // Modes (via URL hash, so they survive a static server with no routing):
-//   (none)           -> screen preview: every page, appendix included, DevBar on
+//   (none)           -> dev server: the editing preview, every page, DevBar on
+//                       built deck (dist/, sl-ide cloud): the viewer
+//   #view[/N]        -> the viewer: one page at a time, for an audience
+//   #preview         -> the editing preview, also in a built deck
 //   #sorter          -> slide-sorter grid, the whole deck zoomed out
-//   #print           -> everything, no chrome (this is what build.sh exports)
+//   #print           -> everything, no chrome (what scripts/pdf.sh prints)
 //   #audit           -> a text report of words-per-slide and overflow, for audit.sh
 function getMode() {
   const hash = window.location.hash;
   if (hash.startsWith('#print')) return 'print';
   if (hash.startsWith('#audit')) return 'audit';
   if (hash.startsWith('#sorter')) return 'sorter';
-  return 'preview';
+  if (hash.startsWith('#view')) return 'view';
+  if (hash.startsWith('#preview')) return 'preview';
+  return import.meta.env.DEV ? 'preview' : 'view';
 }
 
 function useMode() {
@@ -176,6 +182,7 @@ export default function App() {
   const apx = appendixLabels();
 
   if (mode === 'sorter') return <SorterView pages={pages} apx={apx} />;
+  if (mode === 'view') return <Viewer slides={slides} pages={pages} apx={apx} />;
 
   return (
     <>

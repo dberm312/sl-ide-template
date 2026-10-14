@@ -24,6 +24,7 @@ import { META } from '../deck/content.js';
 const ROUTES = [
   { hash: '', label: 'Preview', hint: 'Every page at full size, scrolling' },
   { hash: '#sorter', label: 'Sorter', hint: 'The whole deck as a grid (s)' },
+  { hash: '#view', label: 'View', hint: 'What viewers see: one page at a time, as on sl-ide cloud (v)' },
 ];
 
 // A smell detector, not a rule: a page past it is usually trying to be two
@@ -289,6 +290,7 @@ export default function DevBar({
       if (e.target.closest('input, textarea')) return;
       const els = Array.from(document.querySelectorAll('#root > .slide'));
       if (e.key === 's') { window.location.hash = '#sorter'; return; }
+      if (e.key === 'v') { window.location.hash = '#view'; return; }
       if (e.key === 'c') { setCommenting((on) => !on); return; }
       if (e.key === '?') { setShowKeys((on) => !on); return; }
       if (e.key === 'd') { setPlace((p) => (p === 'side' ? 'top' : 'side')); return; }
@@ -384,7 +386,7 @@ export default function DevBar({
         <SetupChip />
         {showKeys && (
           <span className="devbar-keys">
-            <kbd>j</kbd><kbd>k</kbd> slide · <kbd>s</kbd> sorter · <kbd>b</kbd> slides · <kbd>d</kbd> dock · <kbd>c</kbd> comment · <kbd>⌘F</kbd> find · <kbd>?</kbd> shortcuts
+            <kbd>j</kbd><kbd>k</kbd> slide · <kbd>s</kbd> sorter · <kbd>v</kbd> view · <kbd>b</kbd> slides · <kbd>d</kbd> dock · <kbd>c</kbd> comment · <kbd>⌘F</kbd> find · <kbd>?</kbd> shortcuts
           </span>
         )}
       </div>
