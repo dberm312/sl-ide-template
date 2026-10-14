@@ -111,6 +111,7 @@ Never vendor a third-party skill's files into the repo.
 | `pnpm pdf` | `output/<META.pdfName>.pdf` |
 | `pnpm lab` | the slide lab's fit report and screenshots |
 | `node scripts/doctor.js` | setup status |
+| `pnpm new-project <name>` | a new deck repo from sl-ide, with sl-ide as `upstream` |
 
 The pre-commit hook (`.githooks/pre-commit`, turned on by `pnpm install`)
 runs the audit, prints the PDF and checks its fonts whenever a commit

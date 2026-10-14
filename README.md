@@ -12,8 +12,21 @@ crowded and overlapping pages before they ship.
 sl-ide is the starter; each deck gets its own repo made from it. Don't build
 a deck in this repo itself.
 
-**Recommended: a clone that keeps sl-ide's history**, so later fixes to the
-harness can be pulled into decks you're still working on:
+**Recommended: `pnpm new-project`**, run from sl-ide (or from any deck):
+
+```sh
+pnpm new-project acme-pitch               # ../acme-pitch plus a private GitHub repo
+pnpm new-project acme-pitch --public      # a public repo instead
+pnpm new-project acme-pitch --no-github   # local only
+DIR=~/decks pnpm new-project acme-pitch   # somewhere other than next to this repo
+```
+
+It clones sl-ide from GitHub with its history (so commit and push harness
+changes first), names that remote `upstream`, creates the deck's own repo as
+`origin`, installs dependencies and prints the next steps. Run from inside a
+deck, it still clones sl-ide, via that deck's `upstream`.
+
+By hand, the same thing is:
 
 ```sh
 git clone https://github.com/dberm312/sl-ide acme-pitch && cd acme-pitch
@@ -120,6 +133,7 @@ pnpm pdf              # output/<META.pdfName>.pdf, vector, fonts embedded
 pnpm lab              # fit report and screenshots for the slide lab's takes
 pnpm fonts            # re-fetch the self-hosted fonts listed in scripts/fonts.sh
 pnpm doctor           # setup checklist
+pnpm new-project NAME # start a new deck repo from sl-ide (see above)
 ```
 
 Use `pnpm run audit`, not `pnpm audit` (that's pnpm's dependency audit).
