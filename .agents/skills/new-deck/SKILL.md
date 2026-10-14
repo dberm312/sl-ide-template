@@ -51,12 +51,14 @@ covered):
 Fill `META` in `src/deck/content.js` from the answers: `deckTitle`,
 `author`, `date`, `pdfName`, `mark`, `wordBudget`. Leave `watermark` on.
 
-Then sharing on sl-ide cloud. Check `sl-ide.config.json` (`pnpm new-project`
+Then sharing on sl-ide cloud. Check `sl-ide.config.json` (`pnpm create sl-ide`
 usually wrote it) and ask who should be able to open the link: the team
 only (`"visibility": "team"`) or anyone with it (`"public"`). If the file is
 missing, ask for the team's slug and write it as
 `{ "slug": "<deck>", "team": "<team>", "visibility": "team" }`. Confirm the
-repo has the `SL_IDE_PUBLISH_TOKEN` secret (`gh secret list`).
+repo has the `SL_IDE_PUBLISH_TOKEN` secret (`gh secret list`); if not, have
+the user run `! pnpm create sl-ide login` and set it from the token saved in
+`~/.config/sl-ide/credentials.json` (never print the token).
 
 ## 2. Visual system: DESIGN.md and the tokens
 

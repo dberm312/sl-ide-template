@@ -9,59 +9,36 @@ crowded and overlapping pages before they ship.
 
 ## Start a new deck
 
-sl-ide is the starter; each deck gets its own repo made from it. Don't build
-a deck in this repo itself.
-
-**Recommended: `pnpm new-project`**, run from sl-ide (or from any deck):
-
 ```sh
-pnpm new-project acme-pitch --team acme   # ../acme-pitch, a private GitHub repo, publishing to sl-ide cloud
-pnpm new-project acme-pitch --public      # a public repo instead
-pnpm new-project acme-pitch --no-github   # local only
-DIR=~/decks pnpm new-project acme-pitch   # somewhere other than next to this repo
+pnpm create sl-ide my-deck
 ```
 
-It clones sl-ide from GitHub with its history (so commit and push harness
-changes first), names that remote `upstream`, creates the deck's own repo as
-`origin`, sets it up to publish to sl-ide cloud (see "Publish to sl-ide
-cloud" below), installs dependencies and prints the next steps. Run from inside a
-deck, it still clones sl-ide, via that deck's `upstream`.
+That's [create-sl-ide](https://github.com/dberm312/create-sl-ide). It asks a
+few questions, then:
 
-By hand, the same thing is:
+- clones the **latest** sl-ide template from GitHub, keeping its history as
+  the `upstream` remote, so later editor updates arrive with
+  `git pull upstream main`;
+- creates the deck's own GitHub repo (private by default);
+- sets it up to publish to [sl-ide cloud](https://sl-ide.com): you approve a
+  sign-in in your browser, it saves a token for your team, writes
+  `sl-ide.config.json` and sets the repo's `SL_IDE_PUBLISH_TOKEN` secret;
+- runs `pnpm install`.
 
-```sh
-git clone https://github.com/dberm312/sl-ide-template acme-pitch && cd acme-pitch
-git remote rename origin upstream          # sl-ide, for harness updates
-gh repo create acme-pitch --private --source . --push   # the deck's own repo
-```
+Then `cd my-deck && pnpm dev`. Don't build a deck in this template repo
+itself.
 
-Later, to pick up sl-ide's improvements:
-
-```sh
-git pull upstream main
-```
-
-**Or: a one-off from the template.** sl-ide is a GitHub template repository,
-so you can click **Use this template** on GitHub, or run:
-
-```sh
-gh repo create acme-pitch --private --template dberm312/sl-ide-template --clone
-```
-
-That repo starts from one clean commit with no shared history, so
-`git pull upstream` won't work. Pick this when the deck won't need harness
-updates.
-
-GitHub's Fork button won't work here, because it can't fork a repo into the
-account that already owns it.
+Without prompts: `pnpm create sl-ide my-deck --team acme --share public --yes`.
+From inside an existing deck, `pnpm new-project my-next-deck` does the same,
+next to it. `pnpm create sl-ide login` signs in to another team.
 
 **Keeping pulls clean.** Harness files belong to sl-ide: `src/components/`,
 `src/lab/` (except `takes/`), `scripts/`, `vite.config.js`, `.githooks/`,
 `.github/` and the skills in `.agents/skills/`. A deck's own work goes in
 `src/deck/content.js`, `src/slides/`, its blocks in `src/styles.css`,
-`PRODUCT.md`, `DESIGN.md` and the "This deck" section of `AGENTS.md`. Fix a
-harness bug in sl-ide first, then pull it into the decks, so it never has to
-be redone per deck.
+`PRODUCT.md`, `DESIGN.md`, `sl-ide.config.json` and the "This deck" section
+of `AGENTS.md`. Fix a harness bug in sl-ide first, then pull it into the
+decks, so it never has to be redone per deck.
 
 ## Get started
 
@@ -138,7 +115,7 @@ pnpm publish-deck     # publish dist/ and the PDF to sl-ide cloud (CI does this)
 pnpm lab              # fit report and screenshots for the slide lab's takes
 pnpm fonts            # re-fetch the self-hosted fonts listed in scripts/fonts.sh
 pnpm doctor           # setup checklist
-pnpm new-project NAME # start a new deck repo from sl-ide (see above)
+pnpm new-project NAME # start another deck next to this one (create-sl-ide)
 ```
 
 Use `pnpm run audit`, not `pnpm audit` (that's pnpm's dependency audit).
@@ -166,11 +143,12 @@ A deck publishes when it has `sl-ide.config.json`:
 - `team`: the team on sl-ide cloud that owns it; members see it in their list.
 - `visibility`: `team` (signed-in members only) or `public` (anyone with the link).
 
-It also needs the repo secret `SL_IDE_PUBLISH_TOKEN`.
-`pnpm new-project <name> --team <slug> [--share public]` sets up both: it
-writes the config and sets the secret from `~/.config/sl-ide/publish-token`.
-Save your team's slug in `~/.config/sl-ide/team` to skip `--team`. Without
-a config, CI still audits and prints, and skips publishing.
+It also needs the repo secret `SL_IDE_PUBLISH_TOKEN`, a publish token for
+the team. `pnpm create sl-ide` sets up both. For a deck made without it:
+`pnpm create sl-ide login` saves a team token, then
+`gh secret set SL_IDE_PUBLISH_TOKEN` with it, and add the config. Tokens are
+listed and revoked at sl-ide.com/tokens. Without a config, CI still audits
+and prints, and skips publishing.
 
 By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 

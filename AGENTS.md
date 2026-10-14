@@ -16,8 +16,8 @@ from a brand source (DESIGN.md and the tokens), then outlines the story.
 
 ## Harness vs. deck
 
-Each deck is its own repo made from sl-ide (README, "Start a new deck"),
-usually with sl-ide as the `upstream` remote. Harness files belong to sl-ide:
+Each deck is its own repo made by `pnpm create sl-ide` (README, "Start a
+new deck"), with sl-ide as the `upstream` remote. Harness files belong to sl-ide:
 `src/components/`, `src/lab/` (except `takes/`), `scripts/`,
 `vite.config.js`, `.githooks/`, `.github/` and `.agents/skills/`. When a fix
 belongs in the harness rather than one deck, say so and suggest making it in
@@ -116,7 +116,7 @@ Never vendor a third-party skill's files into the repo.
 | `pnpm lab` | the slide lab's fit report and screenshots |
 | `node scripts/doctor.js` | setup status |
 | `pnpm publish-deck` | publish `dist/` and the PDF to sl-ide cloud (CI does this on push) |
-| `pnpm new-project <name>` | a new deck repo from sl-ide, with sl-ide as `upstream` |
+| `pnpm new-project <name>` | another deck next to this one, via `pnpm create sl-ide` |
 
 The pre-commit hook (`.githooks/pre-commit`, turned on by `pnpm install`)
 runs the audit whenever a commit touches the deck. A failing page blocks
