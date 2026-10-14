@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
-# Audit and print the deck before every commit; a failure blocks the commit.
-# Turned on by `pnpm install` (the prepare script sets core.hooksPath).
-# Fix the page rather than reaching for --no-verify.
+# Audit the deck before every commit that touches it; a failing page blocks
+# the commit. Turned on by `pnpm install` (the prepare script sets
+# core.hooksPath). Printing the PDF and publishing happen in CI on push
+# (.github/workflows/publish.yml). Fix the page rather than using --no-verify.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
-# Docs- or skills-only commits don't touch the deck; skip the slow part.
+# Docs- or skills-only commits don't touch the deck.
 if ! git diff --cached --name-only | grep -qE '^(src/|public/|index\.html|vite\.config\.js|package\.json|scripts/)'; then
   exit 0
 fi
 
-echo "pre-commit: auditing and printing the deck…"
+echo "pre-commit: auditing the deck…"
 pnpm run -s audit
-pnpm run -s pdf
-scripts/check-fonts.sh

@@ -15,7 +15,7 @@ a deck in this repo itself.
 **Recommended: `pnpm new-project`**, run from sl-ide (or from any deck):
 
 ```sh
-pnpm new-project acme-pitch               # ../acme-pitch plus a private GitHub repo
+pnpm new-project acme-pitch --team acme   # ../acme-pitch, a private GitHub repo, publishing to sl-ide cloud
 pnpm new-project acme-pitch --public      # a public repo instead
 pnpm new-project acme-pitch --no-github   # local only
 DIR=~/decks pnpm new-project acme-pitch   # somewhere other than next to this repo
@@ -23,7 +23,8 @@ DIR=~/decks pnpm new-project acme-pitch   # somewhere other than next to this re
 
 It clones sl-ide from GitHub with its history (so commit and push harness
 changes first), names that remote `upstream`, creates the deck's own repo as
-`origin`, installs dependencies and prints the next steps. Run from inside a
+`origin`, sets it up to publish to sl-ide cloud (see "Publish to sl-ide
+cloud" below), installs dependencies and prints the next steps. Run from inside a
 deck, it still clones sl-ide, via that deck's `upstream`.
 
 By hand, the same thing is:
@@ -133,6 +134,7 @@ install it for real work.
 pnpm run audit        # CLIPPED / SPILL / OVERLAP / WORDY per page; exits 1 on any
 pnpm shots 2 A1       # output/shots/page-<label>.png (no args = all; SCALE=2 for 2x)
 pnpm pdf              # output/<META.pdfName>.pdf, vector, fonts embedded
+pnpm publish-deck     # publish dist/ and the PDF to sl-ide cloud (CI does this)
 pnpm lab              # fit report and screenshots for the slide lab's takes
 pnpm fonts            # re-fetch the self-hosted fonts listed in scripts/fonts.sh
 pnpm doctor           # setup checklist
@@ -143,9 +145,34 @@ Use `pnpm run audit`, not `pnpm audit` (that's pnpm's dependency audit).
 The audit, PDF and screenshots need Chrome or Chromium (`CHROME=/path` to
 point at one). The font check needs `pdffonts` (`brew install poppler`).
 
-Every commit that touches the deck runs the audit and prints the PDF
-(`.githooks/pre-commit`). On every push, CI (`.github/workflows/pdf.yml`)
-does the same and commits the PDF to `pdf/`.
+Every commit that touches the deck runs the audit (`.githooks/pre-commit`).
+On every push, CI (`.github/workflows/publish.yml`) audits, prints the PDF,
+checks its fonts and publishes the deck to sl-ide cloud.
+
+## Publish to sl-ide cloud
+
+Every push publishes that version to [sl-ide.com](https://sl-ide.com): main
+at `sl-ide.com/d/<slug>/`, any other branch as a preview at
+`sl-ide.com/d/<slug>/b/<branch>/`, and each version at
+`sl-ide.com/d/<slug>/v/<sha>/`. Viewers get the viewer and a PDF download.
+
+A deck publishes when it has `sl-ide.config.json`:
+
+```json
+{ "slug": "acme-pitch", "team": "acme", "visibility": "team" }
+```
+
+- `slug`: the deck's link.
+- `team`: the team on sl-ide cloud that owns it; members see it in their list.
+- `visibility`: `team` (signed-in members only) or `public` (anyone with the link).
+
+It also needs the repo secret `SL_IDE_PUBLISH_TOKEN`.
+`pnpm new-project <name> --team <slug> [--share public]` sets up both: it
+writes the config and sets the secret from `~/.config/sl-ide/publish-token`.
+Save your team's slug in `~/.config/sl-ide/team` to skip `--team`. Without
+a config, CI still audits and prints, and skips publishing.
+
+By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 
 ## Where things live
 

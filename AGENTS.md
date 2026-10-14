@@ -73,9 +73,13 @@ Never vendor a third-party skill's files into the repo.
   colour, font or size. The `--ide-*` tokens style sl-ide itself; leave them.
 - **Page order:** `src/slides/index.jsx`. Appendix labels (A1, A2…) come from
   its order.
-- **The deliverable is the PDF** (`pnpm pdf`). Local builds go to `output/`
-  (gitignored). On every push, CI audits, prints and commits it to `pdf/`;
-  never commit a PDF by hand.
+- **The deliverable is the deck on sl-ide cloud, plus its PDF.** On every
+  push, CI (`.github/workflows/publish.yml`) audits, builds, prints the PDF
+  and publishes that version: main to `sl-ide.com/d/<slug>/`, other branches
+  to `/d/<slug>/b/<branch>/`. `sl-ide.config.json` sets the slug, the owning
+  team and `visibility` (`public` or `team`); the repo secret
+  `SL_IDE_PUBLISH_TOKEN` authorizes it. Local builds go to `output/`
+  (gitignored); never commit a PDF.
 
 ## The page
 
@@ -111,12 +115,13 @@ Never vendor a third-party skill's files into the repo.
 | `pnpm pdf` | `output/<META.pdfName>.pdf` |
 | `pnpm lab` | the slide lab's fit report and screenshots |
 | `node scripts/doctor.js` | setup status |
+| `pnpm publish-deck` | publish `dist/` and the PDF to sl-ide cloud (CI does this on push) |
 | `pnpm new-project <name>` | a new deck repo from sl-ide, with sl-ide as `upstream` |
 
 The pre-commit hook (`.githooks/pre-commit`, turned on by `pnpm install`)
-runs the audit, prints the PDF and checks its fonts whenever a commit
-touches the deck. A failing page blocks the commit; fix the page rather
-than using `--no-verify`.
+runs the audit whenever a commit touches the deck. A failing page blocks
+the commit; fix the page rather than using `--no-verify`. CI repeats the
+audit on push, then prints, checks fonts and publishes.
 
 ## Working with the user
 

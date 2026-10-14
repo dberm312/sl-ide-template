@@ -9,6 +9,7 @@
     "build": "vite build",
     "audit": "./scripts/audit.sh",
     "pdf": "./scripts/pdf.sh",
+    "publish-deck": "node scripts/publish-deck.mjs",
     "shots": "./scripts/shots.sh",
     "lab": "./scripts/lab.sh",
     "fonts": "./scripts/fonts.sh",

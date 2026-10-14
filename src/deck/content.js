@@ -136,9 +136,9 @@ export const checks = {
     ['OVERLAP', 'Two stacked bands print on top of each other.', 'Rail badge, pnpm run audit'],
     ['WORDY', 'The page is over the word budget (META.wordBudget).', 'Rail word count, audit'],
     ['RAGGED', 'A wrapped line ends in a stub under a third of the width. Advisory.', 'pnpm run audit'],
-    ['Fonts', 'A glyph fell back to a system font in the PDF.', 'pre-commit, CI'],
+    ['Fonts', 'A glyph fell back to a system font in the PDF.', 'CI, before publishing'],
   ],
-  footer: 'The pre-commit hook runs the audit and prints the PDF; a failing page blocks the commit. CI does the same on every push.',
+  footer: 'The pre-commit hook runs the audit, so a failing page blocks the commit. On push, CI audits again, prints the PDF and publishes to sl-ide cloud.',
 };
 
 // --- Appendix -------------------------------------------------------------------
