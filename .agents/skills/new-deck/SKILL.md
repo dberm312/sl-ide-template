@@ -28,9 +28,12 @@ to redo the style, redo the story, or stop.
 **Format.** Read `META.format` in `src/deck/content.js` (missing means
 `'slides'`). A project is one format: 16:9 slides, or a memo on US Letter
 paper whose body flows across pages (`src/components/Flow.jsx`). If the
-user asked for a memo and the project still has the slide starter, run
-`pnpm use-format memo`; it swaps in the memo starter. `pnpm create sl-ide
---format memo` will have done this already. Never switch a project whose
+project still has a starter (slide or memo) and the user hasn't said which
+they want, ask first, before the interview: "Slides (16:9 pages) or a memo
+(US Letter pages, text flowing from page to page)?" If they want a memo and
+the project has the slide starter, run `pnpm use-format memo`; it swaps in
+the memo starter. `pnpm create sl-ide --format memo` will have done this
+already. Never switch a project whose
 pages are already the user's own. Where the steps below differ for a memo,
 they say so.
 
