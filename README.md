@@ -29,6 +29,9 @@ few questions, then:
 Then `cd my-deck && pnpm dev`. Don't build a deck in this template repo
 itself.
 
+Already in an empty folder for the deck? `pnpm create sl-ide .` builds it
+there and names it after the folder.
+
 For a memo instead of slides: `pnpm create sl-ide my-memo --format memo`
 (see [Memos](#memos)).
 
