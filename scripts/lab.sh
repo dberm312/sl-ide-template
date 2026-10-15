@@ -12,6 +12,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/lib.sh
 find_chrome
+page_size
 SCALE="${SCALE:-1}"
 PORT=8244
 
@@ -40,7 +41,7 @@ OUT=output/lab
 mkdir -p "$OUT"
 for id in ${IDS[@]+"${IDS[@]}"}; do
   "$CHROME" --headless --disable-gpu --hide-scrollbars --force-device-scale-factor="$SCALE" \
-    --window-size=1280,720 --virtual-time-budget=15000 \
+    --window-size=$PAGE_W,$PAGE_H --virtual-time-budget=15000 \
     --screenshot="$OUT/$id.png" "$URL#solo=$id" 2>/dev/null
   echo "wrote $OUT/$id.png"
 done

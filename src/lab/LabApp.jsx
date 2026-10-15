@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { countWords, overflowPx, overlapPx, spillPx, WORD_BUDGET } from '../components/DevBar.jsx';
 import session from './takes/index.js';
+import { applyPageFormat, PAGE } from '../components/page.js';
 
 // The slide lab: rival takes on one page, stacked for scrolling, so you can compare
 // them, mark each one and send the verdicts back to the agent. See
@@ -11,8 +12,10 @@ import session from './takes/index.js';
 //   #solo=<id>    one take at 1:1 with no chrome, for screenshots
 //   #audit        every take at 1:1 plus a text report, for scripts/lab.sh
 
-const SLIDE_W = 1280;
-const SLIDE_H = 720;
+applyPageFormat();
+
+const SLIDE_W = PAGE.w;
+const SLIDE_H = PAGE.h;
 const { slug, round, brief, reference = [], takes } = session;
 const STORE = `lab:${slug}:r${round}`;
 
@@ -96,7 +99,7 @@ const VERDICTS = [
 // screen at once; L reads like the PDF.
 const SIZES = [['S', 500], ['M', 800], ['L', 1040]];
 
-// Renders a 1280×720 slide at a given width.
+// Renders a page (PAGE.w × PAGE.h) at a given width.
 function Fit({ width, children }) {
   const zoom = width / SLIDE_W;
   return (

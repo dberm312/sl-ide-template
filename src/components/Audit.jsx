@@ -1,4 +1,5 @@
-import { countWords, overflowPx, overlapPx, spillPx, WORD_BUDGET } from './DevBar.jsx';
+import { countWords, hasWordBudget, overflowPx, overlapPx, spillPx, WORD_BUDGET } from './DevBar.jsx';
+import { META } from '../deck/content.js';
 import { useEffect, useState } from 'react';
 
 // How full a wrapped block's last line is, as a share of the line width: a
@@ -38,6 +39,22 @@ function raggedLines(el, label) {
     .map(([li, fill]) => `  ${label}  RAGGED(${Math.round(fill * 100)}%)  ${li.textContent.trim()}`);
 }
 
+// A memo whose last flowing page holds a line or two: usually a sentence to
+// cut. Advisory, like RAGGED. RUNT_MIN is the share of the body in use.
+const RUNT_MIN = 1 / 4;
+function runtPages(els, slides, labelOf) {
+  return els.flatMap((el, i) => {
+    const s = slides[i];
+    if (s.kind !== 'flow' || slides[i + 1]?.kind === 'flow' || slides[i - 1]?.kind !== 'flow') return [];
+    const body = el.querySelector('.memo-flow');
+    const last = body?.lastElementChild;
+    if (!last) return [];
+    const fill = (last.getBoundingClientRect().bottom - body.getBoundingClientRect().top)
+      / body.getBoundingClientRect().height;
+    return fill < RUNT_MIN ? [`  ${labelOf(s)}  RUNT(${Math.round(fill * 100)}%)  the memo's last page is nearly empty`] : [];
+  });
+}
+
 // A machine-readable version of the DevBar's two checks, so `./audit.sh` can
 // answer "does every slide still fit" from the command line instead of asking
 // someone to read every PDF page at full size.
@@ -69,7 +86,7 @@ export default function Audit({ slides, pages, apx }) {
         const spill = spillPx(el);
         const overlap = overlapPx(el);
         const flags = [
-          s.kind !== 'cover' && words > WORD_BUDGET ? `WORDY(${words}>${WORD_BUDGET})` : '',
+          hasWordBudget(s.kind) && words > WORD_BUDGET ? `WORDY(${words}>${WORD_BUDGET})` : '',
           over > 2 ? `CLIPPED(+${over}px)` : '',
           spill > 2 ? `SPILL(+${spill}px)` : '',
           overlap > 2 ? `OVERLAP(+${overlap}px)` : '',
@@ -83,12 +100,16 @@ export default function Audit({ slides, pages, apx }) {
       });
       const bad = els.filter((el, i) => overflowPx(el) > 2 || spillPx(el) > 2
         || overlapPx(el) > 2
-        || (slides[i].kind !== 'cover' && countWords(el) > WORD_BUDGET)).length;
+        || (hasWordBudget(slides[i].kind) && countWords(el) > WORD_BUDGET)).length;
+      // LONG: a memo (or deck) over META.pageBudget pages, when it sets one.
+      const long = META.pageBudget && els.length > META.pageBudget
+        ? `  LONG(${els.length}>${META.pageBudget} pages)` : '';
       setReport([
-        `AUDIT  ${els.length} pages  ${bad} need attention`
+        `AUDIT  ${els.length} pages  ${bad} need attention${long}`
           + (document.fonts.status === 'loaded' ? '' : '  FONTS-PENDING (numbers unreliable)'),
         'PAGE   WORDS  STATUS                    TITLE',
         ...lines,
+        ...runtPages(els, slides, (s) => (apx.get(s.id) ?? String(pages.get(s.id) ?? '—')).padEnd(5)),
         ...els.flatMap((el, i) => raggedLines(el,
           (apx.get(slides[i].id) ?? String(pages.get(slides[i].id) ?? '—')).padEnd(5))),
       ].join('\n'));

@@ -7,6 +7,7 @@
 #   pnpm new-project acme-pitch --team acme --share public
 #   pnpm new-project acme-pitch --public           -> a public GitHub repo
 #   pnpm new-project acme-pitch --no-github        -> local only
+#   pnpm new-project q3-memo --memo                -> a US Letter memo
 #   DIR=~/decks pnpm new-project acme-pitch        -> ~/decks/acme-pitch
 #
 # Every other create-sl-ide option passes straight through (--help lists them).
@@ -20,6 +21,7 @@ for arg in "$@"; do
     --public) ARGS+=(--github public) ;;
     --private) ARGS+=(--github private) ;;
     --no-github) ARGS+=(--github none) ;;
+    --memo) ARGS+=(--format memo) ;;
     *) ARGS+=("$arg") ;;
   esac
 done

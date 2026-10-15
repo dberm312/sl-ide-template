@@ -1,9 +1,10 @@
 # sl-ide
 
-**An IDE for building slides with Claude Code or Codex.**
+**An IDE for building slides and memos with Claude Code or Codex.**
 
 You describe the deck; your agent writes the pages as React components at a
-fixed 16:9 size. You watch them change in the browser, comment on any
+fixed 16:9 size, or as a memo on US Letter paper whose text flows from page
+to page. You watch them change in the browser, comment on any
 element to steer, and print a vector PDF. A layout audit catches clipped,
 crowded and overlapping pages before they ship.
 
@@ -27,6 +28,9 @@ few questions, then:
 
 Then `cd my-deck && pnpm dev`. Don't build a deck in this template repo
 itself.
+
+For a memo instead of slides: `pnpm create sl-ide my-memo --format memo`
+(see [Memos](#memos)).
 
 Without prompts: `pnpm create sl-ide my-deck --team acme --share public --yes`.
 From inside an existing deck, `pnpm new-project my-next-deck` does the same,
@@ -105,10 +109,26 @@ install it for real work.
 | `/#audit` | the layout report |
 | `/lab.html` | the slide lab (dev server only) |
 
+## Memos
+
+A memo is the same IDE on US Letter pages (8.5 × 11 in, portrait). You
+write its body as blocks in `src/deck/content.js` (paragraphs, headings,
+lists, tables, callouts) and the paginator in `src/components/Flow.jsx`
+lays them onto as many pages as they need. It splits paragraphs between
+lines, lists between items and tables between rows (repeating the header),
+and keeps headings with the text below them. Pages that shouldn't flow, like
+an exhibit or an appendix table, are fixed pages placed in inches, like
+slides. The viewer shows a memo as one scrolling document, and the PDF is
+Letter-sized.
+
+`META.format: 'memo'` makes a project a memo. `pnpm create sl-ide --format
+memo` starts one, and `pnpm use-format memo` switches a project that still
+has the slide starter.
+
 ## Commands
 
 ```sh
-pnpm run audit        # CLIPPED / SPILL / OVERLAP / WORDY per page; exits 1 on any
+pnpm run audit        # CLIPPED / SPILL / OVERLAP / WORDY per page, LONG per memo; exits 1 on any
 pnpm shots 2 A1       # output/shots/page-<label>.png (no args = all; SCALE=2 for 2x)
 pnpm pdf              # output/<META.pdfName>.pdf, vector, fonts embedded
 pnpm publish-deck     # publish dist/ and the PDF to sl-ide cloud (CI does this)
@@ -116,6 +136,7 @@ pnpm lab              # fit report and screenshots for the slide lab's takes
 pnpm fonts            # re-fetch the self-hosted fonts listed in scripts/fonts.sh
 pnpm doctor           # setup checklist
 pnpm new-project NAME # start another deck next to this one (create-sl-ide)
+pnpm use-format memo  # turn a fresh project into a memo (starters/memo)
 ```
 
 Use `pnpm run audit`, not `pnpm audit` (that's pnpm's dependency audit).
@@ -159,7 +180,8 @@ By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 | `src/deck/content.js` | every word and every region box, in inches |
 | `src/slides/` | one component per page; `index.jsx` sets the order and the appendix |
 | `src/styles.css` | design tokens on `:root`, then page styles, then the IDE chrome |
-| `src/components/` | the harness: page shell, dev bar, rail, comment mode, find, audit |
+| `src/components/` | the harness: page shell, memo paginator, dev bar, rail, comment mode, find, audit |
+| `starters/` | the memo starter, copied in by `pnpm use-format memo` |
 | `src/lab/` | the slide lab board; `takes/` holds the current session |
 | `PRODUCT.md`, `DESIGN.md` | audience and visual system, written by impeccable |
 | `AGENTS.md` | the working agreement for agents (`CLAUDE.md` imports it) |

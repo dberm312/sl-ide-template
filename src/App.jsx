@@ -1,19 +1,24 @@
 import { useEffect, useState } from 'react';
-import slides, { pageNumbers, appendixLabels } from './slides/index.jsx';
+import doc from './slides/index.jsx';
+import { appendixLabels, pageNumbers, usePages } from './components/Flow.jsx';
+import { applyPageFormat, FORMAT, PAGE } from './components/page.js';
 import SlideThumb from './components/SlideThumb.jsx';
 import DevBar, { devbarHeight, scrollToSlide } from './components/DevBar.jsx';
 import Audit from './components/Audit.jsx';
 import Viewer from './components/Viewer.jsx';
 import { RAIL_SHUT_PX, readDockPlace, readRailOpen, readRailWidth } from './components/SlideRail.jsx';
 
-// Slides are fixed 1280px pages; scale the screen preview so one whole slide
-// fits the window: as wide as the space beside the rail allows, unless that
-// would make it taller than the space under the bar. It scales up as well as
-// down. Print media ignores --preview-scale. `inset` is the width the bar
-// takes from the left edge when it is docked there.
-const SLIDE_WIDTH_PX = 1280;
-const SLIDE_HEIGHT_PX = 720;
+// Pages are a fixed size (PAGE, from components/page.js); scale the screen
+// preview so one whole slide fits the window: as wide as the space beside the
+// rail allows, unless that would make it taller than the space under the bar.
+// It scales up as well as down. A memo page is read, not presented, so it
+// fits the width alone (up to MEMO_MAX_SCALE) and scrolls. Print media
+// ignores --preview-scale. `inset` is the width the bar takes from the left
+// edge when it is docked there.
+applyPageFormat();
+
 const PREVIEW_GAP_PX = 24;
+const MEMO_MAX_SCALE = 1.25;
 function usePreviewScale(active, inset = 0) {
   useEffect(() => {
     if (!active) {
@@ -23,9 +28,11 @@ function usePreviewScale(active, inset = 0) {
     // clientWidth/Height leave out the scrollbar, which innerWidth counts.
     const apply = () => {
       const root = document.documentElement;
-      const byWidth = (root.clientWidth - inset - 2 * PREVIEW_GAP_PX) / SLIDE_WIDTH_PX;
-      const byHeight = (root.clientHeight - devbarHeight() - PREVIEW_GAP_PX) / SLIDE_HEIGHT_PX;
-      const scale = Math.max(0.1, Math.min(byWidth, byHeight));
+      const byWidth = (root.clientWidth - inset - 2 * PREVIEW_GAP_PX) / PAGE.w;
+      const byHeight = (root.clientHeight - devbarHeight() - PREVIEW_GAP_PX) / PAGE.h;
+      const scale = Math.max(0.1, FORMAT === 'memo'
+        ? Math.min(byWidth, MEMO_MAX_SCALE)
+        : Math.min(byWidth, byHeight));
       root.style.setProperty('--preview-scale', String(scale));
     };
     apply();
@@ -82,7 +89,7 @@ function readSorterCols() {
   }
 }
 
-function SorterView({ pages, apx }) {
+function SorterView({ slides, pages, apx }) {
   const [cols, setCols] = useState(readSorterCols);
   const [gridEl, setGridEl] = useState(null);
   const [gridWidth, setGridWidth] = useState(0);
@@ -178,11 +185,15 @@ export default function App() {
     document.documentElement.style.setProperty('--rail-w', `${railPx}px`);
   }, [mode, railPx]);
 
-  const pages = pageNumbers();
-  const apx = appendixLabels();
+  // A memo's flowing pages are laid out in the browser, once its fonts load;
+  // until then only the off-screen measurer renders (components/Flow.jsx).
+  const { slides, measurer } = usePages(doc);
+  if (!slides) return measurer;
+  const pages = pageNumbers(slides);
+  const apx = appendixLabels(slides);
 
-  if (mode === 'sorter') return <SorterView pages={pages} apx={apx} />;
-  if (mode === 'view') return <Viewer slides={slides} pages={pages} apx={apx} />;
+  if (mode === 'sorter') return <><SorterView slides={slides} pages={pages} apx={apx} />{measurer}</>;
+  if (mode === 'view') return <><Viewer slides={slides} pages={pages} apx={apx} />{measurer}</>;
 
   return (
     <>
@@ -195,6 +206,7 @@ export default function App() {
       {slides.map(({ id, Component, props = {} }) => (
         <Component key={id} pageNumber={pages.get(id)} appendixLabel={apx.get(id)} {...props} />
       ))}
+      {measurer}
     </>
   );
 }

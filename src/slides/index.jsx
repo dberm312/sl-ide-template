@@ -22,7 +22,8 @@ const SHORT = {
 const contents = (pages) =>
   pages.map((s, i) => ({ label: `A${i + 1}`, short: SHORT[s.id] }));
 
-// Array order is deck order. Kinds: cover, content, divider, appendix.
+// Array order is deck order. Kinds: cover, content, divider, appendix
+// (and flow, for a memo's flowing pages: see components/Flow.jsx).
 const slides = [
   entry('cover', 'cover', Cover),
   entry('start-here', 'content', StartHere),
@@ -32,19 +33,6 @@ const slides = [
   ...appendix,
 ];
 
-// id -> printed page number. Numbering counts the cover (so the first
-// content page is 2) but the cover prints none.
-export function pageNumbers() {
-  const pages = new Map();
-  slides.forEach((s, i) => { if (s.kind === 'content') pages.set(s.id, i + 1); });
-  return pages;
-}
-
-// id -> printed label ("A1", "A2", ...) for appendix pages, in deck order.
-export function appendixLabels() {
-  const labels = new Map();
-  appendix.forEach((s, i) => labels.set(s.id, `A${i + 1}`));
-  return labels;
-}
-
+// Page numbers and appendix labels are worked out from this order by
+// components/Flow.jsx (pageNumbers, appendixLabels).
 export default slides;

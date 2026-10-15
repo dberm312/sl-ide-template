@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SlideThumb from './SlideThumb.jsx';
+import { PAGE } from './page.js';
 import {
-  countWords, devbarHeight, overflowPx, overlapPx, scrollToSlide, spillPx, WORD_BUDGET,
+  countWords, devbarHeight, hasWordBudget, overflowPx, overlapPx, scrollToSlide, spillPx, WORD_BUDGET,
 } from './DevBar.jsx';
 
 // Screen-only strip of slide thumbnails for the preview route. It lives inside
@@ -190,12 +191,12 @@ export default function SlideRail({
     try { grip.setPointerCapture(e.pointerId); } catch { /* already released */ }
     document.body.classList.add(side ? 'is-rail-resizing' : 'is-rail-resizing-y');
     // Docked left the pointer's x is the width; on top, the thumbs grow by the
-    // pointer's travel, in height, converted to a width at 16:9.
+    // pointer's travel, in height, converted to a width at the page's ratio.
     const y0 = e.clientY;
     const thumb0 = topThumb;
     const apply = () => (side
       ? setWidth(clampWidth(x))
-      : setTopThumb(clampThumb(thumb0 + (y - y0) * (1280 / 720))));
+      : setTopThumb(clampThumb(thumb0 + (y - y0) * (PAGE.w / PAGE.h))));
     let frame = 0;
     let x = e.clientX;
     let y = e.clientY;
@@ -306,7 +307,7 @@ export default function SlideRail({
     return null;
   };
   const faults = stats.filter((st, i) => fault(st)
-    || (slides[i]?.kind !== 'cover' && st.words > WORD_BUDGET)).length;
+    || (hasWordBudget(slides[i]?.kind) && st.words > WORD_BUDGET)).length;
 
   return (
     <>
@@ -320,7 +321,7 @@ export default function SlideRail({
           {slides.map(({ id, kind, Component, props = {}, title }, i) => {
             const st = stats[i];
             const f = fault(st);
-            const wordy = kind !== 'cover' && (st?.words ?? 0) > WORD_BUDGET;
+            const wordy = hasWordBudget(kind) && (st?.words ?? 0) > WORD_BUDGET;
             const hint = [
               title,
               st && `${st.words} words${wordy ? `, over the ${WORD_BUDGET} budget` : ''}`,

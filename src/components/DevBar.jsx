@@ -4,6 +4,7 @@ import FindBar from './FindBar.jsx';
 import SlideRail from './SlideRail.jsx';
 import SetupChip from './SetupChip.jsx';
 import { META } from '../deck/content.js';
+import { FORMAT } from './page.js';
 
 // Screen-only development chrome. App renders it in 'preview' mode only, so
 // there is no route and no accident that can put it in the exported PDF.
@@ -31,6 +32,10 @@ const ROUTES = [
 // pages. Set it per deck in META.wordBudget (src/deck/content.js). Sources
 // footers are excluded; they are citations, not argument.
 export const WORD_BUDGET = META.wordBudget ?? 340;
+// Covers are exempt, and so are a memo's flowing pages: the paginator fills
+// them by design, and META.pageBudget (LONG, in the audit) judges a memo's
+// length instead.
+export const hasWordBudget = (kind) => kind !== 'cover' && kind !== 'flow';
 
 function hasOwnText(el) {
   for (const n of el.childNodes) {
@@ -319,9 +324,11 @@ export default function DevBar({
   const openTip = open ? 'Hide the slide list (b)' : 'Show the slide list (b)';
   // The count beside the title: every page in the deck, cover, divider and
   // appendix included; the tooltip splits it by section.
-  const main = slides.filter((s) => s.kind === 'cover' || s.kind === 'content').length;
+  const main = slides.filter((s) => s.kind === 'cover' || s.kind === 'content' || s.kind === 'flow').length;
   const apxCount = slides.filter((s) => s.kind === 'appendix').length;
-  const countTip = `${main} main pages, the divider and ${apxCount} appendix pages`;
+  const countTip = FORMAT === 'memo'
+    ? `${main} memo pages and ${apxCount} appendix pages${META.pageBudget ? `; the budget is ${META.pageBudget}` : ''}`
+    : `${main} main pages, the divider and ${apxCount} appendix pages`;
 
   return (
     <div className={`devbar is-${place} ${open ? 'is-open' : 'is-min'}`} ref={barRef}>
@@ -330,7 +337,7 @@ export default function DevBar({
           <span className="devbar-brand">
             <span className="devbar-logo">sl<i>-</i>ide</span>
             <span className="devbar-deck" title={META.deckTitle}>{META.deckTitle}</span>
-            <span className="devbar-count" title={countTip}>{slides.length} slides</span>
+            <span className="devbar-count" title={countTip}>{slides.length} {FORMAT === 'memo' ? 'pages' : 'slides'}</span>
           </span>
           <span className="devbar-tools">
             <button

@@ -88,7 +88,7 @@ const pages = hasPdf ? (fs.readFileSync(pdf, 'latin1').match(/\/Type\s*\/Page(?!
 const res = await fetch(`${base}/api/publish/${slug}/${sha}`, {
   method: 'POST',
   headers: { ...auth, 'Content-Type': 'application/json' },
-  body: JSON.stringify({ branch, title: META.deckTitle, visibility, team, repo, pages, hasPdf }),
+  body: JSON.stringify({ branch, title: META.deckTitle, format: META.format === 'memo' ? 'memo' : 'slides', visibility, team, repo, pages, hasPdf }),
 });
 const out = await res.json().catch(() => ({}));
 if (!res.ok) die(`recording the version failed: ${res.status} ${out.error ?? ''}`);

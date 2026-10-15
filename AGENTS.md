@@ -1,8 +1,9 @@
 # sl-ide
 
-An IDE for building slides with Claude Code or Codex. A deck is a set of
-React pages at a fixed 16:9 size; the user watches them in the dev server
-and steers by commenting on elements, and the deliverable is a vector PDF.
+An IDE for building slides and memos with Claude Code or Codex. A deck is
+a set of React pages at a fixed 16:9 size; a memo is US Letter pages whose
+body flows from page to page. The user watches them in the dev server and
+steers by commenting on elements, and the deliverable is a vector PDF.
 This file is the working agreement for any agent in this repo. `CLAUDE.md`
 imports it.
 
@@ -18,7 +19,7 @@ from a brand source (DESIGN.md and the tokens), then outlines the story.
 
 Each deck is its own repo made by `pnpm create sl-ide` (README, "Start a
 new deck"), with sl-ide as the `upstream` remote. Harness files belong to sl-ide:
-`src/components/`, `src/lab/` (except `takes/`), `scripts/`,
+`src/components/`, `src/lab/` (except `takes/`), `scripts/`, `starters/`,
 `vite.config.js`, `.githooks/`, `.github/` and `.agents/skills/`. When a fix
 belongs in the harness rather than one deck, say so and suggest making it in
 sl-ide and pulling it in (`git pull upstream main`), so decks don't drift
@@ -106,11 +107,41 @@ Never vendor a third-party skill's files into the repo.
   `@font-face` names an exact weight. After adding a character outside
   latin, run `pnpm pdf && scripts/check-fonts.sh` to catch fallbacks.
 
+## Memos
+
+A project is one format, set by `META.format` in `content.js`: `'slides'`
+(the default) or `'memo'`. `components/page.js` turns it into the page size
+everything else reads. A new project becomes a memo with
+`pnpm create sl-ide --format memo`, or `pnpm use-format memo` while it still
+has the slide starter.
+
+- The page is 816 × 1056 px (8.5 × 11 in). Zones: body `[1, 1, 6.5, 9]`
+  (1 in margins), running header above it, sources `[1, 10.12, 6.5, 0.3]`,
+  footer chrome at 1008 px. Body type is 11 pt serif (`--memo-*` tokens).
+- The body is **flowing blocks** in `memo.body`: strings for paragraphs,
+  then `{ h2 }`, `{ ul }`, `{ table }`, `{ callout }` and the rest listed at
+  the top of `components/Flow.jsx`. The paginator lays them onto pages:
+  paragraphs break between lines (two lines at least on each side), lists
+  between items, tables between rows with the header repeated, headings
+  stay with what follows. Never hand-break copy to fit a page, and never
+  pad it to fill one.
+- **Fixed pages** (a cover, a full-page exhibit, an appendix table) are
+  components placed in inch boxes like slides, listed in `index.jsx` before
+  or after `flow('memo', memo.body)`.
+- Headings carry the argument the way action titles do: full sentences,
+  so the headings alone tell the story.
+- The audit skips WORDY on flowing pages; LONG fails a memo over
+  `META.pageBudget` pages, and RUNT (advisory) flags a last page holding a
+  line or two.
+- Keep spacing between blocks in each block's `margin-top` and never use
+  `text-wrap: pretty` in the body: the paginator measures one layout and
+  prints another if either changes how a block is set.
+
 ## Checks
 
 | | |
 |---|---|
-| `pnpm run audit` | CLIPPED / SPILL / OVERLAP / WORDY per page; exits 1 on any. RAGGED is advisory. Not `pnpm audit`, which audits dependencies. |
+| `pnpm run audit` | CLIPPED / SPILL / OVERLAP / WORDY per page, LONG per memo; exits 1 on any. RAGGED and RUNT are advisory. Not `pnpm audit`, which audits dependencies. |
 | `pnpm shots [labels]` | `output/shots/page-<label>.png` at 1:1 (`SCALE=2` for 2x) |
 | `pnpm pdf` | `output/<META.pdfName>.pdf` |
 | `pnpm lab` | the slide lab's fit report and screenshots |

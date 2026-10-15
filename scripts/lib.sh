@@ -34,6 +34,11 @@ serve_dist() {
   done
 }
 
+# The page size in px (PAGE_W, PAGE_H), from META.format: see components/page.js.
+page_size() {
+  read -r PAGE_W PAGE_H < <(node -e "import('./src/components/page.js').then(({ PAGE }) => console.log(PAGE.w, PAGE.h))")
+}
+
 build_dist() {
   [[ -d node_modules ]] || pnpm install
   pnpm exec vite build --logLevel warn

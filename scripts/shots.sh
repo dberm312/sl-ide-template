@@ -11,6 +11,7 @@ cd "$(dirname "$0")/.."
 source scripts/lib.sh
 find_chrome
 chrome_flags
+page_size
 SCALE="${SCALE:-1}"
 build_dist >/dev/null
 serve_dist 8243
@@ -35,19 +36,20 @@ done
 
 OUT=output/shots
 mkdir -p "$OUT"
-# Pages stack at 720px + 24px margin under 24px of body padding.
-H=$(( 24 + N * 744 ))
+# Pages stack at PAGE_H + 24px margin under 24px of body padding.
+STEP=$(( PAGE_H + 24 ))
+H=$(( 24 + N * STEP ))
 "$CHROME" "${CHROME_FLAGS[@]}" --hide-scrollbars --force-device-scale-factor="$SCALE" \
-  --window-size=1280,$H --screenshot="$OUT/all.png" "http://127.0.0.1:8243/index.html#print" 2>/dev/null
+  --window-size=$PAGE_W,$H --screenshot="$OUT/all.png" "http://127.0.0.1:8243/index.html#print" 2>/dev/null
 for i in "${PAGES[@]}"; do
   label=${LABELS[$(( i - 1 ))]}
   [[ "$label" == "—" ]] && label="at$i"
-  python3 - "$OUT/all.png" "$OUT/page-$label.png" "$(( (24 + (i - 1) * 744) * SCALE ))" "$SCALE" <<'PY' 2>/dev/null \
-    || sips -c $(( 720 * SCALE )) $(( 1280 * SCALE )) --cropOffset $(( (24 + (i - 1) * 744) * SCALE )) 0 "$OUT/all.png" --out "$OUT/page-$label.png" >/dev/null
+  python3 - "$OUT/all.png" "$OUT/page-$label.png" "$(( (24 + (i - 1) * STEP) * SCALE ))" "$SCALE" "$PAGE_W" "$PAGE_H" <<'PY' 2>/dev/null \
+    || sips -c $(( PAGE_H * SCALE )) $(( PAGE_W * SCALE )) --cropOffset $(( (24 + (i - 1) * STEP) * SCALE )) 0 "$OUT/all.png" --out "$OUT/page-$label.png" >/dev/null
 import sys
 from PIL import Image
-src, dst, top, scale = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4])
-Image.open(src).crop((0, top, 1280 * scale, top + 720 * scale)).save(dst)
+src, dst, top, scale, w, h = sys.argv[1], sys.argv[2], *map(int, sys.argv[3:7])
+Image.open(src).crop((0, top, w * scale, top + h * scale)).save(dst)
 PY
   echo "wrote $OUT/page-$label.png"
 done

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SlideThumb from './SlideThumb.jsx';
 import { META } from '../deck/content.js';
+import { FORMAT, PAGE } from './page.js';
 
 // The audience's view of the deck: one page at a time, fitted to the window,
 // with the controls out of the way. A built deck (dist/, and so sl-ide cloud)
@@ -16,9 +17,13 @@ import { META } from '../deck/content.js';
 // "Download PDF" appears when a deck.pdf sits beside index.html, which
 // `pnpm publish-deck` puts there. Pages render through the same components
 // as the PDF, so what viewers see is what prints.
+//
+// A memo reads like a document instead: every page down one scrolling
+// column, as wide as the window allows (up to MEMO_MAX_SCALE). The keys and
+// the counter still move by page, and #view/N scrolls to page N.
 
-const SLIDE_W = 1280;
-const SLIDE_H = 720;
+const MEMO = FORMAT === 'memo';
+const MEMO_MAX_SCALE = 1.4;
 const IDLE_MS = 2200;
 const PDF_PATH = './deck.pdf';
 
@@ -35,7 +40,9 @@ function useFitScale(ref) {
     if (!el) return undefined;
     const ro = new ResizeObserver(([e]) => {
       const { width, height } = e.contentRect;
-      setScale(Math.max(0.1, Math.min(width / SLIDE_W, height / SLIDE_H)));
+      setScale(Math.max(0.1, MEMO
+        ? Math.min(width / PAGE.w, MEMO_MAX_SCALE)
+        : Math.min(width / PAGE.w, height / PAGE.h)));
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -72,6 +79,30 @@ export default function Viewer({ slides, pages, apx }) {
   const scale = useFitScale(stageRef);
 
   const go = useCallback((i) => setIndex(Math.min(count - 1, Math.max(0, i))), [count]);
+
+  // A memo scrolls: turning the page scrolls to it, and scrolling turns it.
+  // `scrolling` marks a turn the scroll itself made, so it isn't scrolled to.
+  const scrolling = useRef(false);
+  useEffect(() => {
+    if (!MEMO || scrolling.current) { scrolling.current = false; return; }
+    const el = stageRef.current?.querySelector(`[data-page="${index}"]`);
+    el?.scrollIntoView({ block: 'start', behavior: 'instant' });
+  }, [index, scale]);
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!MEMO || !stage) return undefined;
+    const on = () => {
+      const mid = stage.getBoundingClientRect().top + stage.clientHeight / 3;
+      const els = Array.from(stage.querySelectorAll('[data-page]'));
+      const i = els.reduce((at, el, k) => (el.getBoundingClientRect().top <= mid ? k : at), 0);
+      setIndex((cur) => {
+        if (cur !== i) scrolling.current = true;
+        return i;
+      });
+    };
+    stage.addEventListener('scroll', on, { passive: true });
+    return () => stage.removeEventListener('scroll', on);
+  }, []);
 
   // The page lives in the URL, so a link can point at one and reload keeps it.
   useEffect(() => {
@@ -149,7 +180,7 @@ export default function Viewer({ slides, pages, apx }) {
   // Swipe: a mostly horizontal drag of 40px or more turns the page.
   useEffect(() => {
     const el = stageRef.current;
-    if (!el) return undefined;
+    if (!el || MEMO) return undefined;
     let start = null;
     const down = (e) => { if (e.pointerType !== 'mouse') start = { x: e.clientX, y: e.clientY }; };
     const up = (e) => {
@@ -176,16 +207,28 @@ export default function Viewer({ slides, pages, apx }) {
         {import.meta.env.DEV && <a className="vw-edit" href="#preview">Back to editor <kbd>esc</kbd></a>}
       </header>
 
-      <main className="vw-stage" ref={stageRef}>
-        <div className="vw-page" style={{ width: SLIDE_W * scale, height: SLIDE_H * scale }}>
-          <div style={{ zoom: scale }}>
-            <Component key={s.id} pageNumber={pages.get(s.id)} appendixLabel={apx.get(s.id)} {...props} />
+      {MEMO ? (
+        <main className="vw-stage is-doc" ref={stageRef}>
+          {slides.map((x, i) => (
+            <div className="vw-page" data-page={i} key={x.id} style={{ width: PAGE.w * scale, height: PAGE.h * scale }}>
+              <div style={{ zoom: scale }}>
+                <x.Component pageNumber={pages.get(x.id)} appendixLabel={apx.get(x.id)} {...(x.props ?? {})} />
+              </div>
+            </div>
+          ))}
+        </main>
+      ) : (
+        <main className="vw-stage" ref={stageRef}>
+          <div className="vw-page" style={{ width: PAGE.w * scale, height: PAGE.h * scale }}>
+            <div style={{ zoom: scale }}>
+              <Component key={s.id} pageNumber={pages.get(s.id)} appendixLabel={apx.get(s.id)} {...props} />
+            </div>
           </div>
-        </div>
-        {/* Click the left or right third of the stage to turn the page. */}
-        <button type="button" className="vw-hit is-prev" aria-label="Previous page" onClick={() => go(index - 1)} disabled={index === 0} />
-        <button type="button" className="vw-hit is-next" aria-label="Next page" onClick={() => go(index + 1)} disabled={index === count - 1} />
-      </main>
+          {/* Click the left or right third of the stage to turn the page. */}
+          <button type="button" className="vw-hit is-prev" aria-label="Previous page" onClick={() => go(index - 1)} disabled={index === 0} />
+          <button type="button" className="vw-hit is-next" aria-label="Next page" onClick={() => go(index + 1)} disabled={index === count - 1} />
+        </main>
+      )}
 
       <nav className="vw-bar" aria-label="Deck controls">
         <button type="button" className="vw-btn" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous page (←)" data-tip="Previous (←)"><Icon kind="prev" /></button>
@@ -213,7 +256,7 @@ export default function Viewer({ slides, pages, apx }) {
                 type="button" key={x.id} className={`vw-cell${i === index ? ' is-on' : ''}`}
                 onClick={() => { go(i); setGrid(false); }}
               >
-                <SlideThumb Component={x.Component} componentProps={{ ...(x.props ?? {}), pageNumber: pages.get(x.id), appendixLabel: apx.get(x.id) }} widthPx={260} />
+                <SlideThumb Component={x.Component} componentProps={{ ...(x.props ?? {}), pageNumber: pages.get(x.id), appendixLabel: apx.get(x.id) }} widthPx={MEMO ? 200 : 260} />
                 <span className="vw-cell-cap"><b>{label(x) ?? '·'}</b>{x.title}</span>
               </button>
             ))}

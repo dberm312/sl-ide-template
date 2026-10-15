@@ -46,6 +46,11 @@ PDF: `vite build` reads `index.html` only.
 - Every rule in `AGENTS.md` and `DESIGN.md` applies as in the deck: tokens
   only, title size, type floors, one emphasis per page, no colour-only
   signals, placeholders as written.
+- **In a memo**, a fixed page is labbed as above, on the Letter page. For
+  a flowing section, each take is a `MemoPage` (from
+  `components/Flow.jsx`) showing that section's blocks, with no `part`s, so
+  the takes compare how the section reads. Promotion replaces those blocks
+  in `memo.body`; the paginator re-flows the pages.
 - New CSS goes in `takes.css` under a per-take prefix (`ta-`, `tb-`, …).
 - The `idea` line tells the user what the take does and what it gives up,
   in one or two sentences.

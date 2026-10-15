@@ -8,8 +8,10 @@
 #          the failure the PDF hides from you.
 # SPILL    a card or region is too small for its own copy.
 # OVERLAP  two stacked bands print on top of each other.
-# WORDY    the page is over META.wordBudget words.
+# WORDY    the page is over META.wordBudget words (not a memo's flowing pages).
+# LONG     the document is over META.pageBudget pages, when it sets one.
 # RAGGED   (advisory) a wrapped line's last line is under half full.
+# RUNT     (advisory) a memo's last flowing page is under a quarter full.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/lib.sh
@@ -19,4 +21,4 @@ build_dist >/dev/null
 serve_dist 8242
 REPORT=$(audit_report 8242)
 echo "$REPORT"
-! grep -qE 'CLIPPED|WORDY|SPILL|OVERLAP|FONTS-PENDING' <<<"$REPORT"
+! grep -qE 'CLIPPED|WORDY|SPILL|OVERLAP|LONG|FONTS-PENDING' <<<"$REPORT"

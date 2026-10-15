@@ -1,6 +1,6 @@
 ---
 name: new-deck
-description: Start a new deck in sl-ide. Checks setup, runs impeccable to capture the audience (PRODUCT.md) and learn the visual style from a brand source (DESIGN.md and the tokens in src/styles.css), then outlines the story as action titles and replaces the starter pages. Use when the user says "new deck", "start a deck", "set up the deck", "learn the style", "/new-deck", or when PRODUCT.md or DESIGN.md is missing and they ask for slides.
+description: Start a new deck or memo in sl-ide. Checks setup and the format (16:9 slides or a US Letter memo), runs impeccable to capture the audience (PRODUCT.md) and learn the visual style from a brand source (DESIGN.md and the tokens in src/styles.css), then outlines the story (action titles, or a memo's headings) and replaces the starter pages. Use when the user says "new deck", "start a deck", "new memo", "write a memo", "set up the deck", "learn the style", "/new-deck", or when PRODUCT.md or DESIGN.md is missing and they ask for slides.
 ---
 
 # New deck
@@ -25,6 +25,15 @@ Run `node scripts/doctor.js --json`.
 If PRODUCT.md and DESIGN.md both exist, this is not a new deck: ask whether
 to redo the style, redo the story, or stop.
 
+**Format.** Read `META.format` in `src/deck/content.js` (missing means
+`'slides'`). A project is one format: 16:9 slides, or a memo on US Letter
+paper whose body flows across pages (`src/components/Flow.jsx`). If the
+user asked for a memo and the project still has the slide starter, run
+`pnpm use-format memo`; it swaps in the memo starter. `pnpm create sl-ide
+--format memo` will have done this already. Never switch a project whose
+pages are already the user's own. Where the steps below differ for a memo,
+they say so.
+
 ## 1. Product truth: PRODUCT.md
 
 Use the **impeccable** skill's `init` flow. It interviews and writes
@@ -35,6 +44,10 @@ is not asked these:
   13.333 × 7.5 in pages, vector PDF through headless Chrome, pnpm).
 - The deliverable is a slide deck, not a site. Its surface is a page at
   1280 × 720 px with type floors of 16 px body and 12 px footer.
+- **For a memo** instead: 8.5 × 11 in pages (816 × 1056 px), 1 in margins,
+  an 11 pt serif body that flows from page to page, read on paper or as a
+  PDF. Density is set by `META.pageBudget` (a one-pager, a two-to-four page
+  memo, a longer paper), not a word budget.
 
 What the interview must settle (impeccable asks; make sure these are
 covered):
@@ -49,7 +62,8 @@ covered):
    client's, a neutral house style), and any logo that must appear.
 
 Fill `META` in `src/deck/content.js` from the answers: `deckTitle`,
-`author`, `date`, `pdfName`, `mark`, `wordBudget`. Leave `watermark` on.
+`author`, `date`, `pdfName`, `mark`, `wordBudget` (and `pageBudget` for a
+memo). Leave `watermark` on.
 
 Then sharing on sl-ide cloud. Check `sl-ide.config.json` (`pnpm create sl-ide`
 usually wrote it) and ask who should be able to open the link: the team
@@ -81,7 +95,8 @@ the harness:
 - Tokens are CSS custom properties on `:root` in `src/styles.css`, under
   the starter's names (`--ink`, `--paper`, `--accent`, `--accent-ink`,
   `--on-accent`, `--card`, `--rule`, `--muted`, `--chrome`, `--confirm`,
-  `--draft`, `--sans`, `--serif`, `--mono`, `--body`, `--foot`, `--title`).
+  `--draft`, `--sans`, `--serif`, `--mono`, `--body`, `--foot`, `--title`,
+  and for a memo the `--memo-*` type tokens).
   Add tokens rather than renaming these; the building blocks read them.
   Don't touch the `--ide-*` tokens, which style sl-ide itself.
 - Type must be self-hosted, so the PDF never falls back. A licensed face
@@ -109,6 +124,11 @@ cover, the main pages, then any appendix. Each title states the page's
 point as a full sentence; read in order, the titles alone tell the story.
 Ask the user to approve or edit the list. Don't build pages yet.
 
+**For a memo**, draft the outline instead: the `Re:` line, then each
+section heading as a sentence stating the section's point, with a line
+under each on what it says. Read in order, the headings tell the argument.
+Name any fixed pages (an exhibit, an appendix table) at the end.
+
 ## 4. Replace the starter pages
 
 Once the titles are approved:
@@ -127,5 +147,14 @@ Once the titles are approved:
    standing decisions so far, each dated and attributed.
 6. Suggest a next step: `/copy-pass` once the content is in, `/slide-lab`
    for any page they're unsure of, `/ship-it` when they want a PDF.
+
+**For a memo**, replace `memo.body` in `content.js` with the approved
+outline as blocks (the shapes are listed at the top of
+`src/components/Flow.jsx`): the `memohead`, then a heading and paragraphs
+per section. Never hand-break the copy to fit a page; the paginator does
+that. Replace the starter's appendix page, or remove it from
+`src/slides/index.jsx` if the memo has none. Then steps 3 to 6 as above;
+the audit's RUNT note means the last page holds a line or two, usually a
+sentence to cut.
 
 Don't commit unless the user asks.
