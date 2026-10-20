@@ -10,7 +10,14 @@ import { FORMAT, PAGE } from './page.js';
 //   #view        page 1        #view/3   page 3 (positions, cover = 1)
 //
 // Keys: ← → (also space, PgUp/PgDn, j/k) · Home/End · g grid · f fullscreen
-// · Esc back to the editor (dev server only).
+// · b slides · d dock · Esc back to the editor (dev server only).
+//
+// The slides strip is the editor's rail for viewers: every page as a
+// thumbnail, docked on the left (a column) or on top (a row), the current one
+// marked. It doesn't fade with the controls, since it takes room from the
+// page rather than sitting over it, and full screen hides it. Open by default
+// when the window has room; whether it's open and where it docks are
+// remembered per browser.
 // Swipe on touch screens. The controls fade after a moment of stillness and
 // come back on any movement, so a presented page shows nothing but the page.
 //
@@ -26,6 +33,26 @@ const MEMO = FORMAT === 'memo';
 const MEMO_MAX_SCALE = 1.4;
 const IDLE_MS = 2200;
 const PDF_PATH = './deck.pdf';
+// Thumbs are as wide as the side strip allows, or as tall as the top one.
+const STRIP_SIDE_W = MEMO ? 120 : 168;
+const STRIP_TOP_H = 84;
+const thumbWidth = (side) => (side ? STRIP_SIDE_W : Math.round(STRIP_TOP_H * (PAGE.w / PAGE.h)));
+
+function readStripOpen() {
+  try {
+    const v = localStorage.getItem('vw-strip-open');
+    if (v === '1' || v === '0') return v === '1';
+  } catch { /* private window */ }
+  return window.innerWidth >= 1100;
+}
+
+function readStripPlace() {
+  try {
+    const v = localStorage.getItem('vw-strip-place');
+    if (v === 'top' || v === 'side') return v;
+  } catch { /* private window */ }
+  return 'side';
+}
 
 function pageFromHash(count) {
   const m = /^#view\/(\d+)/.exec(window.location.hash);
@@ -58,6 +85,8 @@ function Icon({ kind }) {
     pdf: <><path d="M8 2.5v7.5" /><path d="M5 7l3 3 3-3" /><path d="M3 12.5h10" /></>,
     full: <><path d="M2.5 6V2.5H6" /><path d="M10 2.5h3.5V6" /><path d="M13.5 10v3.5H10" /><path d="M6 13.5H2.5V10" /></>,
     exit: <><path d="M6 2.5V6H2.5" /><path d="M13.5 6H10V2.5" /><path d="M10 13.5V10h3.5" /><path d="M2.5 10H6v3.5" /></>,
+    side: <><rect x="1.5" y="2.5" width="13" height="11" rx="1.5" /><path d="M6 2.5v11" /></>,
+    top: <><rect x="1.5" y="2.5" width="13" height="11" rx="1.5" /><path d="M1.5 6.5h13" /></>,
   };
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
@@ -75,8 +104,19 @@ export default function Viewer({ slides, pages, apx }) {
   const [idle, setIdle] = useState(false);
   const [full, setFull] = useState(false);
   const [hasPdf, setHasPdf] = useState(false);
+  const [strip, setStrip] = useState(readStripOpen);
+  const [place, setPlace] = useState(readStripPlace);
+  const side = place === 'side';
   const stageRef = useRef(null);
+  const stripRef = useRef(null);
   const scale = useFitScale(stageRef);
+
+  useEffect(() => {
+    try { localStorage.setItem('vw-strip-open', strip ? '1' : '0'); } catch { /* private window */ }
+  }, [strip]);
+  useEffect(() => {
+    try { localStorage.setItem('vw-strip-place', place); } catch { /* private window */ }
+  }, [place]);
 
   const go = useCallback((i) => setIndex(Math.min(count - 1, Math.max(0, i))), [count]);
 
@@ -172,6 +212,8 @@ export default function Viewer({ slides, pages, apx }) {
       else if (k === 'End') { e.preventDefault(); go(count - 1); }
       else if (k === 'g') setGrid(true);
       else if (k === 'f') toggleFull();
+      else if (k === 'b') setStrip((o) => !o);
+      else if (k === 'd') setPlace((p) => (p === 'side' ? 'top' : 'side'));
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -195,54 +237,105 @@ export default function Viewer({ slides, pages, apx }) {
     return () => { el.removeEventListener('pointerdown', down); el.removeEventListener('pointerup', up); };
   }, [index, go]);
 
+  // Keep the current thumb in view as the pages turn. Scrolls the strip by
+  // hand: scrollIntoView would also scroll a memo's stage.
+  const showStrip = strip && !full;
+  useEffect(() => {
+    const el = stripRef.current;
+    const cell = el?.children[index];
+    if (!cell) return;
+    const r = el.getBoundingClientRect();
+    const c = cell.getBoundingClientRect();
+    if (side) {
+      if (c.top < r.top) el.scrollTop -= r.top - c.top + 12;
+      else if (c.bottom > r.bottom) el.scrollTop += c.bottom - r.bottom + 12;
+    } else if (c.left < r.left) el.scrollLeft -= r.left - c.left + 12;
+    else if (c.right > r.right) el.scrollLeft += c.right - r.right + 12;
+  }, [index, showStrip, side]);
+
+  // On top, a plain mouse wheel scrolls the strip sideways.
+  useEffect(() => {
+    const el = stripRef.current;
+    if (side || !el) return undefined;
+    const onWheel = (e) => {
+      if (e.deltaX || !e.deltaY) return;
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [showStrip, side]);
+
   const s = slides[index];
   const label = (x) => apx.get(x.id) ?? pages.get(x.id);
   const { Component, props = {} } = s;
 
   return (
-    <div className={`viewer${idle && !grid ? ' is-idle' : ''}`}>
-      <header className="vw-top">
-        <span className="vw-title">{META.deckTitle}</span>
-        {META.author && <span className="vw-by">{META.author}</span>}
-        {import.meta.env.DEV && <a className="vw-edit" href="#preview">Back to editor <kbd>esc</kbd></a>}
-      </header>
-
-      {MEMO ? (
-        <main className="vw-stage is-doc" ref={stageRef}>
+    <div className={`viewer is-${place}${idle && !grid ? ' is-idle' : ''}`}>
+      {showStrip && (
+        <nav className="vw-strip" ref={stripRef} aria-label="Pages">
           {slides.map((x, i) => (
-            <div className="vw-page" data-page={i} key={x.id} style={{ width: PAGE.w * scale, height: PAGE.h * scale }}>
-              <div style={{ zoom: scale }}>
-                <x.Component pageNumber={pages.get(x.id)} appendixLabel={apx.get(x.id)} {...(x.props ?? {})} />
-              </div>
-            </div>
+            <button
+              type="button" key={x.id} title={x.title}
+              className={`vw-strip-cell${i === index ? ' is-on' : ''}`}
+              aria-current={i === index ? 'page' : undefined}
+              onClick={() => go(i)}
+            >
+              <span className="vw-strip-no">{label(x) ?? '·'}</span>
+              <SlideThumb Component={x.Component} componentProps={{ ...(x.props ?? {}), pageNumber: pages.get(x.id), appendixLabel: apx.get(x.id) }} widthPx={thumbWidth(side)} />
+            </button>
           ))}
-        </main>
-      ) : (
-        <main className="vw-stage" ref={stageRef}>
-          <div className="vw-page" style={{ width: PAGE.w * scale, height: PAGE.h * scale }}>
-            <div style={{ zoom: scale }}>
-              <Component key={s.id} pageNumber={pages.get(s.id)} appendixLabel={apx.get(s.id)} {...props} />
-            </div>
-          </div>
-          {/* Click the left or right third of the stage to turn the page. */}
-          <button type="button" className="vw-hit is-prev" aria-label="Previous page" onClick={() => go(index - 1)} disabled={index === 0} />
-          <button type="button" className="vw-hit is-next" aria-label="Next page" onClick={() => go(index + 1)} disabled={index === count - 1} />
-        </main>
+        </nav>
       )}
 
-      <nav className="vw-bar" aria-label="Deck controls">
-        <button type="button" className="vw-btn" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous page (←)" data-tip="Previous (←)"><Icon kind="prev" /></button>
-        <span className="vw-count" aria-live="polite">{index + 1} <span>/ {count}</span></span>
-        <button type="button" className="vw-btn" onClick={() => go(index + 1)} disabled={index === count - 1} aria-label="Next page (→)" data-tip="Next (→)"><Icon kind="next" /></button>
-        <span className="vw-sep" />
-        <button type="button" className="vw-btn" onClick={() => setGrid(true)} aria-label="All pages (g)" data-tip="All pages (g)"><Icon kind="grid" /></button>
-        {hasPdf && (
-          <a className="vw-btn" href={PDF_PATH} download={`${META.pdfName || 'deck'}.pdf`} aria-label="Download PDF" data-tip="Download PDF"><Icon kind="pdf" /></a>
-        )}
-        <button type="button" className="vw-btn" onClick={toggleFull} aria-label={full ? 'Exit full screen (f)' : 'Full screen (f)'} data-tip={full ? 'Exit full screen (f)' : 'Full screen (f)'}><Icon kind={full ? 'exit' : 'full'} /></button>
-      </nav>
+      <div className="vw-main">
+        <header className="vw-top">
+          <span className="vw-title">{META.deckTitle}</span>
+          {META.author && <span className="vw-by">{META.author}</span>}
+          {import.meta.env.DEV && <a className="vw-edit" href="#preview">Back to editor <kbd>esc</kbd></a>}
+        </header>
 
-      <div className="vw-progress" aria-hidden="true"><span style={{ width: `${((index + 1) / count) * 100}%` }} /></div>
+        {MEMO ? (
+          <main className="vw-stage is-doc" ref={stageRef}>
+            {slides.map((x, i) => (
+              <div className="vw-page" data-page={i} key={x.id} style={{ width: PAGE.w * scale, height: PAGE.h * scale }}>
+                <div style={{ zoom: scale }}>
+                  <x.Component pageNumber={pages.get(x.id)} appendixLabel={apx.get(x.id)} {...(x.props ?? {})} />
+                </div>
+              </div>
+            ))}
+          </main>
+        ) : (
+          <main className="vw-stage" ref={stageRef}>
+            <div className="vw-page" style={{ width: PAGE.w * scale, height: PAGE.h * scale }}>
+              <div style={{ zoom: scale }}>
+                <Component key={s.id} pageNumber={pages.get(s.id)} appendixLabel={apx.get(s.id)} {...props} />
+              </div>
+            </div>
+            {/* Click the left or right third of the stage to turn the page. */}
+            <button type="button" className="vw-hit is-prev" aria-label="Previous page" onClick={() => go(index - 1)} disabled={index === 0} />
+            <button type="button" className="vw-hit is-next" aria-label="Next page" onClick={() => go(index + 1)} disabled={index === count - 1} />
+          </main>
+        )}
+
+        <nav className="vw-bar" aria-label="Deck controls">
+          <button type="button" className="vw-btn" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous page (←)" data-tip="Previous (←)"><Icon kind="prev" /></button>
+          <span className="vw-count" aria-live="polite">{index + 1} <span>/ {count}</span></span>
+          <button type="button" className="vw-btn" onClick={() => go(index + 1)} disabled={index === count - 1} aria-label="Next page (→)" data-tip="Next (→)"><Icon kind="next" /></button>
+          <span className="vw-sep" />
+          <button type="button" className={`vw-btn${strip ? ' is-on' : ''}`} onClick={() => setStrip((o) => !o)} aria-pressed={strip} aria-label={strip ? 'Hide slides (b)' : 'Show slides (b)'} data-tip={strip ? 'Hide slides (b)' : 'Show slides (b)'}><Icon kind={side ? 'side' : 'top'} /></button>
+          {strip && (
+            <button type="button" className="vw-btn" onClick={() => setPlace(side ? 'top' : 'side')} aria-label={side ? 'Slides on top (d)' : 'Slides on the left (d)'} data-tip={side ? 'Slides on top (d)' : 'Slides on the left (d)'}><Icon kind={side ? 'top' : 'side'} /></button>
+          )}
+          <button type="button" className="vw-btn" onClick={() => setGrid(true)} aria-label="All pages (g)" data-tip="All pages (g)"><Icon kind="grid" /></button>
+          {hasPdf && (
+            <a className="vw-btn" href={PDF_PATH} download={`${META.pdfName || 'deck'}.pdf`} aria-label="Download PDF" data-tip="Download PDF"><Icon kind="pdf" /></a>
+          )}
+          <button type="button" className="vw-btn" onClick={toggleFull} aria-label={full ? 'Exit full screen (f)' : 'Full screen (f)'} data-tip={full ? 'Exit full screen (f)' : 'Full screen (f)'}><Icon kind={full ? 'exit' : 'full'} /></button>
+        </nav>
+
+        <div className="vw-progress" aria-hidden="true"><span style={{ width: `${((index + 1) / count) * 100}%` }} /></div>
+      </div>
 
       {grid && (
         <div className="vw-grid" role="dialog" aria-label="All pages">

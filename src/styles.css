@@ -636,10 +636,35 @@ b, strong { font-weight: 700; }
 @media screen {
   body.is-viewing { padding: 0; overflow: hidden; background: #0e0f12; }
   .viewer {
-    position: fixed; inset: 0; display: flex; flex-direction: column;
+    position: fixed; inset: 0; display: flex;
     color: #e8e6dc; font-family: var(--sans); font-size: 13px;
   }
+  .viewer.is-top { flex-direction: column; }
   .viewer .slide { zoom: 1; margin: 0; box-shadow: none; }
+  /* Everything but the strip; the stage fills what the strip leaves. */
+  .vw-main { flex: 1; min-width: 0; min-height: 0; position: relative; display: flex; flex-direction: column; }
+
+  /* The slides strip: a column down the left or a row across the top. */
+  .vw-strip {
+    flex: none; display: flex; gap: 12px; background: #15161a;
+    user-select: none; scrollbar-width: thin; scrollbar-color: #34353c transparent;
+  }
+  .is-side .vw-strip { flex-direction: column; overflow-y: auto; padding: 14px 12px 14px 6px; border-right: 1px solid #25262c; }
+  .is-top .vw-strip { overflow-x: auto; padding: 10px 14px 10px 6px; border-bottom: 1px solid #25262c; }
+  .vw-strip-cell {
+    flex: none; display: flex; align-items: flex-start; gap: 4px; padding: 0;
+    background: none; border: 0; font: inherit; color: inherit; cursor: pointer;
+  }
+  .vw-strip-no {
+    width: 22px; flex: none; text-align: right; font-size: 11px; font-weight: 600;
+    color: #6b6a64; font-variant-numeric: tabular-nums;
+  }
+  .vw-strip-cell .thumb { border-radius: 2px; outline: 2px solid transparent; outline-offset: 2px; isolation: isolate; }
+  .vw-strip-cell:hover .thumb { outline-color: #55565c; }
+  .vw-strip-cell.is-on .thumb { outline-color: var(--ide-accent); }
+  .vw-strip-cell.is-on .vw-strip-no { color: var(--ide-accent-soft); }
+  .vw-strip-cell:focus-visible .thumb { outline-color: var(--ide-accent-soft); }
+  .vw-btn.is-on { color: var(--ide-accent-soft); }
 
   /* Title, top left; the controls, bottom centre. Both fade when idle. */
   .vw-top {
@@ -741,6 +766,12 @@ b, strong { font-weight: 700; }
     .vw-top { padding: 12px 14px; }
     .vw-by { display: none; }
     .vw-hit { display: none; }
+    /* No room for a column beside the page: the strip goes on top. */
+    .viewer.is-side { flex-direction: column; }
+    .is-side .vw-strip {
+      flex-direction: row; overflow: auto hidden; padding: 10px 14px 10px 6px;
+      border-right: 0; border-bottom: 1px solid #25262c;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .vw-top, .vw-bar, .vw-progress span { transition: none; }
