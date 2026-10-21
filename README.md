@@ -150,10 +150,10 @@ pnpm use-format memo  # turn a fresh project into a memo (starters/memo)
 
 Use `pnpm run audit`, not `pnpm audit` (that's pnpm's dependency audit).
 The audit, PDF and screenshots need Chrome or Chromium (`CHROME=/path` to
-point at one). The font check needs `pdffonts` (`brew install poppler`).
+point at one).
 
 Every commit that touches the deck runs the audit (`.githooks/pre-commit`).
-On every push, CI (`.github/workflows/publish.yml`) audits, prints the PDF,
+On every push, CI (`.github/workflows/publish.yml`) prints the PDF,
 checks its fonts and publishes the deck to sl-ide cloud.
 
 ## Publish to sl-ide cloud
@@ -163,7 +163,9 @@ at `sl-ide.com/d/<slug>/`, any other branch as a preview at
 `sl-ide.com/d/<slug>/b/<branch>/`, and each version at
 `sl-ide.com/d/<slug>/v/<sha>/`. Viewers get the viewer and a PDF download.
 
-When a branch's PR is merged or closed, or the branch is deleted,
+A branch's open PR gets one comment with its preview link, posted when the
+PR opens and updated on each push. When the PR is merged or closed, or the
+branch is deleted,
 `.github/workflows/unpublish.yml` takes its preview link down. Its versions
 stay at `/v/<sha>/` for 30 days, then the cloud deletes them. Versions that
 were on main are kept.
@@ -182,8 +184,7 @@ It also needs the repo secret `SL_IDE_PUBLISH_TOKEN`, a publish token for
 the team. `pnpm create sl-ide` sets up both. For a deck made without it:
 `pnpm create sl-ide login` saves a team token, then
 `gh secret set SL_IDE_PUBLISH_TOKEN` with it, and add the config. Tokens are
-listed and revoked at sl-ide.com/tokens. Without a config, CI still audits
-and prints, and skips publishing.
+listed and revoked at sl-ide.com/tokens. Without a config, CI still prints, and skips publishing.
 
 By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 

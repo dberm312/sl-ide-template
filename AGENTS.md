@@ -75,8 +75,8 @@ Never vendor a third-party skill's files into the repo.
 - **Page order:** `src/slides/index.jsx`. Appendix labels (A1, A2…) come from
   its order.
 - **The deliverable is the deck on sl-ide cloud, plus its PDF.** On every
-  push, CI (`.github/workflows/publish.yml`) audits, builds, prints the PDF
-  and publishes that version: main to `sl-ide.com/d/<slug>/`, other branches
+  push, CI (`.github/workflows/publish.yml`) builds, prints the PDF and
+  publishes that version: main to `sl-ide.com/d/<slug>/`, other branches
   to `/d/<slug>/b/<branch>/`. `sl-ide.config.json` sets the slug, the owning
   team and `visibility` (`public` or `team`); the repo secret
   `SL_IDE_PUBLISH_TOKEN` authorizes it. Local builds go to `output/`
@@ -151,8 +151,8 @@ has the slide starter.
 
 The pre-commit hook (`.githooks/pre-commit`, turned on by `pnpm install`)
 runs the audit whenever a commit touches the deck. A failing page blocks
-the commit; fix the page rather than using `--no-verify`. CI repeats the
-audit on push, then prints, checks fonts and publishes.
+the commit; fix the page rather than using `--no-verify`: it is the only
+audit, since CI on push only prints, checks fonts and publishes.
 
 ## Working with the user
 

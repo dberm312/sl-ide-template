@@ -5,10 +5,11 @@
 #   scripts/check-fonts.sh [pdf...]     (default: output/*.pdf)
 #
 # Allowed names come from src/fonts/*.woff2: "inter-tight-700.woff2" allows
-# any PDF font whose name starts with "InterTight" (any case). Needs pdffonts.
+# any PDF font whose name starts with "InterTight" (any case). The names are
+# read straight from the PDF's /BaseFont entries, which Chrome writes
+# uncompressed, so no pdffonts (and no poppler install in CI).
 set -euo pipefail
 cd "$(dirname "$0")/.."
-command -v pdffonts >/dev/null || { echo "check-fonts: pdffonts not installed (brew install poppler); skipped"; exit 0; }
 FILES=("$@")
 (( ${#FILES[@]} )) || FILES=(output/*.pdf)
 ALLOW=$(ls src/fonts/*.woff2 | xargs -n1 basename \
@@ -17,7 +18,13 @@ ALLOW=$(ls src/fonts/*.woff2 | xargs -n1 basename \
   | paste -sd'|' -)
 status=0
 for f in "${FILES[@]}"; do
-  strays=$(pdffonts "$f" | tail -n +3 | awk '{print $1}' | sed 's/^[A-Z]\{6\}+//' | grep -viE "^($ALLOW)" || true)
+  fonts=$(LC_ALL=C grep -ao '/BaseFont */[^/<>[:space:]]*' "$f" | sed -E 's#^/BaseFont */##; s/^[A-Z]{6}\+//' | sort -u)
+  if [[ -z "$fonts" ]]; then
+    echo "check-fonts: no fonts found in $f" >&2
+    status=1
+    continue
+  fi
+  strays=$(grep -viE "^($ALLOW)" <<<"$fonts" || true)
   if [[ -n "$strays" ]]; then
     echo "check-fonts: fallback fonts in $f:" $strays >&2
     status=1

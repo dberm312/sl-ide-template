@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   unpublish:
@@ -40,3 +41,9 @@ jobs:
           else
             node scripts/publish-deck.mjs --unpublish "$BRANCH"
           fi
+
+      - name: Mark the PR's preview comment taken down
+        if: github.event_name == 'pull_request' && hashFiles('sl-ide.config.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/preview-comment.mjs closed "${{ github.event.pull_request.number }}"

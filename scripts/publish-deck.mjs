@@ -114,3 +114,7 @@ console.log(`publish-deck: ${files.length} files published\n  ${out.url}\n  this
 if (process.env.GITHUB_STEP_SUMMARY) {
   fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### Published to sl-ide cloud\n\n- Latest on \`${branch}\`: ${out.url}\n- This version: ${out.version}\n`);
 }
+// For the workflow's later steps (the PR comment).
+if (process.env.GITHUB_OUTPUT) {
+  fs.appendFileSync(process.env.GITHUB_OUTPUT, `url=${out.url}\nversion=${out.version}\n`);
+}

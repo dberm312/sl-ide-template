@@ -145,7 +145,7 @@ export const checks = {
     ['RAGGED', 'A wrapped line ends in a stub under a third of the width. Advisory.', 'pnpm run audit'],
     ['Fonts', 'A glyph fell back to a system font in the PDF.', 'CI, before publishing'],
   ],
-  footer: 'The pre-commit hook runs the audit, so a failing page blocks the commit. On push, CI audits again, prints the PDF and publishes to sl-ide cloud.',
+  footer: 'The pre-commit hook runs the audit, so a failing page blocks the commit. On push, CI prints the PDF and publishes to sl-ide cloud.',
 };
 
 // --- Appendix -------------------------------------------------------------------

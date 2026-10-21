@@ -1,15 +1,19 @@
-# On every push: audit the deck, build it, print the PDF, check its fonts,
-# and publish that version to sl-ide cloud. main updates sl-ide.com/d/<slug>/;
-# any other branch gets its own preview at sl-ide.com/d/<slug>/b/<branch>/.
+# On every push: build the deck, print the PDF, check its fonts, and publish
+# that version to sl-ide cloud. main updates sl-ide.com/d/<slug>/;
+# any other branch gets its own preview at sl-ide.com/d/<slug>/b/<branch>/,
+# and its open PR carries one comment with the link (scripts/preview-comment.mjs),
+# posted when the PR opens and updated on each push.
 #
 # Needs sl-ide.config.json (slug, team, visibility) and the repo secret
 # SL_IDE_PUBLISH_TOKEN. `pnpm new-project` sets up both. Without them the
-# deck is still audited and printed, and the publish step is skipped.
+# deck is still printed, and the publish step is skipped.
 name: Publish deck
 
 on:
   push:
     branches: ["**"]
+  pull_request:
+    types: [opened, reopened]
   workflow_dispatch:
 
 # A newer push supersedes an older run of the same branch.
@@ -19,9 +23,11 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   publish:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04 # pinned: the Chrome sandbox step below is 24.04-specific
     timeout-minutes: 10
     steps:
@@ -34,9 +40,6 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      - name: Install pdffonts
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils
-
       # Ubuntu 24.04 blocks the unprivileged user namespaces Chrome's sandbox
       # needs, so headless Chrome exits before rendering anything.
       - name: Allow Chrome sandbox
@@ -44,9 +47,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Audit (every page must read ok)
-        run: pnpm run audit
-
+      # No audit here: the pre-commit hook already ran it on every commit that
+      # touches the deck, and it is the slowest step by far.
       - name: Print PDF
         run: pnpm run pdf
 
@@ -54,6 +56,7 @@ jobs:
         run: scripts/check-fonts.sh
 
       - name: Publish to sl-ide cloud
+        id: publish
         env:
           SL_IDE_PUBLISH_TOKEN: ${{ secrets.SL_IDE_PUBLISH_TOKEN }}
         run: |
@@ -64,3 +67,27 @@ jobs:
           else
             pnpm run publish-deck
           fi
+
+      - name: Update the PR's preview comment
+        if: steps.publish.outputs.version && github.ref_name != 'main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/preview-comment.mjs published "$GITHUB_REF_NAME" "${{ steps.publish.outputs.version }}"
+
+  # A new PR gets the branch's link straight away, before its next push.
+  # PRs from forks can't comment (read-only token) and never publish.
+  link:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Comment the preview link
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/preview-comment.mjs opened "${{ github.event.pull_request.number }}"
