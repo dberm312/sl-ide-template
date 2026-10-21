@@ -2,7 +2,7 @@
   "name": "sl-ide",
   "private": true,
   "type": "module",
-  "description": "sl-ide: an IDE for building slides with Claude Code or Codex",
+  "description": "sl-ide: an IDE for building slides with Claude Code, Codex or another coding agent",
   "packageManager": "pnpm@11.24.0",
   "scripts": {
     "dev": "vite",

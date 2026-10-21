@@ -283,6 +283,12 @@ b, strong { font-weight: 700; }
   background: var(--paper); border: 1px solid var(--rule); padding: 3px 8px;
 }
 .sh-step p { margin-top: 0; }
+.sh-agents { display: flex; align-items: center; gap: 28px; border-top: 1px solid var(--rule); }
+.sh-agents .eyebrow { margin: 0; }
+.sh-agents ul { list-style: none; display: flex; gap: 26px; }
+.sh-agents li { display: flex; align-items: center; gap: 9px; font-size: var(--body); font-weight: 600; color: var(--ink); }
+.sh-agents svg { width: 24px; height: 24px; flex: none; }
+.sh-agents p { margin: 0; font-size: var(--body); color: var(--muted); }
 
 /* =========================================================================
    ANATOMY · CHECKS · FILES

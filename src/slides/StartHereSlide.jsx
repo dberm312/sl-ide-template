@@ -2,10 +2,12 @@ import SlideShell from '../components/SlideShell.jsx';
 import Rich from '../components/Rich.jsx';
 import { box } from '../components/geometry.js';
 import { startHere } from '../deck/content.js';
+import { AGENT_LOGOS } from './agentLogos.js';
 
 export const title = startHere.title;
 
 // Three numbered steps across, each a card: what to do, the command, why.
+// Beneath them, the agents that can drive the deck.
 export default function StartHereSlide({ pageNumber }) {
   return (
     <SlideShell title={startHere.title} sources={startHere.footer} pageNumber={pageNumber}>
@@ -20,6 +22,25 @@ export default function StartHereSlide({ pageNumber }) {
           </li>
         ))}
       </ol>
+      <div className="region sh-agents" style={box([0.5, 5.85, 12.33, 0.6])}>
+        <h2 className="eyebrow">{startHere.agentsHead}</h2>
+        <ul>
+          {startHere.agents.map((a) => (
+            <li key={a.id}><AgentLogo id={a.id} />{a.name}</li>
+          ))}
+        </ul>
+        <p>{startHere.agentsNote}</p>
+      </div>
     </SlideShell>
+  );
+}
+
+function AgentLogo({ id }) {
+  const { d, evenodd } = AGENT_LOGOS[id];
+  const rule = evenodd ? 'evenodd' : undefined;
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d={d} fill="currentColor" fillRule={rule} clipRule={rule} />
+    </svg>
   );
 }
