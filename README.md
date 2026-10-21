@@ -30,7 +30,7 @@ Logos belong to their owners.
 pnpm create sl-ide my-deck
 ```
 
-That's [create-sl-ide](https://github.com/dberm312/create-sl-ide). It asks a
+That's [create-sl-ide](https://github.com/dberm312/sl-ide-create). It asks a
 few questions, then:
 
 - clones the **latest** sl-ide template from GitHub, keeping its history as

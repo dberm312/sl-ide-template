@@ -23,7 +23,7 @@ new deck"), with sl-ide as the `upstream` remote. Harness files belong to sl-ide
 `vite.config.js`, `.githooks/`, `.github/` and `.agents/skills/`. When a fix
 belongs in the harness rather than one deck, say so and suggest making it in
 sl-ide and pulling it in (`git pull upstream main`), so decks don't drift
-apart. In the sl-ide repo itself, keep everything brand-neutral.
+apart. In the sl-ide-template repo itself, keep everything brand-neutral.
 
 ## This deck
 
