@@ -225,3 +225,19 @@ Preview URLs now use `/r/<encoded-branch>/`; republish legacy branches to get
 their new links. Main and version entry links redirect to isolated deck hosts.
 New decks are team-only. To share publicly, open the deck's cloud page and
 save “Anyone with the link” under Sharing. The config no longer changes this.
+
+## Browser smoke checks
+
+Run `pnpm test:smoke` with Google Chrome installed. The suite uses real Chrome
+(including the dev server's copy-slide renderer), creates disposable slide and
+memo projects, and removes them afterward. It checks editor navigation, comment
+text on the clipboard, 2× PNG captures on the clipboard, viewer navigation,
+source edits and full reloads preserving the page, and PDF downloads from a
+local production build. PDF fixtures are printed from each starter's `#print`
+route; downloaded bytes must match. No cloud account or publish token is needed.
+Failures retain traces under `output/playwright/`.
+
+These are local harness checks (template-C). Published URLs, authentication,
+pinned versions and cloud-triggered reloads belong to cloud-F; publishing and
+the shell PDF pipeline belong to cloud-G/template-A. Run this suite in a host
+that permits Chrome processes and localhost servers.

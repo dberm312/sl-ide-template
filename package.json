@@ -17,13 +17,15 @@
     "new-project": "./scripts/new-project.sh",
     "use-format": "node scripts/use-format.mjs",
     "skills": "npx -y skills@latest experimental_install && node scripts/doctor.js",
-    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true"
+    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
+    "test:smoke": "playwright test"
   },
   "dependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@vitejs/plugin-react": "^6.1.2",
     "vite": "^8.3.4"
   }
