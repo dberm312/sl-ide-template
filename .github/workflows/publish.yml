@@ -33,12 +33,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v6 # version comes from packageManager
-
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: pnpm
+
+      # Node's corepack fetches the pnpm that packageManager names in about a
+      # second; pnpm/action-setup took five. No dependency cache: there are
+      # only four, and restoring one takes as long as installing them.
+      - name: Enable pnpm
+        run: corepack enable
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: 0
 
       # Ubuntu 24.04 blocks the unprivileged user namespaces Chrome's sandbox
       # needs, so headless Chrome exits before rendering anything.
