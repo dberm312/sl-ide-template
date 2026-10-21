@@ -1,4 +1,4 @@
-# sl-ide
+# sl-ide-template
 
 **An IDE for building slides and memos with Claude Code, Codex or any AI agent.**
 
@@ -30,7 +30,7 @@ Logos belong to their owners.
 pnpm create sl-ide my-deck
 ```
 
-That's [create-sl-ide](https://github.com/dberm312/sl-ide-create). It asks a
+That's [sl-ide-create](https://github.com/dberm312/sl-ide-create). It asks a
 few questions, then:
 
 - clones the **latest** sl-ide template from GitHub, keeping its history as
@@ -154,7 +154,7 @@ pnpm publish-deck     # publish dist/ and the PDF to sl-ide cloud (CI does this)
 pnpm lab              # fit report and screenshots for the slide lab's takes
 pnpm fonts            # re-fetch the self-hosted fonts listed in scripts/fonts.sh
 pnpm doctor           # setup checklist
-pnpm new-project NAME # start another deck next to this one (create-sl-ide)
+pnpm new-project NAME # start another deck next to this one (sl-ide-create)
 pnpm use-format memo  # turn a fresh project into a memo (starters/memo)
 ```
 

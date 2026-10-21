@@ -1,4 +1,4 @@
-# sl-ide
+# sl-ide-template
 
 An IDE for building slides and memos with Claude Code, Codex or any AI
 agent. A deck is a set of React pages at a fixed 16:9 size; a memo
