@@ -1,8 +1,8 @@
 # sl-ide
 
-An IDE for building slides and memos with Claude Code or Codex. A deck is
-a set of React pages at a fixed 16:9 size; a memo is US Letter pages whose
-body flows from page to page. The user watches them in the dev server and
+An IDE for building slides and memos with Claude Code, Codex or any AI
+agent. A deck is a set of React pages at a fixed 16:9 size; a memo
+is US Letter pages whose body flows from page to page. The user watches them in the dev server and
 steers by commenting on elements, and the deliverable is a vector PDF.
 This file is the working agreement for any agent in this repo. `CLAUDE.md`
 imports it.

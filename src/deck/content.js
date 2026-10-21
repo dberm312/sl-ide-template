@@ -68,7 +68,7 @@ export const cover = {
   // One line per story beat. Read alone, they should tell the deck's story.
   inBrief: [
     'Pages are React components at a fixed 16:9 size, printed to a vector PDF',
-    'Your agent writes the copy and the layout; you steer by commenting on the page',
+    'Claude Code, Codex or any AI agent writes the pages; you steer by commenting on them',
     'Impeccable sets the visual system once, so every page shares it',
     'An audit catches clipped, crowded and overlapping pages before you ship',
   ],
@@ -77,7 +77,7 @@ export const cover = {
 // --- Start here ---------------------------------------------------------------
 export const startHere = {
   title: 'Three steps take this starter to your first real deck',
-  lede: 'Open Claude Code or Codex in this folder, keep pnpm dev running, and work through these in order.',
+  lede: 'Open your coding agent in this folder, keep pnpm dev running, and work through these in order.',
   steps: [
     {
       n: '1',
@@ -98,6 +98,13 @@ export const startHere = {
       body: 'Ask for pages and they land in the preview. Press **c** to comment on any element, **/slide-lab** to compare takes and **/ship-it** to audit, print and commit the deck.',
     },
   ],
+  // sl-ide wraps the agent; the agent edits the pages. Marks in slides/agentLogos.js.
+  agentsHead: 'Works with',
+  agents: [
+    { maker: 'Anthropic', marks: [['claude', 'Claude'], ['claude-code', 'Claude Code']] },
+    { maker: 'OpenAI', marks: [['chatgpt', 'ChatGPT'], ['codex', 'Codex']] },
+  ],
+  agentsNote: 'and any AI agent, natively',
   footer: 'Codex users: invoke skills as $new-deck, $slide-lab and so on. The terminal under pnpm dev and the setup chip in the dev bar show which steps are left.',
 };
 
