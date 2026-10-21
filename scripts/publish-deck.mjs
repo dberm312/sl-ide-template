@@ -12,6 +12,12 @@
 // Uploads dist/ plus the PDF (output/<META.pdfName>.pdf) as deck.pdf, one file
 // per request, then records the version. Nothing changes for viewers until
 // that last step succeeds.
+//
+//   pnpm publish-deck --unpublish <branch>
+//
+// takes a branch's link down (.github/workflows/unpublish.yml runs it when a
+// PR closes or a branch is deleted). Its versions stay at /v/<sha>/ for 30
+// days, then the cloud deletes them; anything that was on main stays.
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -36,6 +42,19 @@ if (!['public', 'team'].includes(visibility)) die('"visibility" must be "public"
 const token = process.env.SL_IDE_PUBLISH_TOKEN;
 if (!token) die('SL_IDE_PUBLISH_TOKEN is not set (a GitHub Actions secret in CI)');
 const base = (process.env.SL_IDE_URL || config.url || 'https://sl-ide.com').replace(/\/$/, '');
+const auth = { Authorization: `Bearer ${token}` };
+
+const unpublish = process.argv.indexOf('--unpublish');
+if (unpublish !== -1) {
+  const name = process.argv[unpublish + 1];
+  if (!name) die('--unpublish needs a branch name');
+  if (name === 'main') die('main is never unpublished');
+  const res = await fetch(`${base}/api/publish/${slug}/refs/${encodeURIComponent(name)}`, { method: 'DELETE', headers: auth });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok) die(`unpublishing ${name} failed: ${res.status} ${out.error ?? ''}`);
+  console.log(`publish-deck: ${out.deleted ? 'took down' : 'nothing published for'} ${slug} @ ${name}`);
+  process.exit(0);
+}
 
 const sha = process.env.GITHUB_SHA || git('rev-parse HEAD');
 const branch = process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || git('rev-parse --abbrev-ref HEAD');
@@ -64,7 +83,6 @@ const files = walk(dist)
   .sort((a, b) => (a.to === 'index.html') - (b.to === 'index.html'));
 if (hasPdf) files.unshift({ from: pdf, to: 'deck.pdf' });
 
-const auth = { Authorization: `Bearer ${token}` };
 async function upload({ from, to }) {
   const url = `${base}/api/publish/${slug}/${sha}/${to.split('/').map(encodeURIComponent).join('/')}`;
   for (let attempt = 1; ; attempt += 1) {

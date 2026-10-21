@@ -1,0 +1,42 @@
+# Take a branch's preview down from sl-ide cloud when its PR is merged or
+# closed, or the branch is deleted. Its /d/<slug>/b/<branch>/ link stops
+# working; the versions stay at /v/<sha>/ for 30 days, then the cloud
+# deletes them. Nothing that was on main is ever removed. A merged PR whose
+# branch is auto-deleted fires both events; the second is a no-op.
+name: Unpublish branch
+
+on:
+  pull_request:
+    types: [closed]
+  delete:
+
+permissions:
+  contents: read
+
+jobs:
+  unpublish:
+    # PRs from forks never published (no secret), so there's nothing to take down.
+    if: >-
+      (github.event_name == 'delete' && github.event.ref_type == 'branch') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Unpublish from sl-ide cloud
+        env:
+          SL_IDE_PUBLISH_TOKEN: ${{ secrets.SL_IDE_PUBLISH_TOKEN }}
+          BRANCH: ${{ github.event_name == 'delete' && github.event.ref || github.head_ref }}
+        run: |
+          if [[ ! -f sl-ide.config.json || -z "$SL_IDE_PUBLISH_TOKEN" ]]; then
+            echo "::notice::Not set up to publish, so nothing to unpublish."
+          elif [[ "$BRANCH" == "main" ]]; then
+            echo "::notice::main is never unpublished."
+          else
+            node scripts/publish-deck.mjs --unpublish "$BRANCH"
+          fi

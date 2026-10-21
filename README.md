@@ -163,6 +163,11 @@ at `sl-ide.com/d/<slug>/`, any other branch as a preview at
 `sl-ide.com/d/<slug>/b/<branch>/`, and each version at
 `sl-ide.com/d/<slug>/v/<sha>/`. Viewers get the viewer and a PDF download.
 
+When a branch's PR is merged or closed, or the branch is deleted,
+`.github/workflows/unpublish.yml` takes its preview link down. Its versions
+stay at `/v/<sha>/` for 30 days, then the cloud deletes them. Versions that
+were on main are kept.
+
 A deck publishes when it has `sl-ide.config.json`:
 
 ```json
