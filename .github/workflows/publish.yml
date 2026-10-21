@@ -33,6 +33,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Ubuntu 24.04 blocks the unprivileged user namespaces Chrome's sandbox
+      # needs, so headless Chrome exits before rendering anything.
+      - name: Allow Chrome sandbox
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      # Chrome's first launch on a fresh runner takes ~9s, nearly all of it
+      # reading the browser off disk. Pay that in the background while Node
+      # and the dependencies install, so printing finds it warm.
+      - name: Warm up Chrome
+        run: nohup google-chrome --headless --disable-gpu --dump-dom about:blank >/dev/null 2>&1 &
+
       - uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -44,11 +55,6 @@ jobs:
         run: corepack enable
         env:
           COREPACK_ENABLE_DOWNLOAD_PROMPT: 0
-
-      # Ubuntu 24.04 blocks the unprivileged user namespaces Chrome's sandbox
-      # needs, so headless Chrome exits before rendering anything.
-      - name: Allow Chrome sandbox
-        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
       - run: pnpm install --frozen-lockfile
 

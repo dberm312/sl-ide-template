@@ -2,13 +2,15 @@
 # Shared by the scripts in this folder: find Chrome, build, and serve dist/.
 # Source it; don't run it.
 
+# google-chrome before chromium: CI warms google-chrome up (publish.yml), and
+# on the runner chromium's cold start is slower still.
 find_chrome() {
   local c
   for c in "${CHROME:-}" \
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
     "/Applications/Chromium.app/Contents/MacOS/Chromium" \
-    "$(command -v chromium 2>/dev/null)" "$(command -v chromium-browser 2>/dev/null)" \
     "$(command -v google-chrome 2>/dev/null)" \
+    "$(command -v chromium 2>/dev/null)" "$(command -v chromium-browser 2>/dev/null)" \
     "${PLAYWRIGHT_BROWSERS_PATH:-/opt/pw-browsers}/chromium"; do
     if [[ -n "$c" && -x "$c" ]]; then CHROME="$c"; return 0; fi
   done
