@@ -1,6 +1,6 @@
 # On every push: build the deck, print the PDF, check its fonts, and publish
 # that version to sl-ide cloud. main updates sl-ide.com/d/<slug>/;
-# any other branch gets its own preview at sl-ide.com/d/<slug>/b/<branch>/,
+# any other branch gets its own preview at sl-ide.com/d/<slug>/r/<encoded-branch>/,
 # and its open PR carries one comment with the link (scripts/preview-comment.mjs),
 # posted when the PR opens and updated on each push.
 #

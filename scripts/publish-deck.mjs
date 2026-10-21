@@ -5,7 +5,7 @@
 //
 // CI runs this on every push (.github/workflows/publish.yml). The branch's
 // link then shows this version: main at sl-ide.com/d/<slug>/, any other
-// branch at sl-ide.com/d/<slug>/b/<branch>/.
+// branch at sl-ide.com/d/<slug>/r/<encoded-branch>/.
 //
 // Reads sl-ide.config.json:   { "slug", "team", "visibility": "public" | "team" }
 // Needs SL_IDE_PUBLISH_TOKEN; SL_IDE_URL overrides https://sl-ide.com.
@@ -18,6 +18,7 @@
 // takes a branch's link down (.github/workflows/unpublish.yml runs it when a
 // PR closes or a branch is deleted). Its versions stay at /v/<sha>/ for 30
 // days, then the cloud deletes them; anything that was on main stays.
+import { randomUUID, createHash } from 'node:crypto';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -42,14 +43,16 @@ if (!['public', 'team'].includes(visibility)) die('"visibility" must be "public"
 const token = process.env.SL_IDE_PUBLISH_TOKEN;
 if (!token) die('SL_IDE_PUBLISH_TOKEN is not set (a GitHub Actions secret in CI)');
 const base = (process.env.SL_IDE_URL || config.url || 'https://sl-ide.com').replace(/\/$/, '');
-const auth = { Authorization: `Bearer ${token}` };
+const uploadId = randomUUID();
+const auth = { Authorization: `Bearer ${token}`, 'X-Sl-Ide-Upload-Id': uploadId, 'X-Sl-Ide-Team': team };
+const manifest = Object.create(null);
 
 const unpublish = process.argv.indexOf('--unpublish');
 if (unpublish !== -1) {
   const name = process.argv[unpublish + 1];
   if (!name) die('--unpublish needs a branch name');
   if (name === 'main') die('main is never unpublished');
-  const res = await fetch(`${base}/api/publish/${slug}/refs/${encodeURIComponent(name)}`, { method: 'DELETE', headers: auth });
+  const res = await fetch(`${base}/api/publish/${slug}/refs/${name.split('/').map(encodeURIComponent).join('/')}`, { method: 'DELETE', headers: auth });
   const out = await res.json().catch(() => ({}));
   if (!res.ok) die(`unpublishing ${name} failed: ${res.status} ${out.error ?? ''}`);
   console.log(`publish-deck: ${out.deleted ? 'took down' : 'nothing published for'} ${slug} @ ${name}`);
@@ -84,10 +87,19 @@ const files = walk(dist)
 if (hasPdf) files.unshift({ from: pdf, to: 'deck.pdf' });
 
 async function upload({ from, to }) {
+  const body = fs.readFileSync(from);
+  if (body.length > 4_000_000) die(`${to} exceeds the cloud's 4 MB per-file limit`);
+  const hash = createHash('sha256').update(body).digest('hex');
+  manifest[to] = { hash, size: body.length };
   const url = `${base}/api/publish/${slug}/${sha}/${to.split('/').map(encodeURIComponent).join('/')}`;
   for (let attempt = 1; ; attempt += 1) {
-    const res = await fetch(url, { method: 'PUT', headers: auth, body: fs.readFileSync(from) }).catch((e) => ({ ok: false, status: 0, text: async () => e.message }));
-    if (res.ok) return;
+    const res = await fetch(url, { method: 'PUT', headers: auth, body }).catch((e) => ({ ok: false, status: 0, text: async () => e.message }));
+    if (res.ok) {
+      const uploaded = await res.json();
+      if (uploaded.hash !== hash || uploaded.size !== body.length) die(`cloud checksum mismatch for ${to}`);
+      return;
+    }
+    if ([403, 409, 413, 426].includes(res.status)) die(`upload of ${to} rejected: ${res.status} ${await res.text()}`);
     if (res.status === 401) die('the cloud rejected SL_IDE_PUBLISH_TOKEN');
     if (attempt >= 3) die(`upload of ${to} failed: ${res.status} ${await res.text()}`);
     await new Promise((r) => setTimeout(r, 500 * attempt));
@@ -106,10 +118,11 @@ const pages = hasPdf ? (fs.readFileSync(pdf, 'latin1').match(/\/Type\s*\/Page(?!
 const res = await fetch(`${base}/api/publish/${slug}/${sha}`, {
   method: 'POST',
   headers: { ...auth, 'Content-Type': 'application/json' },
-  body: JSON.stringify({ branch, title: META.deckTitle, format: META.format === 'memo' ? 'memo' : 'slides', visibility, team, repo, pages, hasPdf }),
+  body: JSON.stringify({ uploadId, manifest, branch, title: META.deckTitle, format: META.format === 'memo' ? 'memo' : 'slides', visibility, team, repo, pages, hasPdf }),
 });
 const out = await res.json().catch(() => ({}));
 if (!res.ok) die(`recording the version failed: ${res.status} ${out.error ?? ''}`);
+if (out.notice) console.log(`publish-deck: ${out.notice}`);
 console.log(`publish-deck: ${files.length} files published\n  ${out.url}\n  this version: ${out.version}`);
 if (process.env.GITHUB_STEP_SUMMARY) {
   fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### Published to sl-ide cloud\n\n- Latest on \`${branch}\`: ${out.url}\n- This version: ${out.version}\n`);

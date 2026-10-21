@@ -25,9 +25,9 @@ const configPath = path.join(ROOT, 'sl-ide.config.json');
 if (!fs.existsSync(configPath)) process.exit(0);
 const { slug, url } = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 const base = (process.env.SL_IDE_URL || url || 'https://sl-ide.com').replace(/\/$/, '');
-// Same as branchKey in sl-ide cloud: "feature/new-cover" -> "feature--new-cover".
-const branchKey = (b) => b.toLowerCase().replace(/\//g, '--').replace(/[^a-z0-9._-]/g, '-');
-const branchUrl = (b) => `${base}/d/${slug}/b/${branchKey(b)}/`;
+// Same reversible encoding as cloud src/lib/branches.ts; never normalize case or slashes.
+const branchKey = (b) => Buffer.from(b, 'utf8').toString('hex');
+const branchUrl = (b) => `${base}/d/${slug}/r/${branchKey(b)}/`;
 
 const [mode, arg, version] = process.argv.slice(2);
 if (!arg) die(`usage: preview-comment.mjs opened|published|closed <pr|branch> [version]`);

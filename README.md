@@ -51,7 +51,7 @@ there and names it after the folder.
 For a memo instead of slides: `pnpm create sl-ide my-memo --format memo`
 (see [Memos](#memos)).
 
-Without prompts: `pnpm create sl-ide my-deck --team acme --share public --yes`.
+Without prompts: `pnpm create sl-ide my-deck --team acme --yes`.
 From inside an existing deck, `pnpm new-project my-next-deck` does the same,
 next to it. `pnpm create sl-ide login` signs in to another team.
 
@@ -170,7 +170,7 @@ checks its fonts and publishes the deck to sl-ide cloud.
 
 Every push publishes that version to [sl-ide.com](https://sl-ide.com): main
 at `sl-ide.com/d/<slug>/`, any other branch as a preview at
-`sl-ide.com/d/<slug>/b/<branch>/`, and each version at
+`sl-ide.com/d/<slug>/r/<encoded-branch>/`, and each version at
 `sl-ide.com/d/<slug>/v/<sha>/`. Viewers get the viewer and a PDF download.
 
 A branch's open PR gets one comment with its preview link, posted when the
@@ -188,7 +188,7 @@ A deck publishes when it has `sl-ide.config.json`:
 
 - `slug`: the deck's link.
 - `team`: the team on sl-ide cloud that owns it; members see it in their list.
-- `visibility`: `team` (signed-in members only) or `public` (anyone with the link).
+- `visibility`: retained for older configs. New decks start team-only; change sharing on the cloud deck page. Publishing never changes privacy.
 
 It also needs the repo secret `SL_IDE_PUBLISH_TOKEN`, a publish token for
 the team. `pnpm create sl-ide` sets up both. For a deck made without it:
@@ -213,3 +213,15 @@ By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 | `.agents/skills/` | new-deck, slide-lab, copy-pass, ship-it, clean-up (symlinked into `.claude/skills/`) |
 | `skills-lock.json` | the third-party skills this repo expects |
 | `scripts/` | audit, pdf, shots, lab, fonts, doctor |
+
+
+### Publisher compatibility
+
+The cloud requires the current publisher: uploads use a UUID session and a
+SHA-256 manifest, and finalized versions cannot be overwritten. Pull both
+`scripts/publish-deck.mjs` and `scripts/preview-comment.mjs` from upstream
+before publishing to the updated cloud. Old publishers receive HTTP 426.
+Preview URLs now use `/r/<encoded-branch>/`; republish legacy branches to get
+their new links. Main and version entry links redirect to isolated deck hosts.
+New decks are team-only. To share publicly, open the deck's cloud page and
+save “Anyone with the link” under Sharing. The config no longer changes this.
