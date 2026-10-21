@@ -14,6 +14,16 @@ the layout checks; the agent writes and edits your slides.
 
 Logos belong to their owners.
 
+> **Agents: this README is sl-ide's, not the deck's.** When you set up a new
+> project from this template (`/new-deck`), rewrite it for that project.
+> Keep one line at the top linking back to
+> [sl-ide](https://github.com/dberm312/sl-ide-template) and saying what it is (the
+> IDE this deck is built in, with its docs and commands). Everything below
+> that is about this deck or memo: what it's for and who reads it, where
+> it publishes (the sl-ide cloud link from `sl-ide.config.json`), how to
+> run it (`pnpm install && pnpm dev`) and anything specific to working on
+> it. Leave the harness docs to the sl-ide link rather than copying them.
+
 ## Start a new deck
 
 ```sh

@@ -148,7 +148,11 @@ Once the titles are approved:
 4. `pnpm run audit` must read ok on every page. Look at the shots.
 5. Update `AGENTS.md`'s "This deck" section: the page list and the
    standing decisions so far, each dated and attributed.
-6. Suggest a next step: `/copy-pass` once the content is in, `/slide-lab`
+6. Rewrite `README.md` for this project, as the note at its top says: a
+   line linking to [sl-ide](https://github.com/dberm312/sl-ide-template) and what
+   it is, then the deck's purpose, audience, published link and how to
+   run it. Drop the copied harness docs.
+7. Suggest a next step: `/copy-pass` once the content is in, `/slide-lab`
    for any page they're unsure of, `/ship-it` when they want a PDF.
 
 **For a memo**, replace `memo.body` in `content.js` with the approved
@@ -156,7 +160,7 @@ outline as blocks (the shapes are listed at the top of
 `src/components/Flow.jsx`): the `memohead`, then a heading and paragraphs
 per section. Never hand-break the copy to fit a page; the paginator does
 that. Replace the starter's appendix page, or remove it from
-`src/slides/index.jsx` if the memo has none. Then steps 3 to 6 as above;
+`src/slides/index.jsx` if the memo has none. Then steps 3 to 7 as above;
 the audit's RUNT note means the last page holds a line or two, usually a
 sentence to cut.
 
