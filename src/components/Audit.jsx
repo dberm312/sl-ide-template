@@ -120,7 +120,7 @@ export default function Audit({ slides, pages, apx }) {
     // the virtual-time budget.
     id = setTimeout(measure, 16);
     return () => clearTimeout(id);
-  });
+  }, [slides, pages, apx]); // once: re-measuring after its own report never settles
 
   return <pre id="audit" style={{ whiteSpace: 'pre', fontSize: 12 }}>{report}</pre>;
 }

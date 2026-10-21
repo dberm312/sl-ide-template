@@ -46,7 +46,9 @@ build_dist() {
   pnpm exec vite build --logLevel warn
 }
 
-# The audit report from the #audit route, as plain text.
+# The audit report from the #audit route, as plain text. Fails unless the
+# report finished: a page dumped while still "measuring…" carries no failure
+# flags, so without this check it would pass.
 audit_report() {
   local port="$1"
   "$CHROME" "${CHROME_FLAGS[@]}" --dump-dom "http://127.0.0.1:$port/index.html#audit" 2>/dev/null \
@@ -55,6 +57,15 @@ import html, re, sys
 m = re.search(r"<pre id=\"audit\"[^>]*>(.*?)</pre>", sys.stdin.read(), re.S)
 if not m:
     print("audit: could not read the report", file=sys.stderr); sys.exit(1)
-print(html.unescape(re.sub(r"<[^>]+>", "", m.group(1))))
+report = html.unescape(re.sub(r"<[^>]+>", "", m.group(1)))
+print(report)
+lines = report.splitlines()
+head = re.match(r"AUDIT  (\d+) pages", lines[0] if lines else "")
+if not head:
+    print("audit: the report never finished measuring", file=sys.stderr); sys.exit(1)
+pages = int(head.group(1))
+rows = [l for l in lines[2:2 + pages] if not l.startswith("  ")]
+if pages == 0 or len(rows) != pages:
+    print(f"audit: expected {pages} page rows, read {len(rows)}", file=sys.stderr); sys.exit(1)
 '
 }

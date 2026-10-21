@@ -1,4 +1,4 @@
-# On every push: build the deck, print the PDF, check its fonts, and publish
+# On every push: audit the layout, print the PDF, check its fonts, and publish
 # that version to sl-ide cloud. main updates app.sl-ide.com/d/<slug>/;
 # any other branch gets its own preview at app.sl-ide.com/d/<slug>/r/<encoded-branch>/,
 # and its open PR carries one comment with the link (scripts/preview-comment.mjs),
@@ -58,8 +58,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # No audit here: the pre-commit hook already ran it on every commit that
-      # touches the deck, and it is the slowest step by far.
+      # The gate: a clipped, spilling or wordy page fails the run before
+      # anything is printed or published. The pre-commit hook can be skipped
+      # or missing and audits the working tree; this audits the pushed commit.
+      - name: Audit the layout
+        run: pnpm run audit
+
       - name: Print PDF
         run: pnpm run pdf
 
