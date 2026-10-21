@@ -75,7 +75,8 @@ missing, ask for the team's slug and write it as
 `{ "slug": "<deck>", "team": "<team>", "visibility": "team" }`. Confirm the
 repo has the `SL_IDE_PUBLISH_TOKEN` secret (`gh secret list`); if not, have
 the user run `! pnpm create sl-ide login` and set it from the token saved in
-`~/.config/sl-ide/credentials.json` (never print the token).
+`~/.config/sl-ide/credentials.json`, under `servers["https://app.sl-ide.com"].teams.<team>.token`
+(never print the token).
 
 ## 2. Visual system: DESIGN.md and the tokens
 
