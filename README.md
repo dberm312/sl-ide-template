@@ -1,28 +1,18 @@
 # sl-ide
 
-**An IDE for building slides and memos with Claude Code, Codex or another coding agent.**
+**An IDE for building slides and memos with Claude Code, Codex or any AI agent.**
 
 sl-ide is a harness around the agent you already use, not a new one. It
 gives the agent the pages, the house rules (`AGENTS.md`), the skills and
 the layout checks; the agent writes and edits your slides.
 
-<p>
-  <img src=".github/agents/claude-code.svg" height="22" alt="" align="absmiddle"> Claude Code&nbsp;&nbsp;
-  <img src=".github/agents/codex.svg" height="22" alt="" align="absmiddle"> Codex&nbsp;&nbsp;
-  <img src=".github/agents/cursor.svg" height="22" alt="" align="absmiddle"> Cursor&nbsp;&nbsp;
-  <img src=".github/agents/copilot.svg" height="22" alt="" align="absmiddle"> GitHub Copilot&nbsp;&nbsp;
-  <img src=".github/agents/opencode.svg" height="22" alt="" align="absmiddle"> opencode
-</p>
+| Works with | | How |
+|---|---|---|
+| **Anthropic** | <img src=".github/agents/claude.svg" height="20" alt="" align="absmiddle"> Claude &nbsp; <img src=".github/agents/claude-code.svg" height="20" alt="" align="absmiddle"> Claude Code | Skills as slash commands: `/new-deck`, `/slide-lab`, `/ship-it` |
+| **OpenAI** | <img src=".github/agents/chatgpt.svg" height="20" alt="" align="absmiddle"> ChatGPT &nbsp; <img src=".github/agents/codex.svg" height="20" alt="" align="absmiddle"> Codex | The same skills: `$new-deck`, `$slide-lab`, `$ship-it` |
+| **Any AI agent** | Works natively | Everything is plain files in the repo (`AGENTS.md`, skills, scripts), so any agent that reads files and runs commands picks it up. No plugin. |
 
-Claude Code and Codex run the skills as commands (`/new-deck`, or
-`$new-deck` in Codex). Any other agent that reads `AGENTS.md` follows the
-same working agreement. Logos belong to their owners.
-
-You describe the deck; your agent writes the pages as React components at a
-fixed 16:9 size, or as a memo on US Letter paper whose text flows from page
-to page. You watch them change in the browser, comment on any
-element to steer, and print a vector PDF. A layout audit catches clipped,
-crowded and overlapping pages before they ship.
+Logos belong to their owners.
 
 ## Start a new deck
 

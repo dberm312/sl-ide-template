@@ -7,7 +7,7 @@ import { AGENT_LOGOS } from './agentLogos.js';
 export const title = startHere.title;
 
 // Three numbered steps across, each a card: what to do, the command, why.
-// Beneath them, the agents that can drive the deck.
+// Beneath them, the agents that can drive the deck, grouped by maker.
 export default function StartHereSlide({ pageNumber }) {
   return (
     <SlideShell title={startHere.title} sources={startHere.footer} pageNumber={pageNumber}>
@@ -24,11 +24,13 @@ export default function StartHereSlide({ pageNumber }) {
       </ol>
       <div className="region sh-agents" style={box([0.5, 5.85, 12.33, 0.6])}>
         <h2 className="eyebrow">{startHere.agentsHead}</h2>
-        <ul>
-          {startHere.agents.map((a) => (
-            <li key={a.id}><AgentLogo id={a.id} />{a.name}</li>
-          ))}
-        </ul>
+        {startHere.agents.map((g) => (
+          <ul key={g.maker} aria-label={g.maker}>
+            {g.marks.map(([id, name]) => (
+              <li key={id}><AgentLogo id={id} />{name}</li>
+            ))}
+          </ul>
+        ))}
         <p>{startHere.agentsNote}</p>
       </div>
     </SlideShell>

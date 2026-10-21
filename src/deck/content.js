@@ -68,7 +68,7 @@ export const cover = {
   // One line per story beat. Read alone, they should tell the deck's story.
   inBrief: [
     'Pages are React components at a fixed 16:9 size, printed to a vector PDF',
-    'Claude Code, Codex or another agent writes the pages; you steer by commenting on them',
+    'Claude Code, Codex or any AI agent writes the pages; you steer by commenting on them',
     'Impeccable sets the visual system once, so every page shares it',
     'An audit catches clipped, crowded and overlapping pages before you ship',
   ],
@@ -101,13 +101,10 @@ export const startHere = {
   // sl-ide wraps the agent; the agent edits the pages. Marks in slides/agentLogos.js.
   agentsHead: 'Works with',
   agents: [
-    { id: 'claude-code', name: 'Claude Code' },
-    { id: 'codex', name: 'Codex' },
-    { id: 'cursor', name: 'Cursor' },
-    { id: 'copilot', name: 'GitHub Copilot' },
-    { id: 'opencode', name: 'opencode' },
+    { maker: 'Anthropic', marks: [['claude', 'Claude'], ['claude-code', 'Claude Code']] },
+    { maker: 'OpenAI', marks: [['chatgpt', 'ChatGPT'], ['codex', 'Codex']] },
   ],
-  agentsNote: 'or any agent that reads AGENTS.md',
+  agentsNote: 'and any AI agent, natively',
   footer: 'Codex users: invoke skills as $new-deck, $slide-lab and so on. The terminal under pnpm dev and the setup chip in the dev bar show which steps are left.',
 };
 
