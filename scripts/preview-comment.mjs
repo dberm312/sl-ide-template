@@ -24,7 +24,7 @@ const repo = process.env.GITHUB_REPOSITORY || die('GITHUB_REPOSITORY is not set 
 const configPath = path.join(ROOT, 'sl-ide.config.json');
 if (!fs.existsSync(configPath)) process.exit(0);
 const { slug, url } = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-const base = (process.env.SL_IDE_URL || url || 'https://sl-ide.com').replace(/\/$/, '');
+const base = (process.env.SL_IDE_URL || url || 'https://app.sl-ide.com').replace(/\/$/, '');
 // Same reversible encoding as cloud src/lib/branches.ts; never normalize case or slashes.
 const branchKey = (b) => Buffer.from(b, 'utf8').toString('hex');
 const branchUrl = (b) => `${base}/d/${slug}/r/${branchKey(b)}/`;

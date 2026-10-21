@@ -37,7 +37,7 @@ few questions, then:
   the `upstream` remote, so later editor updates arrive with
   `git pull upstream main`;
 - creates the deck's own GitHub repo (private by default);
-- sets it up to publish to [sl-ide cloud](https://sl-ide.com): you approve a
+- sets it up to publish to [sl-ide cloud](https://app.sl-ide.com): you approve a
   sign-in in your browser, it saves a token for your team, writes
   `sl-ide.config.json` and sets the repo's `SL_IDE_PUBLISH_TOKEN` secret;
 - runs `pnpm install`.
@@ -168,10 +168,10 @@ checks its fonts and publishes the deck to sl-ide cloud.
 
 ## Publish to sl-ide cloud
 
-Every push publishes that version to [sl-ide.com](https://sl-ide.com): main
-at `sl-ide.com/d/<slug>/`, any other branch as a preview at
-`sl-ide.com/d/<slug>/r/<encoded-branch>/`, and each version at
-`sl-ide.com/d/<slug>/v/<sha>/`. Viewers get the viewer and a PDF download.
+Every push publishes that version to [app.sl-ide.com](https://app.sl-ide.com): main
+at `app.sl-ide.com/d/<slug>/`, any other branch as a preview at
+`app.sl-ide.com/d/<slug>/r/<encoded-branch>/`, and each version at
+`app.sl-ide.com/d/<slug>/v/<sha>/`. Viewers get the viewer and a PDF download.
 
 A branch's open PR gets one comment with its preview link, posted when the
 PR opens and updated on each push. When the PR is merged or closed, or the
@@ -194,7 +194,7 @@ It also needs the repo secret `SL_IDE_PUBLISH_TOKEN`, a publish token for
 the team. `pnpm create sl-ide` sets up both. For a deck made without it:
 `pnpm create sl-ide login` saves a team token, then
 `gh secret set SL_IDE_PUBLISH_TOKEN` with it, and add the config. Tokens are
-listed and revoked at sl-ide.com/tokens. Without a config, CI still prints, and skips publishing.
+listed and revoked at app.sl-ide.com/tokens. Without a config, CI still prints, and skips publishing.
 
 By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 

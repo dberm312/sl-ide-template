@@ -76,7 +76,7 @@ Never vendor a third-party skill's files into the repo.
   its order.
 - **The deliverable is the deck on sl-ide cloud, plus its PDF.** On every
   push, CI (`.github/workflows/publish.yml`) builds, prints the PDF and
-  publishes that version: main to `sl-ide.com/d/<slug>/`, other branches
+  publishes that version: main to `app.sl-ide.com/d/<slug>/`, other branches
   to `/d/<slug>/r/<encoded-branch>/`. `sl-ide.config.json` sets the slug, the owning
   team and legacy `visibility` (sharing is now managed on the cloud deck page); the repo secret
   `SL_IDE_PUBLISH_TOKEN` authorizes it. Local builds go to `output/`

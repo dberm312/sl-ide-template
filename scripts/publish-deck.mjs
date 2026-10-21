@@ -4,11 +4,11 @@
 //   pnpm build && pnpm pdf && pnpm publish-deck
 //
 // CI runs this on every push (.github/workflows/publish.yml). The branch's
-// link then shows this version: main at sl-ide.com/d/<slug>/, any other
-// branch at sl-ide.com/d/<slug>/r/<encoded-branch>/.
+// link then shows this version: main at app.sl-ide.com/d/<slug>/, any other
+// branch at app.sl-ide.com/d/<slug>/r/<encoded-branch>/.
 //
 // Reads sl-ide.config.json:   { "slug", "team", "visibility": "public" | "team" }
-// Needs SL_IDE_PUBLISH_TOKEN; SL_IDE_URL overrides https://sl-ide.com.
+// Needs SL_IDE_PUBLISH_TOKEN; SL_IDE_URL overrides https://app.sl-ide.com.
 // Uploads dist/ plus the PDF (output/<META.pdfName>.pdf) as deck.pdf, one file
 // per request, then records the version. Nothing changes for viewers until
 // that last step succeeds.
@@ -42,7 +42,7 @@ if (!['public', 'team'].includes(visibility)) die('"visibility" must be "public"
 
 const token = process.env.SL_IDE_PUBLISH_TOKEN;
 if (!token) die('SL_IDE_PUBLISH_TOKEN is not set (a GitHub Actions secret in CI)');
-const base = (process.env.SL_IDE_URL || config.url || 'https://sl-ide.com').replace(/\/$/, '');
+const base = (process.env.SL_IDE_URL || config.url || 'https://app.sl-ide.com').replace(/\/$/, '');
 const uploadId = randomUUID();
 const auth = { Authorization: `Bearer ${token}`, 'X-Sl-Ide-Upload-Id': uploadId, 'X-Sl-Ide-Team': team };
 const manifest = Object.create(null);
