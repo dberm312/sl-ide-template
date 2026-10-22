@@ -241,3 +241,12 @@ These are local harness checks (template-C). Published URLs, authentication,
 pinned versions and cloud-triggered reloads belong to cloud-F; publishing and
 the shell PDF pipeline belong to cloud-G/template-A. Run this suite in a host
 that permits Chrome processes and localhost servers.
+
+## Preview comment checks
+
+`pnpm test` runs `scripts/preview-comment.mjs` against a fake `gh`
+(`tests/fake-gh.mjs`, which needs `jq`). It checks that preview links use the
+same `/r/<UTF-8 hex>/` keys the cloud serves (pinned alongside cloud's branch
+tests), with case, slashes and Unicode normalization kept apart, and that a
+PR keeps exactly one preview comment through open, publish, close and reopen,
+including when two workflow runs race to post it.

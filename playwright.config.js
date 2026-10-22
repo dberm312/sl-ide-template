@@ -2,6 +2,8 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
+  // *.test.mjs are node:test suites (pnpm test).
+  testMatch: '**/*.spec.js',
   timeout: 90_000,
   workers: 1,
   fullyParallel: false,

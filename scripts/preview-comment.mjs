@@ -7,7 +7,8 @@
 //
 // CI runs it (publish.yml, unpublish.yml) with GH_TOKEN set; it needs the gh
 // CLI. The comment is found by a hidden marker and edited in place, so a PR
-// carries one comment however many pushes it gets. "published" does nothing
+// carries one comment however many pushes it gets (a duplicate from two runs
+// racing is deleted, keeping the oldest). "published" does nothing
 // when the branch has no open PR, and "closed" nothing when there's no
 // comment to update.
 import { execFileSync } from 'node:child_process';
@@ -52,9 +53,26 @@ if (mode === 'opened') {
   die(`unknown mode ${JSON.stringify(mode)}`);
 }
 
-const id = gh('api', '--paginate', `repos/${repo}/issues/${pr}/comments`,
-  '-q', `.[] | select(.body | startswith("${MARK}")) | .id`).split('\n')[0];
+// The PR's marked comments, oldest first. The "opened" and "published" runs
+// belong to different workflow runs, so both can find none and each post one:
+// keep the oldest and delete the rest, which another run may already have done.
+const marked = () => gh('api', '--paginate', `repos/${repo}/issues/${pr}/comments`,
+  '-q', `.[] | select(.body | startswith("${MARK}")) | .id`).split('\n').filter(Boolean);
+const dedupe = (ids) => {
+  for (const extra of ids.slice(1)) {
+    try { gh('api', '-X', 'DELETE', `repos/${repo}/issues/comments/${extra}`); } catch { /* already gone */ }
+  }
+};
 const text = `${MARK}\n${body}`;
-if (id) gh('api', '-X', 'PATCH', `repos/${repo}/issues/comments/${id}`, '-f', `body=${text}`);
-else if (mode !== 'closed') gh('pr', 'comment', pr, '--repo', repo, '--body', text);
+const ids = marked();
+if (ids.length) {
+  gh('api', '-X', 'PATCH', `repos/${repo}/issues/comments/${ids[0]}`, '-f', `body=${text}`);
+  dedupe(ids);
+} else if (mode !== 'closed') {
+  gh('pr', 'comment', pr, '--repo', repo, '--body', text);
+  const after = marked();
+  // Another run posted first: make the oldest comment say what this run says.
+  if (after.length > 1) gh('api', '-X', 'PATCH', `repos/${repo}/issues/comments/${after[0]}`, '-f', `body=${text}`);
+  dedupe(after);
+}
 console.log(`preview-comment: ${mode} -> PR #${pr}`);
