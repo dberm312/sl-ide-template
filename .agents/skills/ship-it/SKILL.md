@@ -23,8 +23,8 @@ the output, and do not commit or push.
    current branch. No remote: say so and stop.
 7. **Publish:** the push runs CI, which publishes to sl-ide cloud when the
    repo has `sl-ide.config.json`. Watch it with `gh run watch`, and report
-   the link from its summary: `sl-ide.com/d/<slug>/` on main, or
-   `/d/<slug>/b/<branch>/` on a branch. No config: say the deck isn't set
+   the link from its summary: `app.sl-ide.com/d/<slug>/` on main, or
+   `/d/<slug>/r/<encoded-branch>/` on a branch. No config: say the deck isn't set
    up to publish and point to the README's "Publish to sl-ide cloud".
 
 Report in a few lines: the audit result, the PDF path, open placeholders,

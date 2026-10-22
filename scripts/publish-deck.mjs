@@ -7,7 +7,7 @@
 // link then shows this version: main at app.sl-ide.com/d/<slug>/, any other
 // branch at app.sl-ide.com/d/<slug>/r/<encoded-branch>/.
 //
-// Reads sl-ide.config.json:   { "slug", "team", "visibility": "public" | "team" }
+// Reads sl-ide.config.json:   { "slug", "team" } (and "url" for another server)
 // Needs SL_IDE_PUBLISH_TOKEN; SL_IDE_URL overrides https://app.sl-ide.com.
 // Uploads dist/ plus the PDF (output/<META.pdfName>.pdf) as deck.pdf and the
 // cover image (output/cover.png) as deck-cover.png, one file per request, then
@@ -35,11 +35,10 @@ if (!fs.existsSync(configPath)) {
   process.exit(0);
 }
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-const { slug, team, visibility = 'team' } = config;
+const { slug, team } = config;
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/;
 if (!SLUG_RE.test(slug ?? '')) die(`"slug" must be lowercase letters, digits and dashes (got ${JSON.stringify(slug)})`);
 if (!SLUG_RE.test(team ?? '')) die('"team" must be the slug of your team on sl-ide cloud');
-if (!['public', 'team'].includes(visibility)) die('"visibility" must be "public" or "team"');
 
 const token = process.env.SL_IDE_PUBLISH_TOKEN;
 if (!token) die('SL_IDE_PUBLISH_TOKEN is not set (a GitHub Actions secret in CI)');
@@ -103,7 +102,7 @@ async function upload({ from, to }) {
       if (uploaded.hash !== hash || uploaded.size !== body.length) die(`cloud checksum mismatch for ${to}`);
       return;
     }
-    if ([403, 409, 413, 426].includes(res.status)) die(`upload of ${to} rejected: ${res.status} ${await res.text()}`);
+    if ([400, 403, 409, 413].includes(res.status)) die(`upload of ${to} rejected: ${res.status} ${await res.text()}`);
     if (res.status === 401) die('the cloud rejected SL_IDE_PUBLISH_TOKEN');
     if (attempt >= 3) die(`upload of ${to} failed: ${res.status} ${await res.text()}`);
     await new Promise((r) => setTimeout(r, 500 * attempt));
@@ -122,7 +121,7 @@ const pages = hasPdf ? (fs.readFileSync(pdf, 'latin1').match(/\/Type\s*\/Page(?!
 const res = await fetch(`${base}/api/publish/${slug}/${sha}`, {
   method: 'POST',
   headers: { ...auth, 'Content-Type': 'application/json' },
-  body: JSON.stringify({ uploadId, manifest, branch, title: META.deckTitle, format: META.format === 'memo' ? 'memo' : 'slides', visibility, team, repo, pages, hasPdf }),
+  body: JSON.stringify({ uploadId, manifest, branch, title: META.deckTitle, format: META.format === 'memo' ? 'memo' : 'slides', team, repo, pages, hasPdf }),
 });
 const out = await res.json().catch(() => ({}));
 if (!res.ok) die(`recording the version failed: ${res.status} ${out.error ?? ''}`);

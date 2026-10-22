@@ -36,7 +36,7 @@ beforeEach(() => {
   fs.mkdirSync(path.join(dir, 'scripts'));
   fs.mkdirSync(path.join(dir, 'bin'));
   fs.copyFileSync(path.join(root, 'scripts/preview-comment.mjs'), path.join(dir, 'scripts/preview-comment.mjs'));
-  fs.writeFileSync(path.join(dir, 'sl-ide.config.json'), JSON.stringify({ slug: SLUG, team: 'acme', visibility: 'team' }));
+  fs.writeFileSync(path.join(dir, 'sl-ide.config.json'), JSON.stringify({ slug: SLUG, team: 'acme' }));
   fs.writeFileSync(path.join(dir, 'bin/gh'), `#!/bin/sh\nexec "${process.execPath}" "${path.join(root, 'tests/fake-gh.mjs')}" "$@"\n`, { mode: 0o755 });
   stateFile = path.join(dir, 'gh.json');
   setState({ prs: [], comments: [] });

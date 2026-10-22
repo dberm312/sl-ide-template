@@ -4,7 +4,7 @@
 # the new deck gets today's editor whatever this repo's version is.
 #
 #   pnpm new-project acme-pitch                    -> ../acme-pitch
-#   pnpm new-project acme-pitch --team acme --share public
+#   pnpm new-project acme-pitch --team acme
 #   pnpm new-project acme-pitch --public           -> a public GitHub repo
 #   pnpm new-project acme-pitch --no-github        -> local only
 #   pnpm new-project q3-memo --memo                -> a US Letter memo

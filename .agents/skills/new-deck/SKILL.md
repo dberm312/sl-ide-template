@@ -68,11 +68,11 @@ Fill `META` in `src/deck/content.js` from the answers: `deckTitle`,
 `author`, `date`, `pdfName`, `mark`, `wordBudget` (and `pageBudget` for a
 memo). Leave `watermark` on.
 
-Then sharing on sl-ide cloud. Check `sl-ide.config.json` (`pnpm create sl-ide`
-usually wrote it) and ask who should be able to open the link: the team
-only (`"visibility": "team"`) or anyone with it (`"public"`). If the file is
-missing, ask for the team's slug and write it as
-`{ "slug": "<deck>", "team": "<team>", "visibility": "team" }`. Confirm the
+Then publishing to sl-ide cloud. Check `sl-ide.config.json` (`pnpm create sl-ide`
+usually wrote it). If the file is missing, ask for the team's slug and write it
+as `{ "slug": "<deck>", "team": "<team>" }`. New decks are team-only; if the
+user wants anyone with the link to open it, tell them to save “Anyone with the
+link” under Sharing on `app.sl-ide.com/decks/<slug>` after the first publish. Confirm the
 repo has the `SL_IDE_PUBLISH_TOKEN` secret (`gh secret list`); if not, have
 the user run `! pnpm create sl-ide login` and set it from the token saved in
 `~/.config/sl-ide/credentials.json`, under `servers["https://app.sl-ide.com"].teams.<team>.token`

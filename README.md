@@ -183,12 +183,14 @@ were on main are kept.
 A deck publishes when it has `sl-ide.config.json`:
 
 ```json
-{ "slug": "acme-pitch", "team": "acme", "visibility": "team" }
+{ "slug": "acme-pitch", "team": "acme" }
 ```
 
 - `slug`: the deck's link.
 - `team`: the team on sl-ide cloud that owns it; members see it in their list.
-- `visibility`: retained for older configs. New decks start team-only; change sharing on the cloud deck page. Publishing never changes privacy.
+
+New decks are team-only. To share publicly, open the deck's cloud page and
+save “Anyone with the link” under Sharing. Publishing never changes sharing.
 
 It also needs the repo secret `SL_IDE_PUBLISH_TOKEN`, a publish token for
 the team. `pnpm create sl-ide` sets up both. For a deck made without it:
@@ -213,18 +215,6 @@ By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 | `.agents/skills/` | new-deck, slide-lab, copy-pass, ship-it, clean-up (symlinked into `.claude/skills/`) |
 | `skills-lock.json` | the third-party skills this repo expects |
 | `scripts/` | audit, pdf, shots, lab, fonts, doctor |
-
-
-### Publisher compatibility
-
-The cloud requires the current publisher: uploads use a UUID session and a
-SHA-256 manifest, and finalized versions cannot be overwritten. Pull both
-`scripts/publish-deck.mjs` and `scripts/preview-comment.mjs` from upstream
-before publishing to the updated cloud. Old publishers receive HTTP 426.
-Preview URLs now use `/r/<encoded-branch>/`; republish legacy branches to get
-their new links. Main and version entry links redirect to isolated deck hosts.
-New decks are team-only. To share publicly, open the deck's cloud page and
-save “Anyone with the link” under Sharing. The config no longer changes this.
 
 ## Browser smoke checks
 
@@ -259,7 +249,7 @@ when it is checked out beside it (or at `$SL_IDE_TEMPLATE_DIR`):
 `pnpm test:db` there, file `src/test/publisher.integration.test.ts`. It covers
 the upload session and manifest, index.html going last, retries after failed
 and lost responses, checksum mismatches, interrupted runs leaving the live
-version alone, the old-client 426, rejected tokens and other teams' decks,
+version alone, malformed requests, rejected tokens and other teams' decks,
 the 4 MB limit, exact branch names, unpublishing, and slides and memo PDFs
 printed by Chrome (template-A / cloud-G). Run it after changing the publisher
 or the workflows that call it.
