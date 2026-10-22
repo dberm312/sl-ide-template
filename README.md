@@ -26,6 +26,14 @@ Logos belong to their owners.
 
 ## Start a new deck
 
+You'll need:
+
+- Node 20.19+ or 22.12+
+- pnpm (`corepack enable pnpm`)
+- Git
+- The GitHub CLI, signed in (`gh auth login`)
+- Claude Code or Codex
+
 ```sh
 pnpm create sl-ide my-deck
 ```
