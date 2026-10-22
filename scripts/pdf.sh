@@ -22,7 +22,9 @@ serve_dist 8241
 OUT="$OUT_DIR/$NAME.pdf"
 "$CHROME" "${CHROME_FLAGS[@]}" --no-pdf-header-footer \
   --print-to-pdf="$OUT" "http://127.0.0.1:8241/index.html#print" 2>/dev/null
+[[ -s "$OUT" ]] || { echo "error: Chrome did not write $OUT" >&2; exit 1; }
 echo "wrote $OUT"
 "$CHROME" "${CHROME_FLAGS[@]}" --hide-scrollbars --window-size=$PAGE_W,$(( PAGE_H + 24 )) \
   --screenshot="$OUT_DIR/cover.png" "http://127.0.0.1:8241/index.html#print" 2>/dev/null
+[[ -s "$OUT_DIR/cover.png" ]] || { echo "error: Chrome did not write the cover" >&2; exit 1; }
 echo "wrote $OUT_DIR/cover.png"

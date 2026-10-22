@@ -24,7 +24,7 @@ chrome_flags() {
   # A fresh HOME otherwise starts Chrome without producing the requested PDF.
   CHROME_PROFILE=$(mktemp -d "${TMPDIR:-/tmp}/sl-ide-chrome.XXXXXX")
   CHROME_FLAGS=(--headless --disable-gpu --no-first-run --user-data-dir="$CHROME_PROFILE" --virtual-time-budget=8000)
-  trap '[[ -z "${SERVER_PID:-}" ]] || kill "$SERVER_PID" 2>/dev/null; rm -rf -- "$CHROME_PROFILE"' EXIT
+  trap '[[ -z "${SERVER_PID:-}" ]] || kill "$SERVER_PID" 2>/dev/null || true; rm -rf -- "$CHROME_PROFILE"' EXIT
   if [[ "$(id -u)" -eq 0 ]]; then CHROME_FLAGS+=(--no-sandbox); fi
 }
 
@@ -37,6 +37,8 @@ serve_dist() {
     curl -s -o /dev/null "http://127.0.0.1:$port/index.html" && return 0
     sleep 0.1
   done
+  echo "error: could not start the deck server on port $port" >&2
+  return 1
 }
 
 # The page size in px (PAGE_W, PAGE_H), from META.format: see components/page.js.
