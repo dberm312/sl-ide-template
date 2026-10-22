@@ -20,7 +20,11 @@ find_chrome() {
 
 # Headless Chrome refuses its own sandbox when run as root; harmless elsewhere.
 chrome_flags() {
-  CHROME_FLAGS=(--headless --disable-gpu --virtual-time-budget=8000)
+  # Keep headless jobs separate from the person's existing Chrome process.
+  # A fresh HOME otherwise starts Chrome without producing the requested PDF.
+  CHROME_PROFILE=$(mktemp -d "${TMPDIR:-/tmp}/sl-ide-chrome.XXXXXX")
+  CHROME_FLAGS=(--headless --disable-gpu --no-first-run --user-data-dir="$CHROME_PROFILE" --virtual-time-budget=8000)
+  trap '[[ -z "${SERVER_PID:-}" ]] || kill "$SERVER_PID" 2>/dev/null; rm -rf -- "$CHROME_PROFILE"' EXIT
   if [[ "$(id -u)" -eq 0 ]]; then CHROME_FLAGS+=(--no-sandbox); fi
 }
 
@@ -29,7 +33,6 @@ serve_dist() {
   local port="$1"
   python3 -m http.server "$port" --directory dist --bind 127.0.0.1 >/dev/null 2>&1 &
   SERVER_PID=$!
-  trap 'kill $SERVER_PID 2>/dev/null' EXIT
   for _ in $(seq 1 50); do
     curl -s -o /dev/null "http://127.0.0.1:$port/index.html" && return 0
     sleep 0.1
