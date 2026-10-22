@@ -149,7 +149,7 @@ has the slide starter.
 ```sh
 pnpm run audit        # CLIPPED / SPILL / OVERLAP / WORDY per page, LONG per memo; exits 1 on any
 pnpm shots 2 A1       # output/shots/page-<label>.png (no args = all; SCALE=2 for 2x)
-pnpm pdf              # output/<META.pdfName>.pdf, vector, fonts embedded
+pnpm pdf              # output/<META.pdfName>.pdf, vector, fonts embedded; and output/cover.png
 pnpm publish-deck     # publish dist/ and the PDF to sl-ide cloud (CI does this)
 pnpm lab              # fit report and screenshots for the slide lab's takes
 pnpm fonts            # re-fetch the self-hosted fonts listed in scripts/fonts.sh

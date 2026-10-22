@@ -143,7 +143,7 @@ has the slide starter.
 |---|---|
 | `pnpm run audit` | CLIPPED / SPILL / OVERLAP / WORDY per page, LONG per memo; exits 1 on any. RAGGED and RUNT are advisory. Not `pnpm audit`, which audits dependencies. |
 | `pnpm shots [labels]` | `output/shots/page-<label>.png` at 1:1 (`SCALE=2` for 2x) |
-| `pnpm pdf` | `output/<META.pdfName>.pdf` |
+| `pnpm pdf` | `output/<META.pdfName>.pdf`, plus `output/cover.png` (the first page, for the deck list on sl-ide cloud) |
 | `pnpm lab` | the slide lab's fit report and screenshots |
 | `node scripts/doctor.js` | setup status |
 | `pnpm publish-deck` | publish `dist/` and the PDF to sl-ide cloud (CI does this on push) |

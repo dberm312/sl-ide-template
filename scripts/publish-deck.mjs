@@ -9,8 +9,9 @@
 //
 // Reads sl-ide.config.json:   { "slug", "team", "visibility": "public" | "team" }
 // Needs SL_IDE_PUBLISH_TOKEN; SL_IDE_URL overrides https://app.sl-ide.com.
-// Uploads dist/ plus the PDF (output/<META.pdfName>.pdf) as deck.pdf, one file
-// per request, then records the version. Nothing changes for viewers until
+// Uploads dist/ plus the PDF (output/<META.pdfName>.pdf) as deck.pdf and the
+// cover image (output/cover.png) as deck-cover.png, one file per request, then
+// records the version. Nothing changes for viewers until
 // that last step succeeds.
 //
 //   pnpm publish-deck --unpublish <branch>
@@ -72,6 +73,8 @@ const { META } = await import(path.join(ROOT, 'src/deck/content.js'));
 const pdf = path.join(ROOT, 'output', `${META.pdfName || 'deck'}.pdf`);
 const hasPdf = fs.existsSync(pdf);
 if (!hasPdf) console.warn(`publish-deck: no ${path.relative(ROOT, pdf)}; publishing without a PDF (run pnpm pdf)`);
+// The deck list's thumbnail; without one it shows the title.
+const cover = path.join(ROOT, 'output', 'cover.png');
 
 function walk(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
@@ -85,6 +88,7 @@ const files = walk(dist)
   .map((p) => ({ from: p, to: path.relative(dist, p).split(path.sep).join('/') }))
   .sort((a, b) => (a.to === 'index.html') - (b.to === 'index.html'));
 if (hasPdf) files.unshift({ from: pdf, to: 'deck.pdf' });
+if (fs.existsSync(cover)) files.unshift({ from: cover, to: 'deck-cover.png' });
 
 async function upload({ from, to }) {
   const body = fs.readFileSync(from);
