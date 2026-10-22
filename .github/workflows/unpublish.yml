@@ -1,5 +1,5 @@
 # Take a branch's preview down from sl-ide cloud when its PR is merged or
-# closed, or the branch is deleted. Its /d/<slug>/b/<branch>/ link stops
+# closed, or the branch is deleted. Its /d/<slug>/r/<UTF-8 hex>/ link stops
 # working; the versions stay at /v/<sha>/ for 30 days, then the cloud
 # deletes them. Nothing that was on main is ever removed. A merged PR whose
 # branch is auto-deleted fires both events; the second is a no-op.

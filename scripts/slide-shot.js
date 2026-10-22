@@ -4,7 +4,7 @@ import { CHROME_PATHS } from './doctor.js';
 
 // Dev-server endpoint behind the slide rail's "Copy slide as image":
 //   GET /__shot?i=<index>  ->  image/png of that page at 2x
-// It renders the #print route in headless Chrome — the same render build.sh
+// It renders the #print route in headless Chrome — the same render scripts/pdf.sh
 // prints and shots.sh captures — rather than redrawing the page in the
 // browser, since DOM-to-canvas libraries drop layout (floats, zoom) and a
 // dense page came out overflowing its footer. One Chrome is started with the
