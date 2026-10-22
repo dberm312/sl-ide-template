@@ -17,25 +17,46 @@ const CALL_TIMEOUT_MS = 15000;
 
 const CHROME = CHROME_PATHS.find((p) => fs.existsSync(p));
 
-function startChrome() {
+function startChrome(owner) {
+  owner.profile = fs.mkdtempSync('/tmp/slide-shot-');
   return new Promise((resolve, reject) => {
     const proc = spawn(CHROME, [
       '--headless=new', '--disable-gpu', '--hide-scrollbars', '--remote-debugging-port=0',
-      `--user-data-dir=${fs.mkdtempSync('/tmp/slide-shot-')}`, 'about:blank',
+      `--user-data-dir=${owner.profile}`, 'about:blank',
     ], { stdio: ['ignore', 'ignore', 'pipe'] });
+    owner.proc = proc;
+    owner.exited = new Promise((done) => {
+      proc.once('exit', done);
+      proc.once('error', () => {
+        if (!proc.pid) done(); // spawn failure: there is no process to wait for
+      });
+    });
+    const timer = setTimeout(() => reject(new Error('chrome startup timed out')), CALL_TIMEOUT_MS);
+    const finish = (err, url) => {
+      clearTimeout(timer);
+      if (err) reject(err);
+      else resolve(url);
+    };
     let err = '';
     proc.stderr.on('data', (d) => {
       err += d;
       const m = /DevTools listening on (ws:\/\/\S+)/.exec(err);
-      if (m) resolve({ proc, browserWs: m[1] });
+      if (m) finish(null, m[1]);
     });
-    proc.on('exit', () => reject(new Error(`chrome exited: ${err.slice(-300)}`)));
+    proc.once('error', (error) => finish(error));
+    proc.once('exit', () => finish(new Error(`chrome exited: ${err.slice(-300)}`)));
   });
 }
 
-async function connect(url) {
+async function connect(url, owner) {
   const ws = new WebSocket(url);
-  await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
+  owner.ws = ws;
+  await new Promise((res, rej) => {
+    const timer = setTimeout(() => rej(new Error('chrome connection timed out')), CALL_TIMEOUT_MS);
+    ws.onopen = () => { clearTimeout(timer); res(); };
+    ws.onerror = () => { clearTimeout(timer); rej(new Error('chrome connection failed')); };
+    ws.onclose = () => { clearTimeout(timer); rej(new Error('chrome connection closed')); };
+  });
   let id = 0;
   const pending = new Map();
   ws.onmessage = (e) => {
@@ -61,7 +82,13 @@ async function connect(url) {
       resolve: (v) => { clearTimeout(timer); resolve(v); },
       reject: (e) => { clearTimeout(timer); reject(e); },
     });
-    ws.send(JSON.stringify({ id: mine, method, params }));
+    try {
+      ws.send(JSON.stringify({ id: mine, method, params }));
+    } catch (err) {
+      pending.delete(mine);
+      clearTimeout(timer);
+      reject(err);
+    }
   });
   return { ws, send };
 }
@@ -70,37 +97,57 @@ export default function slideShot() {
   let chrome = null; // { proc, page } once started
   let stale = true; // #print needs (re)loading before the next capture
   let closed = false; // the dev server shut down (or restarted): start nothing
-  let shutdown = () => {};
+  let shutdown = async () => {};
   let queue = Promise.resolve();
   const enqueue = (job) => {
-    const run = queue.then(job);
+    const run = queue.then(job).catch(async (err) => {
+      await reset();
+      throw err;
+    });
     queue = run.catch(() => {});
     return run;
   };
 
-  function reset() {
-    chrome?.proc.kill();
+  async function reset() {
+    const owned = chrome;
     chrome = null;
     stale = true;
+    if (!owned) return;
+    owned.ws?.close();
+    if (owned.proc) {
+      owned.proc.kill();
+      const force = setTimeout(() => owned.proc.kill('SIGKILL'), 1000);
+      await owned.exited;
+      clearTimeout(force);
+    }
+    if (owned.profile) fs.rmSync(owned.profile, { recursive: true, force: true });
   }
 
   async function page() {
-    if (chrome && chrome.proc.exitCode === null) return chrome.page;
-    reset();
+    if (chrome?.page && chrome.proc.exitCode === null) return chrome.page;
+    await reset();
     if (closed) throw new Error('dev server closed');
-    const { proc, browserWs } = await startChrome();
-    if (closed) {
-      proc.kill();
-      throw new Error('dev server closed');
+    const owned = {};
+    chrome = owned; // Own the process and profile throughout setup, not only after CDP succeeds.
+    try {
+      const browserWs = await startChrome(owned);
+      if (closed) throw new Error('dev server closed');
+      const port = new URL(browserWs).port;
+      const tabs = await (await fetch(`http://127.0.0.1:${port}/json`, {
+        signal: AbortSignal.timeout(CALL_TIMEOUT_MS),
+      })).json();
+      if (closed) throw new Error('dev server closed');
+      const p = await connect(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl, owned);
+      if (closed) throw new Error('dev server closed');
+      await p.send('Emulation.setDeviceMetricsOverride', {
+        width: 1280, height: 800, deviceScaleFactor: 2, mobile: false,
+      });
+      owned.page = p;
+      return p;
+    } catch (err) {
+      await reset();
+      throw err;
     }
-    const port = new URL(browserWs).port;
-    const tabs = await (await fetch(`http://127.0.0.1:${port}/json`)).json();
-    const p = await connect(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl);
-    await p.send('Emulation.setDeviceMetricsOverride', {
-      width: 1280, height: 800, deviceScaleFactor: 2, mobile: false,
-    });
-    chrome = { proc, page: p };
-    return p;
   }
 
   // Load #print fresh. about:blank first, since navigating to the URL the tab
@@ -153,7 +200,7 @@ export default function slideShot() {
       let origin = null;
       let reloadTimer = null;
       const warm = () => enqueue(() => (origin && stale ? load(origin) : null))
-        .catch((err) => { reset(); server.config.logger.warn(`[slide-shot] warm-up: ${err.message}`); });
+        .catch((err) => { server.config.logger.warn(`[slide-shot] warm-up: ${err.message}`); });
 
       server.httpServer?.once('listening', () => {
         const { port } = server.httpServer.address();
@@ -183,22 +230,22 @@ export default function slideShot() {
           res.setHeader('Cache-Control', 'no-store');
           res.end(png);
         }, (err) => {
-          reset();
           server.config.logger.error(`[slide-shot] ${err.message}`);
           res.statusCode = 500;
           res.end(err.message);
         });
       });
-      shutdown = () => {
+      shutdown = async () => {
         closed = true;
         clearTimeout(reloadTimer);
-        reset();
+        await reset();
+        await queue;
       };
     },
     // Runs when the dev server closes or restarts (httpServer's 'close' can
     // wait on open sockets and come too late, leaving a Chrome behind).
     buildEnd() {
-      shutdown();
+      return shutdown();
     },
   };
 }
