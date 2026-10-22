@@ -46,7 +46,7 @@ few questions, then:
   `git pull upstream main`;
 - creates the deck's own GitHub repo (private by default);
 - sets it up to publish to [sl-ide cloud](https://app.sl-ide.com): you approve a
-  sign-in in your browser, it saves a token for your team, writes
+  sign-in in your browser, it saves a token for your account, writes
   `sl-ide.config.json` and sets the repo's `SL_IDE_PUBLISH_TOKEN` secret;
 - runs `pnpm install`.
 
@@ -59,9 +59,9 @@ there and names it after the folder.
 For a memo instead of slides: `pnpm create sl-ide my-memo --format memo`
 (see [Memos](#memos)).
 
-Without prompts: `pnpm create sl-ide my-deck --team acme --yes`.
+Without prompts: `pnpm create sl-ide my-deck --yes`.
 From inside an existing deck, `pnpm new-project my-next-deck` does the same,
-next to it. `pnpm create sl-ide login` signs in to another team.
+next to it. `pnpm create sl-ide login` switches the signed-in account.
 
 **Keeping pulls clean.** Harness files belong to sl-ide: `src/components/`,
 `src/lab/` (except `takes/`), `scripts/`, `vite.config.js`, `.githooks/`,
@@ -191,18 +191,17 @@ were on main are kept.
 A deck publishes when it has `sl-ide.config.json`:
 
 ```json
-{ "slug": "acme-pitch", "team": "acme" }
+{ "slug": "acme-pitch" }
 ```
 
 - `slug`: the deck's link.
-- `team`: the team on sl-ide cloud that owns it; members see it in their list.
 
-New decks are team-only. To share publicly, open the deck's cloud page and
-save “Anyone with the link” under Sharing. Publishing never changes sharing.
+New decks are restricted. To share publicly, open the deck's cloud page and
+choose Share to add viewers or allow “Anyone with the link”. Publishing never changes sharing.
 
 It also needs the repo secret `SL_IDE_PUBLISH_TOKEN`, a publish token for
-the team. `pnpm create sl-ide` sets up both. For a deck made without it:
-`pnpm create sl-ide login` saves a team token, then
+the deck owner. `pnpm create sl-ide` sets up both. For a deck made without it:
+`pnpm create sl-ide login` saves a publish token, then
 `gh secret set SL_IDE_PUBLISH_TOKEN` with it, and add the config. Tokens are
 listed and revoked at app.sl-ide.com/tokens. Without a config, CI still prints, and skips publishing.
 
@@ -257,7 +256,7 @@ when it is checked out beside it (or at `$SL_IDE_TEMPLATE_DIR`):
 `pnpm test:db` there, file `src/test/publisher.integration.test.ts`. It covers
 the upload session and manifest, index.html going last, retries after failed
 and lost responses, checksum mismatches, interrupted runs leaving the live
-version alone, malformed requests, rejected tokens and other teams' decks,
+version alone, malformed requests, rejected tokens and other users' decks,
 the 4 MB limit, exact branch names, unpublishing, and slides and memo PDFs
 printed by Chrome (template-A / cloud-G). Run it after changing the publisher
 or the workflows that call it.

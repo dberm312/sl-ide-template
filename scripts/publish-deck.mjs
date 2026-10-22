@@ -35,16 +35,15 @@ if (!fs.existsSync(configPath)) {
   process.exit(0);
 }
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-const { slug, team } = config;
+const { slug } = config;
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/;
 if (!SLUG_RE.test(slug ?? '')) die(`"slug" must be lowercase letters, digits and dashes (got ${JSON.stringify(slug)})`);
-if (!SLUG_RE.test(team ?? '')) die('"team" must be the slug of your team on sl-ide cloud');
 
 const token = process.env.SL_IDE_PUBLISH_TOKEN;
 if (!token) die('SL_IDE_PUBLISH_TOKEN is not set (a GitHub Actions secret in CI)');
 const base = (process.env.SL_IDE_URL || config.url || 'https://app.sl-ide.com').replace(/\/$/, '');
 const uploadId = randomUUID();
-const auth = { Authorization: `Bearer ${token}`, 'X-Sl-Ide-Upload-Id': uploadId, 'X-Sl-Ide-Team': team };
+const auth = { Authorization: `Bearer ${token}`, 'X-Sl-Ide-Upload-Id': uploadId };
 const manifest = Object.create(null);
 
 const unpublish = process.argv.indexOf('--unpublish');
@@ -121,7 +120,7 @@ const pages = hasPdf ? (fs.readFileSync(pdf, 'latin1').match(/\/Type\s*\/Page(?!
 const res = await fetch(`${base}/api/publish/${slug}/${sha}`, {
   method: 'POST',
   headers: { ...auth, 'Content-Type': 'application/json' },
-  body: JSON.stringify({ uploadId, manifest, branch, title: META.deckTitle, format: META.format === 'memo' ? 'memo' : 'slides', team, repo, pages, hasPdf }),
+  body: JSON.stringify({ uploadId, manifest, branch, title: META.deckTitle, format: META.format === 'memo' ? 'memo' : 'slides', repo, pages, hasPdf }),
 });
 const out = await res.json().catch(() => ({}));
 if (!res.ok) die(`recording the version failed: ${res.status} ${out.error ?? ''}`);

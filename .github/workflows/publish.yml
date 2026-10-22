@@ -4,7 +4,7 @@
 # and its open PR carries one comment with the link (scripts/preview-comment.mjs),
 # posted when the PR opens and updated on each push.
 #
-# Needs sl-ide.config.json (slug, team) and the repo secret
+# Needs sl-ide.config.json (slug) and the repo secret
 # SL_IDE_PUBLISH_TOKEN. `pnpm new-project` sets up both. Without them the
 # deck is still printed, and the publish step is skipped.
 name: Publish deck
