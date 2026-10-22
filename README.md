@@ -250,3 +250,16 @@ same `/r/<UTF-8 hex>/` keys the cloud serves (pinned alongside cloud's branch
 tests), with case, slashes and Unicode normalization kept apart, and that a
 PR keeps exactly one preview comment through open, publish, close and reopen,
 including when two workflow runs race to post it.
+
+## Publisher checks
+
+The publisher (`scripts/publish-deck.mjs`) is tested against a disposable
+cloud in the private `sl-ide-cloud` repo, which runs this copy of the script
+when it is checked out beside it (or at `$SL_IDE_TEMPLATE_DIR`):
+`pnpm test:db` there, file `src/test/publisher.integration.test.ts`. It covers
+the upload session and manifest, index.html going last, retries after failed
+and lost responses, checksum mismatches, interrupted runs leaving the live
+version alone, the old-client 426, rejected tokens and other teams' decks,
+the 4 MB limit, exact branch names, unpublishing, and slides and memo PDFs
+printed by Chrome (template-A / cloud-G). Run it after changing the publisher
+or the workflows that call it.
