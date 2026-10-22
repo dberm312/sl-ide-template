@@ -261,8 +261,9 @@ slides and memos, PDF printing, publishing and served-artifact checks.
 The token-bearing dispatch job executes no PR source. Configure repository
 secret `CROSS_REPO_CI_TOKEN` with Actions read/write on `dberm312/sl-ide-cloud`,
 then require `Template checks` for PRs. Missing configuration, downstream
-failures and timeouts fail clearly. Cross-repo activation remains pending
-until the secret is installed, and its main-push result must be checked before
-releasing. Public PRs never dispatch their code into private cloud; cloud
+failures and timeouts fail clearly. Remaining activation is tracked in
+[SL-38](https://linear.app/sl-ide/issue/SL-38/activate-hosted-staging-and-cross-repo-ci-enforcement).
+The secret must be installed and its main-push result checked before releasing.
+Public PRs never dispatch their code into private cloud; cloud
 validates dispatched SHAs against trusted public main before running them.
 Cloned decks skip this product-only workflow and retain their own publishing CI.
