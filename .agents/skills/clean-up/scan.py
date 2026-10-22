@@ -113,9 +113,14 @@ for name in sorted(lock):
 
 section('Dependencies nothing imports')
 pkg = json.loads(read('package.json'))
-config = read('vite.config.js')
+# Include tests, scripts and root configuration, without generated/vendor files.
+dependency_files = set(code_files)
+for pattern in ('tests/**/*', 'scripts/**/*', '*'):
+    dependency_files.update(f for f in glob.glob(pattern, recursive=True)
+                            if os.path.isfile(f) and f.endswith(('.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.mts', '.cts')))
+dependency_code = '\n'.join(read(f) for f in sorted(dependency_files))
 for dep in {**pkg.get('dependencies', {}), **pkg.get('devDependencies', {})}:
     if dep == 'vite':
         continue
-    if f"'{dep}" not in all_code + config:
+    if not re.search(r'[\'"]' + re.escape(dep) + r'(?:/|[\'"])', dependency_code):
         print(' ', dep)
