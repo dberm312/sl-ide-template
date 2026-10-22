@@ -23,7 +23,7 @@ function startChrome(owner) {
     const proc = spawn(CHROME, [
       '--headless=new', '--disable-gpu', '--hide-scrollbars', '--remote-debugging-port=0',
       `--user-data-dir=${owner.profile}`, 'about:blank',
-    ], { stdio: ['ignore', 'ignore', 'pipe'] });
+    ], { stdio: ['ignore', 'ignore', 'pipe'], detached: true });
     owner.proc = proc;
     owner.exited = new Promise((done) => {
       proc.once('exit', done);
@@ -113,14 +113,34 @@ export default function slideShot() {
     chrome = null;
     stale = true;
     if (!owned) return;
+    // Chrome owns helper processes which can still flush the profile after
+    // its parent exits. Give it a graceful close, then stop only its own group.
+    if (owned.connection) {
+      await Promise.race([
+        owned.connection.send('Browser.close').catch(() => {}),
+        new Promise((resolve) => setTimeout(resolve, 1000)),
+      ]);
+    }
     owned.ws?.close();
-    if (owned.proc) {
-      owned.proc.kill();
-      const force = setTimeout(() => owned.proc.kill('SIGKILL'), 1000);
+    if (owned.proc?.pid) {
+      const signalGroup = (signal) => {
+        try { process.kill(-owned.proc.pid, signal); return true; }
+        catch (err) { if (err.code === 'ESRCH') return false; throw err; }
+      };
+      signalGroup('SIGTERM');
+      const force = setTimeout(() => signalGroup('SIGKILL'), 1000);
       await owned.exited;
       clearTimeout(force);
-    }
-    if (owned.profile) fs.rmSync(owned.profile, { recursive: true, force: true });
+      const deadline = Date.now() + 5000;
+      while (signalGroup(0)) {
+        if (Date.now() > deadline) throw new Error('chrome helpers did not exit');
+        signalGroup('SIGKILL');
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+    } else if (owned.exited) await owned.exited;
+    if (owned.profile) await fs.promises.rm(owned.profile, {
+      recursive: true, force: true, maxRetries: 5, retryDelay: 100,
+    });
   }
 
   async function page() {
@@ -138,6 +158,7 @@ export default function slideShot() {
       })).json();
       if (closed) throw new Error('dev server closed');
       const p = await connect(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl, owned);
+      owned.connection = p;
       if (closed) throw new Error('dev server closed');
       await p.send('Emulation.setDeviceMetricsOverride', {
         width: 1280, height: 800, deviceScaleFactor: 2, mobile: false,
