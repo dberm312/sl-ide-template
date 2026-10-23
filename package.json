@@ -17,7 +17,6 @@
     "new-project": "./scripts/new-project.sh",
     "use-format": "node scripts/use-format.mjs",
     "skills": "npx -y skills@latest experimental_install && node scripts/doctor.js",
-    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
     "test": "node --test tests/*.test.mjs",
     "test:smoke": "playwright test"
   },

@@ -59,8 +59,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       # The gate: a clipped, spilling or wordy page fails the run before
-      # anything is printed or published. The pre-commit hook can be skipped
-      # or missing and audits the working tree; this audits the pushed commit.
+      # anything is printed or published.
       - name: Audit the layout
         run: pnpm run audit
 

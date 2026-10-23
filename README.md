@@ -64,7 +64,7 @@ From inside an existing deck, `pnpm new-project my-next-deck` does the same,
 next to it. `pnpm create sl-ide login` switches the signed-in account.
 
 **Keeping pulls clean.** Harness files belong to sl-ide: `src/components/`,
-`src/lab/` (except `takes/`), `scripts/`, `vite.config.js`, `.githooks/`,
+`src/lab/` (except `takes/`), `scripts/`, `vite.config.js`,
 `.github/` and the skills in `.agents/skills/`. A deck's own work goes in
 `src/deck/content.js`, `src/slides/`, its blocks in `src/styles.css`,
 `PRODUCT.md`, `DESIGN.md`, `sl-ide.config.json` and the "This deck" section
@@ -76,7 +76,7 @@ decks, so it never has to be redone per deck.
 In the new deck's folder:
 
 ```sh
-pnpm install          # deps, plus the pre-commit hook
+pnpm install          # deps
 pnpm dev              # preview at http://localhost:5173, setup guide in the terminal
 ```
 
@@ -170,9 +170,10 @@ Use `pnpm run audit`, not `pnpm audit` (that's pnpm's dependency audit).
 The audit, PDF and screenshots need Chrome or Chromium (`CHROME=/path` to
 point at one).
 
-Every commit that touches the deck runs the audit (`.githooks/pre-commit`).
-On every push, CI (`.github/workflows/publish.yml`) prints the PDF,
-checks its fonts and publishes the deck to sl-ide cloud.
+On every push, CI (`.github/workflows/publish.yml`) audits the deck, prints
+the PDF, checks its fonts and publishes the deck to sl-ide cloud. A failing
+page stops the publish. Commits don't wait on the audit; run it yourself
+before pushing to catch problems earlier.
 
 ## Publish to sl-ide cloud
 

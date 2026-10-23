@@ -1,6 +1,6 @@
 ---
 name: ship-it
-description: Audit, build and print the deck PDF, check its fonts, commit and push, and confirm the push published to sl-ide cloud. Use when the user says "ship it", "ship", or /ship-it.
+description: Audit, build and print the deck PDF, check its fonts, commit and push, and give the sl-ide cloud link CI publishes to. Use when the user says "ship it", "ship", or /ship-it.
 ---
 
 # Ship it
@@ -18,16 +18,17 @@ the output, and do not commit or push.
 5. **Commit:** `git status`. If nothing changed, say so and skip to push.
    Otherwise stage the changed files by name (never `output/` or `dist/`)
    and commit with a short imperative subject that describes the change.
-   The pre-commit hook audits again; let it.
 6. **Push:** if there is a remote, `git pull --rebase`, then `git push` to the
    current branch. No remote: say so and stop.
 7. **Publish:** the push runs CI, which publishes to sl-ide cloud when the
-   repo has `sl-ide.config.json`. Watch it with `gh run watch`, and report
-   the link from its summary: `app.sl-ide.com/d/<slug>/` on main, or
-   `/d/<slug>/r/<encoded-branch>/` on a branch. No config: say the deck isn't set
-   up to publish and point to the README's "Publish to sl-ide cloud".
+   repo has `sl-ide.config.json`. Don't wait for it. Report the link now,
+   built from the config's slug: `app.sl-ide.com/d/<slug>/` on main, or
+   `/d/<slug>/r/<branch as UTF-8 hex>/` on a branch. Say it goes live in a
+   few minutes, once CI passes, and that `gh run watch` follows the run. No
+   config: say the deck isn't set up to publish and point to the README's
+   "Publish to sl-ide cloud".
 
 Report in a few lines: the audit result, the PDF path, open placeholders,
 the commit hash and subject, the branch, whether the push landed, and the
-sl-ide cloud link.
+sl-ide cloud link (live once CI finishes).
 Ship-it is standing permission to commit and push, so don't ask first.

@@ -20,7 +20,7 @@ from a brand source (DESIGN.md and the tokens), then outlines the story.
 Each deck is its own repo made by `pnpm create sl-ide` (README, "Start a
 new deck"), with sl-ide as the `upstream` remote. Harness files belong to sl-ide:
 `src/components/`, `src/lab/` (except `takes/`), `scripts/`, `starters/`,
-`vite.config.js`, `.githooks/`, `.github/` and `.agents/skills/`. When a fix
+`vite.config.js`, `.github/` and `.agents/skills/`. When a fix
 belongs in the harness rather than one deck, say so and suggest making it in
 sl-ide and pulling it in (`git pull upstream main`), so decks don't drift
 apart. In the sl-ide-template repo itself, keep everything brand-neutral.
@@ -148,10 +148,9 @@ has the slide starter.
 | `pnpm publish-deck` | publish `dist/` and the PDF to sl-ide cloud (CI does this on push) |
 | `pnpm new-project <name>` | another deck next to this one, via `pnpm create sl-ide` |
 
-The pre-commit hook (`.githooks/pre-commit`, turned on by `pnpm install`)
-runs the audit whenever a commit touches the deck. A failing page blocks
-the commit; fix the page rather than using `--no-verify`. CI on push runs
-the audit again on the pushed commit, and a failing page stops the publish.
+Commits don't run the audit, so they stay fast. Run `pnpm run audit` before
+pushing a deck change. CI on push audits the pushed commit, and a failing
+page stops the publish.
 
 ## Working with the user
 
