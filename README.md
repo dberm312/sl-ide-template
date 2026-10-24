@@ -69,7 +69,11 @@ next to it. `pnpm create sl-ide login` switches the signed-in account.
 `src/deck/content.js`, `src/slides/`, its blocks in `src/styles.css`,
 `PRODUCT.md`, `DESIGN.md`, `sl-ide.config.json` and the "This deck" section
 of `AGENTS.md`. Fix a harness bug in sl-ide first, then pull it into the
-decks, so it never has to be redone per deck.
+decks, so it never has to be redone per deck. In a deck, the
+**update-sl-ide** skill (`/update-sl-ide`) does the pull: it takes the
+harness, keeps the deck's own files, drops any starter pages the pull brings
+along and checks the deck still prints. A deck made before the skill existed
+needs one plain `git pull upstream main` to get it.
 
 ## Get started
 
@@ -220,7 +224,7 @@ By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 | `src/lab/` | the slide lab board; `takes/` holds the current session |
 | `PRODUCT.md`, `DESIGN.md` | audience and visual system, written by impeccable |
 | `AGENTS.md` | the working agreement for agents (`CLAUDE.md` imports it) |
-| `.agents/skills/` | new-deck, slide-lab, copy-pass, ship-it, clean-up (symlinked into `.claude/skills/`) |
+| `.agents/skills/` | new-deck, slide-lab, copy-pass, ship-it, clean-up, update-sl-ide (symlinked into `.claude/skills/`) |
 | `skills-lock.json` | the third-party skills this repo expects |
 | `scripts/` | audit, pdf, shots, lab, fonts, doctor |
 

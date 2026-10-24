@@ -22,8 +22,8 @@ new deck"), with sl-ide as the `upstream` remote. Harness files belong to sl-ide
 `src/components/`, `src/lab/` (except `takes/`), `scripts/`, `starters/`,
 `vite.config.js`, `.github/` and `.agents/skills/`. When a fix
 belongs in the harness rather than one deck, say so and suggest making it in
-sl-ide and pulling it in (`git pull upstream main`), so decks don't drift
-apart. In the sl-ide-template repo itself, keep everything brand-neutral.
+sl-ide and pulling it in with the **update-sl-ide** skill, so decks don't
+drift apart. In the sl-ide-template repo itself, keep everything brand-neutral.
 
 ## This deck
 
@@ -47,6 +47,7 @@ divider and A1 Where things live. It explains the harness; replace it.
 | `copy-pass` | Edit the deck's copy under the deck's rules | this repo, uses copy-editing |
 | `ship-it` | Audit, print, check fonts, commit, push | this repo |
 | `clean-up` | Remove dead code; fix doc drift | this repo |
+| `update-sl-ide` | Pull the latest harness from sl-ide, keep the deck's own files | this repo |
 | `impeccable` | Product context, visual system, critique and polish | `skills-lock.json` |
 | `copy-editing` | Editing passes on existing copy | `skills-lock.json` |
 | `copywriting` | Writing new copy from scratch | `skills-lock.json` |
