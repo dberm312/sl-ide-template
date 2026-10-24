@@ -16,9 +16,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/lib.sh
 find_chrome
-chrome_flags
+export CHROME
+trap '[[ -z "${SERVER_PID:-}" ]] || kill "$SERVER_PID" 2>/dev/null || true' EXIT
 build_dist >/dev/null
 serve_dist 8242
-REPORT=$(audit_report 8242)
-echo "$REPORT"
-! grep -qE 'CLIPPED|WORDY|SPILL|OVERLAP|LONG|FONTS-PENDING' <<<"$REPORT"
+node scripts/render.mjs 8242 audit

@@ -3,6 +3,8 @@
 #
 #   pnpm pdf                      -> output/<META.pdfName>.pdf, output/cover.png
 #   OUT_DIR=pdf pnpm pdf          -> somewhere else
+#   pnpm pdf --audit              -> run audit.sh's gate first, in the same
+#                                    Chrome, and print nothing if it fails (CI)
 #
 # Vector with selectable text: slides are never screenshotted, and every font
 # is self-hosted, so nothing is fetched at print time. cover.png is the one
@@ -11,20 +13,16 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/lib.sh
+STEPS=(pdf cover)
+[[ "${1:-}" == "--audit" ]] && STEPS=(audit pdf cover)
 find_chrome
-chrome_flags
+export CHROME
+trap '[[ -z "${SERVER_PID:-}" ]] || kill "$SERVER_PID" 2>/dev/null || true' EXIT
 page_size
 OUT_DIR="${OUT_DIR:-output}"
 NAME=$(node -e "import('./src/deck/content.js').then((m) => console.log(m.META.pdfName || 'deck'))")
 mkdir -p "$OUT_DIR"
 build_dist
 serve_dist 8241
-OUT="$OUT_DIR/$NAME.pdf"
-"$CHROME" "${CHROME_FLAGS[@]}" --no-pdf-header-footer \
-  --print-to-pdf="$OUT" "http://127.0.0.1:8241/index.html#print" 2>/dev/null
-[[ -s "$OUT" ]] || { echo "error: Chrome did not write $OUT" >&2; exit 1; }
-echo "wrote $OUT"
-"$CHROME" "${CHROME_FLAGS[@]}" --hide-scrollbars --window-size=$PAGE_W,$(( PAGE_H + 24 )) \
-  --screenshot="$OUT_DIR/cover.png" "http://127.0.0.1:8241/index.html#print" 2>/dev/null
-[[ -s "$OUT_DIR/cover.png" ]] || { echo "error: Chrome did not write the cover" >&2; exit 1; }
-echo "wrote $OUT_DIR/cover.png"
+OUT_PDF="$OUT_DIR/$NAME.pdf" OUT_COVER="$OUT_DIR/cover.png" PAGE_W="$PAGE_W" PAGE_H="$PAGE_H" \
+  node scripts/render.mjs 8241 "${STEPS[@]}"

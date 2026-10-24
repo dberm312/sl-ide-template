@@ -17,7 +17,7 @@ build_dist >/dev/null
 serve_dist 8243
 
 # Printed labels in deck order, read off the audit report ("—" for unnumbered).
-LABELS=($(audit_report 8243 | awk 'NR > 2 && NF >= 3 && $2 ~ /^[0-9]+$/ { print $1 }'))
+LABELS=($(CHROME="$CHROME" node scripts/render.mjs 8243 report | awk 'NR > 2 && NF >= 3 && $2 ~ /^[0-9]+$/ { print $1 }'))
 N=${#LABELS[@]}
 (( N > 0 )) || { echo "error: could not read the page list" >&2; exit 1; }
 
