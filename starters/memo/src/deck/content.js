@@ -120,7 +120,7 @@ export const memo = {
     'Some pages shouldn’t flow: a cover, a full-page chart, an appendix table. Those are components placed in inch boxes, exactly like slides, and they sit in **src/slides/index.jsx** before or after the flowing body. The appendix page at the end of this memo is one. Appendix pages are labelled A1, A2 and so on, in order.',
 
     { h2: 'Checks' },
-    'Run **pnpm run audit** before calling the memo done. Flowing pages are checked for anything that runs past the footer and for a region too small for its copy. Fixed pages get the same checks as slides. Across the whole memo, LONG flags a memo over **META.pageBudget** pages. CI runs it again on every push and won't publish a failing memo.',
+    'Run **pnpm run audit** before calling the memo done. Flowing pages are checked for anything that runs past the footer and for a region too small for its copy. Fixed pages get the same checks as slides. Across the whole memo, LONG flags a memo over **META.pageBudget** pages. CI runs it again on every push and won’t publish a failing memo.',
     'Look at the pages with **pnpm shots**, and print with **pnpm pdf**. The PDF is US Letter, with selectable text and the fonts embedded.',
   ],
 };
