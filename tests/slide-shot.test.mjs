@@ -8,9 +8,25 @@ import slideShot from '../scripts/slide-shot.js';
 import { CHROME_PATHS } from '../scripts/doctor.js';
 
 const profiles = () => fs.readdirSync('/tmp').filter((name) => name.startsWith('slide-shot-'));
+const CHROME = CHROME_PATHS.find((path) => fs.existsSync(path));
+
+// A cold first launch (font cache, first profile) can outlast the plugin's
+// 15 s startup timeout on a CI runner, so launch Chrome once beforehand: the
+// test is about cleanup, not cold-start speed.
+test.before(() => {
+  if (!CHROME) return;
+  const profile = fs.mkdtempSync('/tmp/chrome-warm-');
+  try {
+    execFileSync(CHROME, [
+      '--headless=new', '--disable-gpu', `--user-data-dir=${profile}`, '--dump-dom', 'about:blank',
+    ], { stdio: 'ignore', timeout: 60000 });
+  } finally {
+    fs.rmSync(profile, { recursive: true, force: true });
+  }
+});
 
 test('failed CDP setup cleans up, retries capture, and supports stop/restart', {
-  skip: !CHROME_PATHS.some((path) => fs.existsSync(path)), timeout: 60000,
+  skip: !CHROME, timeout: 60000,
 }, async () => {
   const originalWs = globalThis.WebSocket;
   const originalFetch = globalThis.fetch;
