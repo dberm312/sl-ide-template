@@ -109,25 +109,35 @@ async function upload({ from, to }) {
 }
 
 console.log(`publish-deck: ${slug} @ ${sha.slice(0, 7)} (${branch}) -> ${base}`);
+const uploadStart = performance.now();
 const rest = files.slice(0, -1);
 const last = files[files.length - 1];
-for (let i = 0; i < rest.length; i += 6) await Promise.all(rest.slice(i, i + 6).map(upload));
+let next = 0;
+await Promise.all(Array.from({ length: Math.min(6, rest.length) }, async () => {
+  while (next < rest.length) await upload(rest[next++]);
+}));
 await upload(last);
+const uploadMs = Math.round(performance.now() - uploadStart);
+console.log(JSON.stringify({ event: 'sl-ide.publish', stage: 'upload', ms: uploadMs, files: files.length }));
 
 // Pages in the PDF: Chrome writes one "/Type /Page" object per page.
 const pages = hasPdf ? (fs.readFileSync(pdf, 'latin1').match(/\/Type\s*\/Page(?![s\w])/g) ?? []).length || null : null;
 
+const finalizeStart = performance.now();
 const res = await fetch(`${base}/api/publish/${slug}/${sha}`, {
   method: 'POST',
   headers: { ...auth, 'Content-Type': 'application/json' },
   body: JSON.stringify({ uploadId, manifest, branch, title: META.deckTitle, format: META.format === 'memo' ? 'memo' : 'slides', repo, pages, hasPdf }),
 });
 const out = await res.json().catch(() => ({}));
+const finalizeMs = Math.round(performance.now() - finalizeStart);
+console.log(JSON.stringify({ event: 'sl-ide.publish', stage: 'finalize', ms: finalizeMs }));
 if (!res.ok) die(`recording the version failed: ${res.status} ${out.error ?? ''}`);
 if (out.notice) console.log(`publish-deck: ${out.notice}`);
 console.log(`publish-deck: ${files.length} files published\n  ${out.url}\n  this version: ${out.version}`);
 if (process.env.GITHUB_STEP_SUMMARY) {
   fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### Published to sl-ide cloud\n\n- Latest on \`${branch}\`: ${out.url}\n- This version: ${out.version}\n`);
+  fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `- Upload: ${(uploadMs / 1000).toFixed(2)} s (${files.length} files)\n- Finalize: ${(finalizeMs / 1000).toFixed(2)} s\n`);
 }
 // For the workflow's later steps (the PR comment).
 if (process.env.GITHUB_OUTPUT) {

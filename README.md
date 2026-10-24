@@ -186,6 +186,11 @@ at `app.sl-ide.com/d/<slug>/`, any other branch as a preview at
 `app.sl-ide.com/d/<slug>/r/<encoded-branch>/`, and each version at
 `app.sl-ide.com/d/<slug>/v/<sha>/`. Viewers get the viewer and a PDF download.
 
+CI builds once, then audits and prints that same build. The Actions summary
+shows install, build, audit, PDF, upload and finalization times. Local audit
+and PDF commands still build by default; `SL_IDE_REUSE_DIST=1` explicitly
+reuses an existing `dist/index.html` and fails if it is missing.
+
 A branch's open PR gets one comment with its preview link, posted when the
 PR opens and updated on each push. When the PR is merged or closed, or the
 branch is deleted,

@@ -47,6 +47,12 @@ page_size() {
 }
 
 build_dist() {
+  # CI builds once, then explicitly reuses that artifact for audit and PDF.
+  # Local commands still build by default; missing artifacts fail closed.
+  if [[ "${SL_IDE_REUSE_DIST:-}" == "1" ]]; then
+    [[ -s dist/index.html ]] || { echo "error: SL_IDE_REUSE_DIST needs a built dist/index.html" >&2; return 1; }
+    return 0
+  fi
   [[ -d node_modules ]] || pnpm install
   pnpm exec vite build --logLevel warn
 }
