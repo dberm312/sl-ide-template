@@ -62,16 +62,12 @@ jobs:
         run: node scripts/timed.mjs Build pnpm run build
 
       # The gate: a clipped, spilling or wordy page fails the run before
-      # anything is printed or published.
-      - name: Audit the layout
+      # anything is printed or published. One Chrome audits, then prints the
+      # PDF and the cover (scripts/render.mjs).
+      - name: Audit the layout and print PDF
         env:
           SL_IDE_REUSE_DIST: '1'
-        run: node scripts/timed.mjs Audit pnpm run audit
-
-      - name: Print PDF
-        env:
-          SL_IDE_REUSE_DIST: '1'
-        run: node scripts/timed.mjs PDF pnpm run pdf
+        run: node scripts/timed.mjs "Audit + PDF" pnpm run pdf --audit
 
       - name: Check fonts
         run: node scripts/timed.mjs Fonts scripts/check-fonts.sh
