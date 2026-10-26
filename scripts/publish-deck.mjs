@@ -19,6 +19,15 @@
 // takes a branch's link down (.github/workflows/unpublish.yml runs it when a
 // PR closes or a branch is deleted). Its versions stay at /v/<sha>/ for 30
 // days, then the cloud deletes them; anything that was on main stays.
+//
+// Every request has a deadline (SL_IDE_REQUEST_TIMEOUT_MS, default 60 s) and
+// the whole run has one (SL_IDE_PUBLISH_DEADLINE_MS, default 4 min). A request
+// that times out, loses its connection, or gets 408, 429 or 5xx is sent again,
+// up to SL_IDE_PUBLISH_ATTEMPTS times (default 3), after a jittered backoff or
+// the server's Retry-After (up to 30 s). Any other answer is final. Retries
+// send the same upload session and the same bytes, so repeating is safe: an
+// upload stores content-addressed bytes, finalizing the same manifest in the
+// same session again answers as the first did, and unpublishing is idempotent.
 import { randomUUID, createHash } from 'node:crypto';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -46,14 +55,53 @@ const uploadId = randomUUID();
 const auth = { Authorization: `Bearer ${token}`, 'X-Sl-Ide-Upload-Id': uploadId };
 const manifest = Object.create(null);
 
+const setting = (name, fallback) => { const v = Number(process.env[name]); return Number.isFinite(v) && v > 0 ? v : fallback; };
+const REQUEST_MS = setting('SL_IDE_REQUEST_TIMEOUT_MS', 60_000);
+const ATTEMPTS = Math.min(10, Math.floor(setting('SL_IDE_PUBLISH_ATTEMPTS', 3)));
+const BACKOFF_MS = setting('SL_IDE_RETRY_BACKOFF_MS', 500);
+const MAX_WAIT_MS = 30_000;
+const deadline = Date.now() + setting('SL_IDE_PUBLISH_DEADLINE_MS', 240_000);
+const retryable = (status) => status === 0 || status === 408 || status === 429 || (status >= 500 && status < 600);
+const parse = (text) => { try { return JSON.parse(text) ?? {}; } catch { return {}; } };
+
+function retryAfterMs(header) {
+  if (!header) return null;
+  const ms = /^\d+$/.test(header.trim()) ? Number(header) * 1000 : Date.parse(header) - Date.now();
+  return Number.isFinite(ms) ? Math.max(0, ms) : null;
+}
+
+// One attempt: { status, ok, text, retryAfter }, status 0 when no answer came.
+async function attempt(url, init) {
+  const limit = Math.min(REQUEST_MS, deadline - Date.now());
+  if (limit <= 0) return { status: 0, ok: false, text: 'out of time' };
+  try {
+    const res = await fetch(url, { ...init, signal: AbortSignal.timeout(limit) });
+    return { status: res.status, ok: res.ok, text: await res.text(), retryAfter: res.headers.get('retry-after') };
+  } catch (e) {
+    return { status: 0, ok: false, text: e.name === 'TimeoutError' ? `no answer within ${limit} ms` : (e.cause?.message ?? e.message) };
+  }
+}
+
+async function request(what, url, init) {
+  for (let n = 1; ; n += 1) {
+    const r = await attempt(url, init);
+    if (r.ok || !retryable(r.status) || n >= ATTEMPTS) return r;
+    const asked = retryAfterMs(r.retryAfter);
+    const wait = asked ?? Math.min(MAX_WAIT_MS, BACKOFF_MS * 2 ** (n - 1)) * (0.5 + Math.random() / 2);
+    if (wait > MAX_WAIT_MS || Date.now() + wait >= deadline) return r;
+    console.warn(`publish-deck: ${what}: ${r.status ? `HTTP ${r.status}` : r.text}; trying again in ${(wait / 1000).toFixed(1)} s`);
+    await new Promise((resolve) => setTimeout(resolve, wait));
+  }
+}
+
 const unpublish = process.argv.indexOf('--unpublish');
 if (unpublish !== -1) {
   const name = process.argv[unpublish + 1];
   if (!name) die('--unpublish needs a branch name');
   if (name === 'main') die('main is never unpublished');
-  const res = await fetch(`${base}/api/publish/${slug}/refs/${name.split('/').map(encodeURIComponent).join('/')}`, { method: 'DELETE', headers: auth });
-  const out = await res.json().catch(() => ({}));
-  if (!res.ok) die(`unpublishing ${name} failed: ${res.status} ${out.error ?? ''}`);
+  const res = await request(`unpublishing ${name}`, `${base}/api/publish/${slug}/refs/${name.split('/').map(encodeURIComponent).join('/')}`, { method: 'DELETE', headers: auth });
+  const out = parse(res.text);
+  if (!res.ok) die(`unpublishing ${name} failed: ${res.status} ${out.error ?? (res.status ? '' : res.text)}`);
   console.log(`publish-deck: ${out.deleted ? 'took down' : 'nothing published for'} ${slug} @ ${name}`);
   process.exit(0);
 }
@@ -94,18 +142,11 @@ async function upload({ from, to }) {
   const hash = createHash('sha256').update(body).digest('hex');
   manifest[to] = { hash, size: body.length };
   const url = `${base}/api/publish/${slug}/${sha}/${to.split('/').map(encodeURIComponent).join('/')}`;
-  for (let attempt = 1; ; attempt += 1) {
-    const res = await fetch(url, { method: 'PUT', headers: auth, body }).catch((e) => ({ ok: false, status: 0, text: async () => e.message }));
-    if (res.ok) {
-      const uploaded = await res.json();
-      if (uploaded.hash !== hash || uploaded.size !== body.length) die(`cloud checksum mismatch for ${to}`);
-      return;
-    }
-    if ([400, 403, 409, 413].includes(res.status)) die(`upload of ${to} rejected: ${res.status} ${await res.text()}`);
-    if (res.status === 401) die('the cloud rejected SL_IDE_PUBLISH_TOKEN');
-    if (attempt >= 3) die(`upload of ${to} failed: ${res.status} ${await res.text()}`);
-    await new Promise((r) => setTimeout(r, 500 * attempt));
-  }
+  const res = await request(`upload of ${to}`, url, { method: 'PUT', headers: auth, body });
+  if (res.status === 401) die('the cloud rejected SL_IDE_PUBLISH_TOKEN');
+  if (!res.ok) die(`upload of ${to} ${retryable(res.status) ? 'failed' : 'rejected'}: ${res.status} ${res.text}`);
+  const uploaded = parse(res.text);
+  if (uploaded.hash !== hash || uploaded.size !== body.length) die(`cloud checksum mismatch for ${to}`);
 }
 
 console.log(`publish-deck: ${slug} @ ${sha.slice(0, 7)} (${branch}) -> ${base}`);
@@ -124,15 +165,19 @@ console.log(JSON.stringify({ event: 'sl-ide.publish', stage: 'upload', ms: uploa
 const pages = hasPdf ? (fs.readFileSync(pdf, 'latin1').match(/\/Type\s*\/Page(?![s\w])/g) ?? []).length || null : null;
 
 const finalizeStart = performance.now();
-const res = await fetch(`${base}/api/publish/${slug}/${sha}`, {
+// One body for every attempt: a retry after a lost answer finalizes the same
+// manifest in the same session, which the cloud accepts again.
+const res = await request('recording the version', `${base}/api/publish/${slug}/${sha}`, {
   method: 'POST',
   headers: { ...auth, 'Content-Type': 'application/json' },
   body: JSON.stringify({ uploadId, manifest, branch, title: META.deckTitle, format: META.format === 'memo' ? 'memo' : 'slides', repo, pages, hasPdf }),
 });
-const out = await res.json().catch(() => ({}));
+const out = parse(res.text);
 const finalizeMs = Math.round(performance.now() - finalizeStart);
 console.log(JSON.stringify({ event: 'sl-ide.publish', stage: 'finalize', ms: finalizeMs }));
-if (!res.ok) die(`recording the version failed: ${res.status} ${out.error ?? ''}`);
+if (!res.ok) {
+  die(`recording the version failed: ${res.status} ${out.error ?? (res.status ? '' : res.text)}${retryable(res.status) ? '\n  It may have been recorded anyway; rerunning this job is safe.' : ''}`);
+}
 if (out.notice) console.log(`publish-deck: ${out.notice}`);
 console.log(`publish-deck: ${files.length} files published\n  ${out.url}\n  this version: ${out.version}`);
 if (process.env.GITHUB_STEP_SUMMARY) {
