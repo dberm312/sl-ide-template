@@ -24,7 +24,8 @@
 // the whole run has one (SL_IDE_PUBLISH_DEADLINE_MS, default 4 min). A request
 // that times out, loses its connection, or gets 408, 429 or 5xx is sent again,
 // up to SL_IDE_PUBLISH_ATTEMPTS times (default 3), after a jittered backoff or
-// the server's Retry-After (up to 30 s). Any other answer is final. Retries
+// the server's Retry-After (up to 30 s). Any other answer is final; a usage
+// limit (413 or 429 naming `limit`) is printed with when it resets. Retries
 // send the same upload session and the same bytes, so repeating is safe: an
 // upload stores content-addressed bytes, finalizing the same manifest in the
 // same session again answers as the first did, and unpublishing is idempotent.
@@ -70,6 +71,15 @@ function retryAfterMs(header) {
   return Number.isFinite(ms) ? Math.max(0, ms) : null;
 }
 
+// The cloud's usage limits (413 for a quota, 429 for a rate) name the limit
+// in `limit`; a rate limit's Retry-After says when it resets.
+function limitHint(res) {
+  const { limit } = parse(res.text);
+  if (!limit) return '';
+  const after = retryAfterMs(res.retryAfter);
+  return `\n  sl-ide usage limit reached: ${limit}. ${after ? `It resets in about ${Math.ceil(after / 60_000)} min; rerun this job then.` : 'Ask sl-ide to raise it.'}`;
+}
+
 // One attempt: { status, ok, text, retryAfter }, status 0 when no answer came.
 async function attempt(url, init) {
   const limit = Math.min(REQUEST_MS, deadline - Date.now());
@@ -101,7 +111,7 @@ if (unpublish !== -1) {
   if (name === 'main') die('main is never unpublished');
   const res = await request(`unpublishing ${name}`, `${base}/api/publish/${slug}/refs/${name.split('/').map(encodeURIComponent).join('/')}`, { method: 'DELETE', headers: auth });
   const out = parse(res.text);
-  if (!res.ok) die(`unpublishing ${name} failed: ${res.status} ${out.error ?? (res.status ? '' : res.text)}`);
+  if (!res.ok) die(`unpublishing ${name} failed: ${res.status} ${out.error ?? (res.status ? '' : res.text)}${limitHint(res)}`);
   console.log(`publish-deck: ${out.deleted ? 'took down' : 'nothing published for'} ${slug} @ ${name}`);
   process.exit(0);
 }
@@ -144,7 +154,7 @@ async function upload({ from, to }) {
   const url = `${base}/api/publish/${slug}/${sha}/${to.split('/').map(encodeURIComponent).join('/')}`;
   const res = await request(`upload of ${to}`, url, { method: 'PUT', headers: auth, body });
   if (res.status === 401) die('the cloud rejected SL_IDE_PUBLISH_TOKEN');
-  if (!res.ok) die(`upload of ${to} ${retryable(res.status) ? 'failed' : 'rejected'}: ${res.status} ${res.text}`);
+  if (!res.ok) die(`upload of ${to} ${retryable(res.status) ? 'failed' : 'rejected'}: ${res.status} ${parse(res.text).error ?? res.text}${limitHint(res)}`);
   const uploaded = parse(res.text);
   if (uploaded.hash !== hash || uploaded.size !== body.length) die(`cloud checksum mismatch for ${to}`);
 }
@@ -176,7 +186,7 @@ const out = parse(res.text);
 const finalizeMs = Math.round(performance.now() - finalizeStart);
 console.log(JSON.stringify({ event: 'sl-ide.publish', stage: 'finalize', ms: finalizeMs }));
 if (!res.ok) {
-  die(`recording the version failed: ${res.status} ${out.error ?? (res.status ? '' : res.text)}${retryable(res.status) ? '\n  It may have been recorded anyway; rerunning this job is safe.' : ''}`);
+  die(`recording the version failed: ${res.status} ${out.error ?? (res.status ? '' : res.text)}${limitHint(res) || (retryable(res.status) ? '\n  It may have been recorded anyway; rerunning this job is safe.' : '')}`);
 }
 if (out.notice) console.log(`publish-deck: ${out.notice}`);
 console.log(`publish-deck: ${files.length} files published\n  ${out.url}\n  this version: ${out.version}`);
