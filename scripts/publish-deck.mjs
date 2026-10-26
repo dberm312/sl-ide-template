@@ -92,13 +92,17 @@ async function attempt(url, init) {
   }
 }
 
+// `uncertain`: an earlier attempt got no clear answer (lost, timed out or a
+// server error), so it may have taken effect even if the last one was refused.
 async function request(what, url, init) {
+  let uncertain = false;
   for (let n = 1; ; n += 1) {
-    const r = await attempt(url, init);
+    const r = { ...(await attempt(url, init)), uncertain };
     if (r.ok || !retryable(r.status) || n >= ATTEMPTS) return r;
     const asked = retryAfterMs(r.retryAfter);
     const wait = asked ?? Math.min(MAX_WAIT_MS, BACKOFF_MS * 2 ** (n - 1)) * (0.5 + Math.random() / 2);
     if (wait > MAX_WAIT_MS || Date.now() + wait >= deadline) return r;
+    uncertain ||= r.status !== 429;
     console.warn(`publish-deck: ${what}: ${r.status ? `HTTP ${r.status}` : r.text}; trying again in ${(wait / 1000).toFixed(1)} s`);
     await new Promise((resolve) => setTimeout(resolve, wait));
   }
@@ -186,7 +190,9 @@ const out = parse(res.text);
 const finalizeMs = Math.round(performance.now() - finalizeStart);
 console.log(JSON.stringify({ event: 'sl-ide.publish', stage: 'finalize', ms: finalizeMs }));
 if (!res.ok) {
-  die(`recording the version failed: ${res.status} ${out.error ?? (res.status ? '' : res.text)}${limitHint(res) || (retryable(res.status) ? '\n  It may have been recorded anyway; rerunning this job is safe.' : '')}`);
+  const hint = limitHint(res);
+  const maybe = res.uncertain || (!hint && retryable(res.status));
+  die(`recording the version failed: ${res.status} ${out.error ?? (res.status ? '' : res.text)}${hint}${maybe ? '\n  It may have been recorded anyway; rerunning this job is safe.' : ''}`);
 }
 if (out.notice) console.log(`publish-deck: ${out.notice}`);
 console.log(`publish-deck: ${files.length} files published\n  ${out.url}\n  this version: ${out.version}`);
