@@ -45,6 +45,7 @@ few questions, then:
   the `upstream` remote, so later editor updates arrive with
   `git pull upstream main`;
 - creates the deck's own GitHub repo (private by default);
+- asks about automatic anonymous harness feedback (Off by default; `--feedback auto` opts in);
 - sets it up to publish to [sl-ide cloud](https://app.sl-ide.com): you approve a
   sign-in in your browser, it saves a token for your account, writes
   `sl-ide.config.json` and sets the repo's `SL_IDE_PUBLISH_TOKEN` secret;
@@ -284,3 +285,22 @@ Check the main-push result before releasing.
 Public PRs never dispatch their code into private cloud; cloud
 validates dispatched SHAs against trusted public main before running them.
 Cloned decks skip this product-only workflow and retain their own publishing CI.
+
+## Anonymous harness feedback
+
+Feedback is off by default, including with `-y`. Choose Auto during setup or use
+`pnpm create sl-ide my-deck --feedback auto`; `--feedback off` keeps it off.
+Reports describe harness behavior, audit counts and workarounds, never deck copy,
+names or file contents. A random project ID lives only in gitignored
+`.sl-ide/feedback.json`; a fresh clone gets a new ID.
+
+In a deck, `pnpm feedback on` / `off` toggles automatic reports. `status` shows
+settings and the endpoint; `log` shows queued and sent JSON. `/give-feedback`
+previews a manual report and asks “Send?” even when automatic feedback is off.
+`DO_NOT_TRACK=1` or `SL_IDE_FEEDBACK=0` blocks every delivery.
+`SL_IDE_FEEDBACK_DEBUG=1` prints scrubbed payloads locally without sending.
+
+Reports are scrubbed before being saved to `.sl-ide/outbox/`, and again before
+retrying. Delivery times out after five seconds. Failed deliveries stay queued
+(up to 20 reports) for a later run; successful ones move to `.sl-ide/sent/`.
+Existing decks get the scripts through `/update-sl-ide` and stay opted out.

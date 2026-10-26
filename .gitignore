@@ -17,3 +17,6 @@ output/
 .claude/skills/copywriting
 .impeccable/live/
 .impeccable/config.local.json
+
+# Private local feedback settings, outbox and delivery history
+.sl-ide/
