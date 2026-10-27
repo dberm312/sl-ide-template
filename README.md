@@ -259,6 +259,19 @@ tests), with case, slashes and Unicode normalization kept apart, and that a
 PR keeps exactly one preview comment through open, publish, close and reopen,
 including when two workflow runs race to post it.
 
+## Bench
+
+`pnpm bench` runs `test`, `test:smoke`, `audit`, `shots 2` and `pdf` three
+times each and writes the median and min wall time, with the machine's CPU
+count, OS and Node, to `output/bench.json`, then prints the 10 slowest tests
+of each suite. `pnpm bench --compare` adds the speedup against
+`bench/baseline.json` (the SL-60 baseline, from an 8-core Mac);
+`pnpm bench --compare main` instead runs the same commands at `main` in a
+throwaway worktree on this machine, which is the fair before/after for a PR.
+Name commands to run only those (`pnpm bench test --runs 5`); `--save`
+rewrites the baseline. CI runs `pnpm test` through it once and warns, without
+failing, when a command takes over 1.5x its baseline.
+
 ## Publisher checks
 
 The publisher (`scripts/publish-deck.mjs`) is tested against a disposable
