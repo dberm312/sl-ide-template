@@ -30,7 +30,9 @@ jobs:
       # Same runner configuration as publish.yml; retain Chrome's sandbox.
       - name: Allow Chrome sandbox
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-      - run: pnpm test
+      - run: node --test scripts/bench.check.mjs
+      # pnpm test, timed against bench/baseline.json (warns, never fails, when slow).
+      - run: node scripts/bench.mjs --runs 1 --compare test
   smoke:
     # Decks inherit this file, but the product's private contract suite belongs
     # only to the canonical template repository.

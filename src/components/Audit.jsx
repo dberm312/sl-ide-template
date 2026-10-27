@@ -72,6 +72,10 @@ export default function Audit({ slides, pages, apx }) {
   useEffect(() => {
     let id = 0;
     let tries = 0;
+    // Lay the pages out first: that is what makes the browser request their
+    // faces. A tab that has not painted yet (a check's own tab) can run this
+    // effect before any layout, while `status` still reads "loaded".
+    document.getElementById('root')?.getBoundingClientRect();
     const measure = () => {
       if (document.fonts.status !== 'loaded' && tries++ < 100) {
         id = setTimeout(measure, 16);
@@ -122,5 +126,6 @@ export default function Audit({ slides, pages, apx }) {
     return () => clearTimeout(id);
   }, [slides, pages, apx]); // once: re-measuring after its own report never settles
 
-  return <pre id="audit" style={{ whiteSpace: 'pre', fontSize: 12 }}>{report}</pre>;
+  // data-ids: the page ids in report order, for scripts/check.mjs.
+  return <pre id="audit" data-ids={slides.map((s) => s.id).join(' ')} style={{ whiteSpace: 'pre', fontSize: 12 }}>{report}</pre>;
 }

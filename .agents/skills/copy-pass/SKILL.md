@@ -16,7 +16,7 @@ the user declines, do the pass by hand with the rules below.
   brand commitments) and the "This deck" section of `AGENTS.md` (standing
   decisions about wording) before editing; both outrank general advice.
 - Read each page's block in `content.js` alongside its screenshot
-  (`pnpm shots <label>`), since a line that reads well can still wrap badly.
+  (`pnpm check <label>`), since a line that reads well can still wrap badly.
 
 ## 2. Edit with copy-editing
 
@@ -40,9 +40,10 @@ deck's own rules, which win over the skill's:
 
 ## 3. Prove it still fits
 
-`pnpm run audit` must read ok on every page. Fix any RAGGED line the edit
-created (reword so the last line is fuller, or shorter so it holds one
-line). Look at the shots of every page you changed.
+After each round of edits, `pnpm check --changed` audits the deck and shoots
+the pages you touched. Fix any RAGGED line the edit created (reword so the
+last line is fuller, or shorter so it holds one line), and look at each
+shot. Finish with `pnpm run audit`, which must read ok on every page.
 
 ## 4. Report
 

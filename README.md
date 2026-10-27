@@ -160,6 +160,7 @@ has the slide starter.
 ## Commands
 
 ```sh
+pnpm check 2          # audit + output/shots/page-2.png, warm (--changed: pages git diff touches)
 pnpm run audit        # CLIPPED / SPILL / OVERLAP / WORDY per page, LONG per memo; exits 1 on any
 pnpm shots 2 A1       # output/shots/page-<label>.png (no args = all; SCALE=2 for 2x)
 pnpm pdf              # output/<META.pdfName>.pdf, vector, fonts embedded; and output/cover.png
@@ -243,6 +244,9 @@ server the same way, so several worktrees (or agents) can check at once.
 checkout's `dist/` path plus its `index.html`) and fails rather than measure
 another deck. `tests/serve.test.mjs` audits two differently edited copies
 concurrently.
+`pnpm check` keeps its state in each checkout's `.sl-ide/` (the warm
+Chrome, and `dev.json`, where `pnpm dev` says which port it is on) and asks
+the dev server for its checkout path before using it.
 
 ## Browser smoke checks
 
@@ -268,6 +272,19 @@ same `/r/<UTF-8 hex>/` keys the cloud serves (pinned alongside cloud's branch
 tests), with case, slashes and Unicode normalization kept apart, and that a
 PR keeps exactly one preview comment through open, publish, close and reopen,
 including when two workflow runs race to post it.
+
+## Bench
+
+`pnpm bench` runs `test`, `test:smoke`, `audit`, `shots 2` and `pdf` three
+times each and writes the median and min wall time, with the machine's CPU
+count, OS and Node, to `output/bench.json`, then prints the 10 slowest tests
+of each suite. `pnpm bench --compare` adds the speedup against
+`bench/baseline.json` (the SL-60 baseline, from an 8-core Mac);
+`pnpm bench --compare main` instead runs the same commands at `main` in a
+throwaway worktree on this machine, which is the fair before/after for a PR.
+Name commands to run only those (`pnpm bench test --runs 5`); `--save`
+rewrites the baseline. CI runs `pnpm test` through it once and warns, without
+failing, when a command takes over 1.5x its baseline.
 
 ## Publisher checks
 
