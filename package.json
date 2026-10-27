@@ -19,7 +19,8 @@
     "skills": "npx -y skills@latest experimental_install && node scripts/doctor.js",
     "test": "node --test tests/*.test.mjs",
     "test:smoke": "playwright test",
-    "feedback": "node scripts/feedback.mjs"
+    "feedback": "node scripts/feedback.mjs",
+    "agent-bench": "node scripts/agent-bench.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",
