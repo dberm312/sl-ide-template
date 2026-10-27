@@ -17,7 +17,7 @@ commit in step 7, so use it whenever a step goes wrong and say so.
 
 | Owner | Paths | On a conflict or upstream change |
 |---|---|---|
-| **Harness** | `src/components/`, `src/lab/` (except `takes/`), `src/App.jsx`, `src/main.jsx`, `scripts/` (including `feedback.mjs`, `feedback-schema.mjs`, `feedback-vocab.json`, `feedback-common-words.txt`), `starters/`, `tests/`, `vite.config.js`, `playwright.config.js`, `lab.html`, `CLAUDE.md`, `.gitignore`, `.githooks/`, `.github/`, `.agents/skills/` and `.claude/skills/` (sl-ide's own skills), `skills-lock.json`, `pnpm-workspace.yaml` | Take upstream's |
+| **Harness** | `src/components/`, `src/lab/` (except `takes/`), `src/App.jsx`, `src/main.jsx`, `scripts/` (including `feedback.mjs`, `feedback-schema.mjs`, `feedback-vocab.json`, `feedback-common-words.txt`), `starters/`, `tests/`, `vite.config.js`, `playwright.config.js`, `lab.html`, `CLAUDE.md`, `.gitignore`, `.githooks/`, `.github/`, `.agents/skills/` and `.claude/skills/` (sl-ide's own skills), `.claude/agents/`, `skills-lock.json`, `pnpm-workspace.yaml` | Take upstream's |
 | **Deck** | `src/deck/content.js`, `src/slides/`, `src/fonts/`, `src/lab/takes/`, `public/`, `PRODUCT.md`, `DESIGN.md`, `README.md`, `sl-ide.config.json`, `.sl-ide/` (private feedback settings and history; never touched by a pull) | Keep the deck's |
 | **Mixed** | `src/styles.css`, `AGENTS.md`, `package.json`, `pnpm-lock.yaml`, `index.html` | Split, below |
 

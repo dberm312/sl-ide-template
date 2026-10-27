@@ -36,6 +36,11 @@ PDF: `vite build` reads `index.html` only.
 
 ## 2. Write the takes
 
+Each take is its own file in `src/lab/takes/`, so takes don't conflict: with
+3 or more, write them with parallel subagents, one per take, each given the
+brief, the take's file name and CSS prefix, and the rules below. You write
+`index.js` and check every take yourself in step 3.
+
 - **Differ in structure, not wording.** Each take answers the brief with a
   different layout or argument: where the content sits, what gets cut, what
   leads. Three is the default; never more than four.
