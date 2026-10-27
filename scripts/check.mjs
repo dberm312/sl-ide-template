@@ -222,34 +222,34 @@ try {
   fs.writeFileSync(path.join(root, 'output', 'map.json'), `${JSON.stringify(map, null, 2)}\n`);
   if (mapOnly) {
     console.log(flags.has('--json') ? JSON.stringify(map, null, 2) : mapText(map).trimEnd());
-    process.exit();
-  }
-  console.log(report);
+  } else {
+    console.log(report);
 
-  if (boxes.length !== ids.length) throw new Error(`#print has ${boxes.length} pages, the audit ${ids.length}`);
-  let pages;
-  if (flags.has('--changed')) pages = changedPages(root, ids);
-  else if (wanted.length) {
-    pages = wanted.map((w) => {
-      const i = w.startsWith('@') ? Number(w.slice(1)) - 1 : labels.indexOf(w);
-      if (!(i >= 0 && i < ids.length)) throw new Error(`no page '${w}' (labels: ${labels.join(' ')})`);
-      return i;
-    });
-  } else pages = ids.map((_, i) => i);
+    if (boxes.length !== ids.length) throw new Error(`#print has ${boxes.length} pages, the audit ${ids.length}`);
+    let pages;
+    if (flags.has('--changed')) pages = changedPages(root, ids);
+    else if (wanted.length) {
+      pages = wanted.map((w) => {
+        const i = w.startsWith('@') ? Number(w.slice(1)) - 1 : labels.indexOf(w);
+        if (!(i >= 0 && i < ids.length)) throw new Error(`no page '${w}' (labels: ${labels.join(' ')})`);
+        return i;
+      });
+    } else pages = ids.map((_, i) => i);
 
-  const out = path.join(root, 'output', 'shots');
-  fs.mkdirSync(out, { recursive: true });
-  if (flags.has('--changed') && !pages.length) console.log('no page changed since the last commit');
-  for (const i of pages) {
-    const { data } = await p.send('Page.captureScreenshot', {
-      format: 'png', captureBeyondViewport: true, clip: { ...boxes[i], scale: 1 },
-    });
-    const name = `page-${labels[i] === '—' ? `at${i + 1}` : labels[i]}.png`;
-    fs.writeFileSync(path.join(out, name), Buffer.from(data, 'base64'));
-    console.log(`wrote output/shots/${name}`);
+    const out = path.join(root, 'output', 'shots');
+    fs.mkdirSync(out, { recursive: true });
+    if (flags.has('--changed') && !pages.length) console.log('no page changed since the last commit');
+    for (const i of pages) {
+      const { data } = await p.send('Page.captureScreenshot', {
+        format: 'png', captureBeyondViewport: true, clip: { ...boxes[i], scale: 1 },
+      });
+      const name = `page-${labels[i] === '—' ? `at${i + 1}` : labels[i]}.png`;
+      fs.writeFileSync(path.join(out, name), Buffer.from(data, 'base64'));
+      console.log(`wrote output/shots/${name}`);
+    }
+    console.log(`check: ${((performance.now() - started) / 1000).toFixed(2)} s on ${source.what}${chrome.warm ? '' : ', Chrome started'}`);
+    process.exitCode = GATE.test(report) ? 1 : 0;
   }
-  console.log(`check: ${((performance.now() - started) / 1000).toFixed(2)} s on ${source.what}${chrome.warm ? '' : ', Chrome started'}`);
-  process.exitCode = GATE.test(report) ? 1 : 0;
 } catch (err) {
   console.error(`error: ${err.message}`);
   process.exitCode = 1;

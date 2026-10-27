@@ -47,7 +47,15 @@ test('pnpm map measures the deck and writes output/map.md and map.json', async (
     await run('--stop');
     fs.rmSync(state, { recursive: true, force: true });
   });
+  const targets = async () => {
+    const { port } = JSON.parse(fs.readFileSync(path.join(state, 'chrome.json'), 'utf8'));
+    return (await (await fetch(`http://127.0.0.1:${port}/json/list`)).json()).filter((t) => t.type === 'page').map((t) => ({ id: t.id, url: t.url })).sort((a, b) => a.id.localeCompare(b.id));
+  };
   const map = JSON.parse((await run('--map', '--json')).stdout);
+  const before = await targets();
+  assert.equal(before.some((t) => t.url.endsWith('#audit')), false, 'map closes its audit tab');
+  await run('--map');
+  assert.deepEqual(await targets(), before, 'repeated maps do not retain browser tabs');
   assert.deepEqual(map.pages.map((p) => p.label), ['—', '2', '3', '4', '—', 'A1']);
   assert.ok(map.pages.every((p) => p.audit === 'ok' && p.file && p.title));
   assert.equal(map.pages[2].title, 'Each page is copy in content.js, placed in inch boxes');
