@@ -25,7 +25,7 @@ blocks on each printed page. Then open just those files.
 Each deck is its own repo made by `pnpm create sl-ide` (README, "Start a
 new deck"), with sl-ide as the `upstream` remote. Harness files belong to sl-ide:
 `src/components/`, `src/lab/` (except `takes/`), `scripts/`, `starters/`,
-`vite.config.js`, `.github/` and `.agents/skills/`. When a fix
+`vite.config.js`, `.github/`, `.agents/skills/` and `.claude/agents/`. When a fix
 belongs in the harness rather than one deck, say so and suggest making it in
 sl-ide and pulling it in with the **update-sl-ide** skill, so decks don't
 drift apart. In the sl-ide-template repo itself, keep everything brand-neutral.
@@ -161,6 +161,26 @@ While editing, check with `pnpm check <label>` (or `--changed`) after each
 change and look at the shot. Commits don't run the audit, so they stay fast.
 Run `pnpm run audit`, a clean build, before pushing a deck change. CI on push audits the pushed commit, and a failing
 page stops the publish.
+
+## Working in parallel
+
+Two subagent roles ship in `.claude/agents/` (Claude Code; for another
+agent, pass the file's body as the subagent's instructions):
+`deck-explorer` answers "where is X / what does page N say" read-only from
+`output/map.md`; `page-worker` owns one page, edits only its component and
+its keys, runs `pnpm check <label>` and returns the diff and audit line.
+
+- **Fan out per page** when a task touches 3 or more pages that are
+  independent: one `page-worker` each. Stay serial for token, `styles.css`,
+  component or `index.jsx` changes, which touch every page.
+- **Name each worker's files before launching it**, from the map: its
+  component and its keys in `content.js`. `content.js` and `styles.css`
+  are shared hotspots; no two workers own the same key. Give a worker its
+  own worktree (`git worktree add`, then `pnpm install`) when its files
+  overlap another's; `pnpm check` is safe in parallel worktrees. Never
+  stash; each worktree commits on its own branch.
+- **The parent merges**, resolves any overlap under the deck rules, and
+  runs one whole-deck `pnpm run audit` at the end.
 
 ## Working with the user
 
