@@ -234,6 +234,16 @@ By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 | `skills-lock.json` | the third-party skills this repo expects |
 | `scripts/` | audit, pdf, shots, lab, fonts, doctor |
 
+## Parallel worktrees
+
+`pnpm run audit`, `pnpm pdf` and `pnpm shots` serve `dist/` with
+`scripts/serve.mjs` on a port the OS picks, and `pnpm lab` starts its dev
+server the same way, so several worktrees (or agents) can check at once.
+`scripts/render.mjs` first asks the server for its build id (this
+checkout's `dist/` path plus its `index.html`) and fails rather than measure
+another deck. `tests/serve.test.mjs` audits two differently edited copies
+concurrently.
+
 ## Browser smoke checks
 
 Run `pnpm test:smoke` with Google Chrome installed. The suite uses real Chrome

@@ -6,6 +6,9 @@
 //
 //   node scripts/render.mjs <port> <step...>
 //
+// <port> must be serving this checkout's dist/ (scripts/serve.mjs, via
+// lib.sh serve_dist); anything else, such as another worktree's deck, fails.
+//
 // report  print the #audit report; fail unless it finished measuring
 // audit   report, then fail on CLIPPED, WORDY, SPILL, OVERLAP, LONG or FONTS-PENDING
 // pdf     print #print to $OUT_PDF
@@ -17,6 +20,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { buildId } from './serve.mjs';
 
 const BUDGET_MS = 8000;
 const TIMEOUT_MS = 60000;
@@ -29,6 +33,12 @@ if (!/^\d+$/.test(port ?? '') || !steps.length || steps.some((s) => !known.has(s
   process.exit(2);
 }
 const page = `http://127.0.0.1:${port}/index.html`;
+const dist = path.join(import.meta.dirname, '..', 'dist');
+const served = await fetch(`http://127.0.0.1:${port}/__sl-ide/build`).then((r) => (r.ok ? r.text() : null), () => null);
+if (served !== buildId(dist)) {
+  console.error(`error: port ${port} is not serving this checkout's dist/ (${served ? 'another build' : 'no sl-ide server'})`);
+  process.exit(1);
+}
 
 // --- Chrome: one process and profile, removed however this script ends ----
 

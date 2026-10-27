@@ -19,5 +19,5 @@ find_chrome
 export CHROME
 trap '[[ -z "${SERVER_PID:-}" ]] || kill "$SERVER_PID" 2>/dev/null || true' EXIT
 build_dist >/dev/null
-serve_dist 8242
-node scripts/render.mjs 8242 audit
+serve_dist
+node scripts/render.mjs "$PORT" audit

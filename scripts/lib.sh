@@ -29,19 +29,24 @@ chrome_flags() {
 }
 
 # Chrome blocks ES modules over file://, so serve dist/ on localhost.
+# Serve dist/ on a free port (scripts/serve.mjs) and set PORT, so parallel
+# worktrees never measure each other's deck.
 serve_dist() {
-  local port="$1"
-  python3 -m http.server "$port" --directory dist --bind 127.0.0.1 >/dev/null 2>&1 &
+  local log
+  log=$(mktemp "${TMPDIR:-/tmp}/sl-ide-serve.XXXXXX")
+  node scripts/serve.mjs dist >"$log" 2>&1 &
   SERVER_PID=$!
-  for _ in $(seq 1 50); do
-    curl -s -o /dev/null "http://127.0.0.1:$port/index.html" && return 0
-    sleep 0.1
+  for _ in $(seq 1 100); do
+    PORT=$(sed -n 's/^listening on //p' "$log")
+    if [[ -n "$PORT" ]]; then rm -f -- "$log"; return 0; fi
+    kill -0 "$SERVER_PID" 2>/dev/null || break
+    sleep 0.05
   done
-  echo "error: could not start the deck server on port $port" >&2
+  cat "$log" >&2; rm -f -- "$log"
+  echo "error: could not start the deck server" >&2
   return 1
 }
 
-# The page size in px (PAGE_W, PAGE_H), from META.format: see components/page.js.
 page_size() {
   read -r PAGE_W PAGE_H < <(node -e "import('./src/components/page.js').then(({ PAGE }) => console.log(PAGE.w, PAGE.h))")
 }
