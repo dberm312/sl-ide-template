@@ -32,7 +32,9 @@ const jobs = Number(opt('jobs', 2));
 const maxTurns = Number(opt('max-turns', 40));
 const budget = Number(opt('budget', 2));
 const wallCap = Number(opt('timeout-min', 15)) * 60_000;
-if (!agents || !tasks.length || !(runs > 0)) {
+if (!agents || !tasks.length || !Number.isInteger(runs) || runs <= 0
+  || !Number.isInteger(jobs) || jobs <= 0 || !Number.isInteger(maxTurns) || maxTurns <= 0
+  || !Number.isFinite(budget) || budget <= 0 || !Number.isFinite(wallCap) || wallCap <= 0) {
   console.error(`usage: pnpm agent-bench [--agent claude|codex|both] [--task ${TASKS.map((t) => t.id).join('|')}] [--runs N] [--compare] [--baseline]`);
   process.exit(2);
 }
@@ -151,6 +153,7 @@ async function one(agent, task, n) {
       .map((l) => l.slice(3).replace(/^.* -> /, ''));
     const content = fs.readFileSync(path.join(dir, 'src/deck/content.js'), 'utf8');
     const checks = {
+      'agent completed': result.error === null,
       'audit passes': audit.ok,
       'only allowed files': changed.every((f) => allowedBy(task.allowed, f)),
       'no commit': (await git(dir, 'rev-parse', 'HEAD')).stdout.trim() === head,

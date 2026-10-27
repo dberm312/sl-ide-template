@@ -40,3 +40,22 @@ test('a commit, a file outside the task, or a cap is a failure', async () => {
   assert.equal(capped.checks['within caps'], false);
   assert.ok(![commit, styles, capped].some((r) => r.pass));
 });
+
+test('an agent error fails even after a correct edit', async () => {
+  const { results } = await bench('error', '--agent', 'both');
+  for (const result of results) {
+    assert.equal(result.checks['audit passes'], true);
+    assert.equal(result.checks['title changed'], true);
+    assert.equal(result.checks['agent completed'], false);
+    assert.ok(result.error);
+    assert.equal(result.pass, false);
+  }
+});
+
+test('invalid run counts and caps stop before running an agent', async () => {
+  for (const args of [['--jobs', '0'], ['--jobs', 'NaN'], ['--jobs', 'Infinity'], ['--jobs', '1.5'],
+    ['--runs', 'NaN'], ['--budget', 'Infinity'], ['--timeout-min', '0'], ['--max-turns', '-1']]) {
+    await assert.rejects(promisify(execFile)(process.execPath, ['scripts/agent-bench.mjs', ...args], { cwd: root }),
+      (error) => error.code === 2 && error.stderr.includes('usage:'));
+  }
+});
