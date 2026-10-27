@@ -9,7 +9,9 @@ import { promisify } from 'node:util';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 
-for (const format of ['slides', 'memo']) {
+// One Playwright file per format (editor-*.spec.js), so the two run in
+// parallel workers.
+export function editorSuite(format) {
   test.describe(format, () => {
     let dir, dev, built, devUrl, builtUrl, pdf;
     test.beforeAll(async ({ browser }) => {
@@ -96,6 +98,9 @@ for (const format of ['slides', 'memo']) {
       page.on('pageerror', (e) => errors.push(e.message));
       await page.goto(`${devUrl}/#view/2`);
       await expect(page.locator('.vw-count')).toContainText('2 /');
+      // A memo lays its pages out again once the fonts load; a key pressed
+      // before then turns to a page that then moves.
+      await page.evaluate(() => document.fonts.ready);
       await page.keyboard.press('ArrowRight');
       await expect(page).toHaveURL(/#view\/3$/);
       await page.keyboard.press('Home');
