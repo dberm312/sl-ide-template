@@ -80,6 +80,19 @@ function limitHint(res) {
   return `\n  sl-ide usage limit reached: ${limit}. ${after ? `It resets in about ${Math.ceil(after / 60_000)} min; rerun this job then.` : 'Ask sl-ide to raise it.'}`;
 }
 
+function authHint(res) {
+  if (res.status !== 401) return '';
+  const { reason } = parse(res.text);
+  const fixes = {
+    missing: 'Set SL_IDE_PUBLISH_TOKEN to a publish token (a GitHub Actions secret in CI).',
+    unknown: `Mint a new token at ${base}/tokens, then \`gh secret set SL_IDE_PUBLISH_TOKEN\`, then rerun the job.`,
+    revoked: `Mint a new token at ${base}/tokens, then \`gh secret set SL_IDE_PUBLISH_TOKEN\`, then rerun the job.`,
+    expired: `Mint a new token at ${base}/tokens, then \`gh secret set SL_IDE_PUBLISH_TOKEN\`, then rerun the job.`,
+    'owner-missing': 'The account that minted this token no longer exists; sign in and mint a new one (the deck may need its owner moved).',
+  };
+  return `\n  ${Object.hasOwn(fixes, reason) ? `${reason}: ${fixes[reason]}` : `Check SL_IDE_PUBLISH_TOKEN or mint a new token at ${base}/tokens.`}`;
+}
+
 // One attempt: { status, ok, text, retryAfter }, status 0 when no answer came.
 async function attempt(url, init) {
   const limit = Math.min(REQUEST_MS, deadline - Date.now());
@@ -115,7 +128,7 @@ if (unpublish !== -1) {
   if (name === 'main') die('main is never unpublished');
   const res = await request(`unpublishing ${name}`, `${base}/api/publish/${slug}/refs/${name.split('/').map(encodeURIComponent).join('/')}`, { method: 'DELETE', headers: auth });
   const out = parse(res.text);
-  if (!res.ok) die(`unpublishing ${name} failed: ${res.status} ${out.error ?? (res.status ? '' : res.text)}${limitHint(res)}`);
+  if (!res.ok) die(`unpublishing ${name} failed: ${res.status} ${out.error ?? (res.status ? '' : res.text)}${limitHint(res)}${authHint(res)}`);
   console.log(`publish-deck: ${out.deleted ? 'took down' : 'nothing published for'} ${slug} @ ${name}`);
   process.exit(0);
 }
@@ -157,8 +170,8 @@ async function upload({ from, to }) {
   manifest[to] = { hash, size: body.length };
   const url = `${base}/api/publish/${slug}/${sha}/${to.split('/').map(encodeURIComponent).join('/')}`;
   const res = await request(`upload of ${to}`, url, { method: 'PUT', headers: auth, body });
-  if (res.status === 401) die('the cloud rejected SL_IDE_PUBLISH_TOKEN');
-  if (!res.ok) die(`upload of ${to} ${retryable(res.status) ? 'failed' : 'rejected'}: ${res.status} ${parse(res.text).error ?? res.text}${limitHint(res)}`);
+  if (res.status === 401) die(`the cloud rejected SL_IDE_PUBLISH_TOKEN${authHint(res)}`);
+  if (!res.ok) die(`upload of ${to} ${retryable(res.status) ? 'failed' : 'rejected'}: ${res.status} ${parse(res.text).error ?? res.text}${limitHint(res)}${authHint(res)}`);
   const uploaded = parse(res.text);
   if (uploaded.hash !== hash || uploaded.size !== body.length) die(`cloud checksum mismatch for ${to}`);
 }
@@ -190,7 +203,7 @@ const out = parse(res.text);
 const finalizeMs = Math.round(performance.now() - finalizeStart);
 console.log(JSON.stringify({ event: 'sl-ide.publish', stage: 'finalize', ms: finalizeMs }));
 if (!res.ok) {
-  const hint = limitHint(res);
+  const hint = limitHint(res) + authHint(res);
   const maybe = res.uncertain || (!hint && retryable(res.status));
   die(`recording the version failed: ${res.status} ${out.error ?? (res.status ? '' : res.text)}${hint}${maybe ? '\n  It may have been recorded anyway; rerunning this job is safe.' : ''}`);
 }
