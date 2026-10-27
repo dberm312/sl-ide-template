@@ -53,23 +53,27 @@ test('the same index.html in another checkout is another build', () => {
 });
 
 test('render.mjs refuses a port that serves another deck, or nothing of ours', async (t) => {
+  // A checkout of its own: render.mjs checks the dist/ beside its scripts/.
+  const checkout = path.dirname(fakeDist('<p>this checkout</p>'));
+  fs.mkdirSync(path.join(checkout, 'scripts'));
+  for (const f of ['render.mjs', 'serve.mjs']) fs.copyFileSync(path.join(root, 'scripts', f), path.join(checkout, 'scripts', f));
+  const render = (port) => run(process.execPath, ['scripts/render.mjs', String(port), 'report'], { cwd: checkout, env: { ...process.env, CHROME: '/bin/false' } });
+  const refuses = (why) => (err) => err.code === 1 && err.stderr.includes(why);
+
   const other = await serve(fakeDist('<p>another worktree</p>'));
   const stranger = http.createServer((_, res) => res.end('hello'));
   await new Promise((r) => stranger.listen(0, '127.0.0.1', r));
   t.after(() => { other.close(); stranger.close(); });
-  for (const [server, why] of [[other, 'another build'], [stranger, 'another build']]) {
-    await assert.rejects(
-      run(process.execPath, ['scripts/render.mjs', String(server.address().port), 'report'], { cwd: root, env: { ...process.env, CHROME: '/bin/false' } }),
-      (err) => err.code === 1 && err.stderr.includes(`is not serving this checkout's dist/ (${why})`),
-    );
+  for (const server of [other, stranger]) {
+    await assert.rejects(render(server.address().port), refuses("is not serving this checkout's dist/ (another build)"));
   }
   const closed = await serve(fakeDist('<p>gone</p>'));
   const port = closed.address().port;
   await new Promise((r) => closed.close(r));
-  await assert.rejects(
-    run(process.execPath, ['scripts/render.mjs', String(port), 'report'], { cwd: root, env: { ...process.env, CHROME: '/bin/false' } }),
-    (err) => err.code === 1 && err.stderr.includes('(no sl-ide server)'),
-  );
+  await assert.rejects(render(port), refuses('(no sl-ide server)'));
+
+  fs.rmSync(path.join(checkout, 'dist'), { recursive: true });
+  await assert.rejects(render(other.address().port), refuses('dist/ is not built'));
 });
 
 // Two copies with different decks, audited at the same time, while something

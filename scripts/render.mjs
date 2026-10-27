@@ -34,6 +34,10 @@ if (!/^\d+$/.test(port ?? '') || !steps.length || steps.some((s) => !known.has(s
 }
 const page = `http://127.0.0.1:${port}/index.html`;
 const dist = path.join(import.meta.dirname, '..', 'dist');
+if (!fs.existsSync(path.join(dist, 'index.html'))) {
+  console.error('error: dist/ is not built (pnpm build)');
+  process.exit(1);
+}
 const served = await fetch(`http://127.0.0.1:${port}/__sl-ide/build`).then((r) => (r.ok ? r.text() : null), () => null);
 if (served !== buildId(dist)) {
   console.error(`error: port ${port} is not serving this checkout's dist/ (${served ? 'another build' : 'no sl-ide server'})`);
