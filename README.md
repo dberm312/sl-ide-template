@@ -160,6 +160,7 @@ has the slide starter.
 ## Commands
 
 ```sh
+pnpm check 2          # audit + output/shots/page-2.png, warm (--changed: pages git diff touches)
 pnpm run audit        # CLIPPED / SPILL / OVERLAP / WORDY per page, LONG per memo; exits 1 on any
 pnpm shots 2 A1       # output/shots/page-<label>.png (no args = all; SCALE=2 for 2x)
 pnpm pdf              # output/<META.pdfName>.pdf, vector, fonts embedded; and output/cover.png
@@ -243,6 +244,9 @@ server the same way, so several worktrees (or agents) can check at once.
 checkout's `dist/` path plus its `index.html`) and fails rather than measure
 another deck. `tests/serve.test.mjs` audits two differently edited copies
 concurrently.
+`pnpm check` keeps its state in each checkout's `.sl-ide/` (the warm
+Chrome, and `dev.json`, where `pnpm dev` says which port it is on) and asks
+the dev server for its checkout path before using it.
 
 ## Browser smoke checks
 
