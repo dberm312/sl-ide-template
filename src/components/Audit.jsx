@@ -59,7 +59,7 @@ function runtPages(els, slides, labelOf) {
 // answer "does every slide still fit" from the command line instead of asking
 // someone to read every PDF page at full size.
 export default function Audit({ slides, pages, apx }) {
-  const [report, setReport] = useState('measuring…');
+  const [report, setReport] = useState({ text: 'measuring…', pages: [] });
 
   // Measure only once the deck's web fonts are live. The first frame lays out
   // in the *fallback* faces, which set at different widths, so a slide that
@@ -82,7 +82,7 @@ export default function Audit({ slides, pages, apx }) {
         return;
       }
       const els = Array.from(document.querySelectorAll('#root > .slide'));
-      const lines = els.map((el, i) => {
+      const rows = els.map((el, i) => {
         const s = slides[i];
         const label = apx.get(s.id) ?? String(pages.get(s.id) ?? '—');
         const words = countWords(el);
@@ -95,20 +95,26 @@ export default function Audit({ slides, pages, apx }) {
           spill > 2 ? `SPILL(+${spill}px)` : '',
           overlap > 2 ? `OVERLAP(+${overlap}px)` : '',
         ].filter(Boolean).join(' ');
-        return [
-          label.padEnd(5),
-          String(words).padStart(4),
-          (flags || 'ok').padEnd(24),
-          s.title,
-        ].join('  ');
+        return {
+          id: s.id, kind: s.kind, label, words, title: s.title, status: flags || 'ok',
+          budget: hasWordBudget(s.kind) ? WORD_BUDGET : null,
+          // A flow page's pieces of the body: [block] or [block, from, to].
+          ...(s.kind === 'flow' && { blocks: s.props.pieces.map(({ i: b, part }) => (part ? [b, ...part] : [b])) }),
+        };
       });
+      const lines = rows.map((r) => [
+        r.label.padEnd(5),
+        String(r.words).padStart(4),
+        r.status.padEnd(24),
+        r.title,
+      ].join('  '));
       const bad = els.filter((el, i) => overflowPx(el) > 2 || spillPx(el) > 2
         || overlapPx(el) > 2
         || (hasWordBudget(slides[i].kind) && countWords(el) > WORD_BUDGET)).length;
       // LONG: a memo (or deck) over META.pageBudget pages, when it sets one.
       const long = META.pageBudget && els.length > META.pageBudget
         ? `  LONG(${els.length}>${META.pageBudget} pages)` : '';
-      setReport([
+      setReport({ pages: rows, text: [
         `AUDIT  ${els.length} pages  ${bad} need attention${long}`
           + (document.fonts.status === 'loaded' ? '' : '  FONTS-PENDING (numbers unreliable)'),
         'PAGE   WORDS  STATUS                    TITLE',
@@ -116,7 +122,7 @@ export default function Audit({ slides, pages, apx }) {
         ...runtPages(els, slides, (s) => (apx.get(s.id) ?? String(pages.get(s.id) ?? '—')).padEnd(5)),
         ...els.flatMap((el, i) => raggedLines(el,
           (apx.get(slides[i].id) ?? String(pages.get(slides[i].id) ?? '—')).padEnd(5))),
-      ].join('\n'));
+      ].join('\n') });
     };
     // setTimeout, not requestAnimationFrame: headless Chrome paints one frame
     // for `--dump-dom` and then stops, so a *nested* rAF never runs and the
@@ -126,6 +132,6 @@ export default function Audit({ slides, pages, apx }) {
     return () => clearTimeout(id);
   }, [slides, pages, apx]); // once: re-measuring after its own report never settles
 
-  // data-ids: the page ids in report order, for scripts/check.mjs.
-  return <pre id="audit" data-ids={slides.map((s) => s.id).join(' ')} style={{ whiteSpace: 'pre', fontSize: 12 }}>{report}</pre>;
+  // data-pages: the report's rows as data, for scripts/check.mjs and the deck map.
+  return <pre id="audit" data-pages={JSON.stringify(report.pages)} style={{ whiteSpace: 'pre', fontSize: 12 }}>{report.text}</pre>;
 }
