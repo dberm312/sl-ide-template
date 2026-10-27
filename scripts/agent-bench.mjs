@@ -113,14 +113,25 @@ function invoke(agent, prompt, dir) {
       '-o', path.join(dir, '.agent-last-message'), prompt], parseCodex];
   return new Promise((resolve) => {
     const started = performance.now();
-    const child = spawn(bin, args, { cwd: dir, stdio: ['ignore', 'pipe', 'pipe'] });
+    const grouped = process.platform !== 'win32';
+    const child = spawn(bin, args, { cwd: dir, stdio: ['ignore', 'pipe', 'pipe'], detached: grouped });
+    const stop = () => {
+      if (grouped && child.pid) {
+        try { process.kill(-child.pid, 'SIGKILL'); return; } catch { /* group already gone */ }
+      }
+      child.kill('SIGKILL');
+    };
     let out = '';
     let timedOut = false;
     child.stdout.on('data', (d) => { out += d; });
     child.stderr.on('data', () => {});
-    const timer = setTimeout(() => { timedOut = true; child.kill('SIGKILL'); }, wallCap);
+    const timer = setTimeout(() => { timedOut = true; stop(); }, wallCap);
+    let finished = false;
     const done = (code, err) => {
+      if (finished) return;
+      finished = true;
       clearTimeout(timer);
+      stop(); // also remove background tools before deleting the project
       const m = parse(out);
       if (timedOut) Object.assign(m, { capped: true, error: 'wall-time cap' });
       else if (err) m.error = err.message;
@@ -159,7 +170,7 @@ async function one(agent, task, n) {
       'no commit': (await git(dir, 'rev-parse', 'HEAD')).stdout.trim() === head,
       'figures survive': figures(base['src/deck/content.js']).every((f) => content.includes(f)),
       'within caps': !result.capped,
-      ...task.checks(dir, base, audit.out),
+      ...(await task.checks(dir, base, audit.out)),
     };
     const pass = Object.values(checks).every(Boolean);
     console.log(`${agent.padEnd(6)} ${task.id.padEnd(14)} #${n}  ${pass ? 'pass' : 'FAIL'}  ${result.wall.toFixed(1)} s`

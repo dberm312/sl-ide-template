@@ -12,7 +12,7 @@ const root = path.resolve(import.meta.dirname, '..');
 const fake = path.join(root, 'tests/fixtures/fake-agent.mjs');
 async function bench(mode, ...args) {
   const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'agent-bench-test-')), 'report.json');
-  await promisify(execFile)(process.execPath, ['scripts/agent-bench.mjs', '--task', 'copy-edit', '--runs', '1', ...args],
+  await promisify(execFile)(process.execPath, ['scripts/agent-bench.mjs', ...args, '--task', 'copy-edit', '--runs', '1'],
     { cwd: root, env: { ...process.env, CLAUDE_BIN: fake, CODEX_BIN: fake, FAKE_AGENT_MODE: mode, AGENT_BENCH_OUT: out } });
   const report = JSON.parse(fs.readFileSync(out, 'utf8'));
   fs.rmSync(path.dirname(out), { recursive: true, force: true });
@@ -58,4 +58,17 @@ test('invalid run counts and caps stop before running an agent', async () => {
     await assert.rejects(promisify(execFile)(process.execPath, ['scripts/agent-bench.mjs', ...args], { cwd: root }),
       (error) => error.code === 2 && error.stderr.includes('usage:'));
   }
+});
+
+test('an overflow fix preserves the original in a fit comment without failing live-copy scoring', async () => {
+  const { results } = await bench('overflow-comment', '--task', 'overflow-fix', '--agent', 'both');
+  for (const result of results) assert.equal(result.pass, true, JSON.stringify(result.checks));
+});
+
+test('the wall cap stops tool descendants holding the agent pipes open', { skip: process.platform === 'win32' }, async () => {
+  const { results: [result] } = await bench('descendant', '--agent', 'claude', '--timeout-min', '0.033333');
+  assert.equal(result.tools.FixtureChild, 1, 'the fixture spawned its tool before the cap');
+  assert.equal(result.capped, true);
+  assert.equal(result.pass, false);
+  assert.ok(result.wall < 5, `wall cap did not stop the descendant: ${result.wall}s`);
 });

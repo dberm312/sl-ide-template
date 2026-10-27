@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // A stand-in for `claude -p` and `codex exec` in tests/agent-bench.test.mjs.
 // FAKE_AGENT_MODE: good (edits page 2's title), commit, styles, capped, error.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -11,10 +11,20 @@ const dir = codex ? args[args.indexOf('-C') + 1] : process.cwd();
 const mode = process.env.FAKE_AGENT_MODE ?? 'good';
 const file = path.join(dir, 'src/deck/content.js');
 const s = fs.readFileSync(file, 'utf8');
-fs.writeFileSync(file, s.replace("title: 'Three steps take this starter to your first real deck'", "title: 'Three steps to your first real deck'"));
+if (mode === 'overflow-comment') {
+  const original = s.split('\n').find((line) => line.includes(' It also keeps every number,'));
+  fs.writeFileSync(file, s.replace(/(Give it the card class so the audit measures it\.)[^']*/, '$1') + `\n// fit: ${original}\n`);
+} else {
+  fs.writeFileSync(file, s.replace("title: 'Three steps take this starter to your first real deck'", "title: 'Three steps to your first real deck'"));
+}
 if (mode === 'styles') fs.appendFileSync(path.join(dir, 'src/styles.css'), '\n/* bench */\n');
 if (mode === 'commit') execFileSync('git', ['-c', 'user.name=a', '-c', 'user.email=a@b', 'commit', '-qam', 'agent'], { cwd: dir });
 const say = (e) => console.log(JSON.stringify(e));
+if (mode === 'descendant') {
+  spawn(process.execPath, ['-e', 'setTimeout(() => {}, 8000)'], { stdio: 'inherit' });
+  say({ type: 'assistant', message: { content: [{ type: 'tool_use', name: 'FixtureChild', input: {} }] } });
+  setTimeout(() => {}, 10000);
+}
 if (codex) {
   say({ type: 'thread.started' });
   say({ type: 'item.completed', item: { type: 'command_execution', command: 'cat src/deck/content.js' } });

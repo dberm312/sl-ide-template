@@ -3,6 +3,7 @@
 // agent may change, and scripted checks: never the agent's own claim.
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const CONTENT = 'src/deck/content.js';
 const read = (dir, f) => fs.readFileSync(path.join(dir, f), 'utf8');
@@ -32,14 +33,22 @@ export const TASKS = [
     prompt: 'pnpm run audit fails on page 3. Fix it.',
     setup: (dir) => swap(dir, CONTENT, `${CARD}'`, `${CARD}${LONG}'`),
     allowed: [CONTENT],
-    checks: (dir) => ({
-      'copy shortened': !read(dir, CONTENT).includes(LONG.trim().slice(0, 60)),
-      'fit: mark': /\/\/ fit:/.test(read(dir, CONTENT)),
-    }),
+    checks: async (dir) => {
+      let body;
+      try {
+        const { anatomy } = await import(pathToFileURL(path.join(dir, CONTENT)).href);
+        body = anatomy?.cards?.[1]?.body;
+      } catch { /* invalid content also fails the audit */ }
+      return {
+        // The original wording belongs in // fit:, not in the rendered card.
+        'copy shortened': typeof body === 'string' && !body.includes(LONG.trim().slice(0, 60)),
+        'fit: mark': /\/\/ fit:/.test(read(dir, CONTENT)),
+      };
+    },
   },
   {
     id: 'new-page',
-    prompt: "Add an appendix page A2, after A1, titled 'Three numbers to confirm', listing these three numbers: 41% of decks, $2.3M ARR, 17 days to ship.",
+    prompt: "Add an appendix page A2, after A1, titled 'Three numbers to confirm', listing these three numbers: 41% of decks, $2.3M ARR, 17 days to ship. For this benchmark, change only src/deck/content.js, src/slides/index.jsx and src/slides/*.jsx files. Do not update AGENTS.md, src/styles.css or any other files.",
     allowed: [CONTENT, 'src/slides/index.jsx', /^src\/slides\/[^/]+\.jsx$/],
     checks: (dir, base, audit) => {
       const all = [CONTENT, 'src/slides/index.jsx', ...fs.readdirSync(path.join(dir, 'src/slides')).map((f) => `src/slides/${f}`)]
@@ -71,7 +80,7 @@ export const TASKS = [
   },
   {
     id: 'multi-page',
-    prompt: 'Tighten the copy on every page.',
+    prompt: 'Tighten the copy on every page. For this benchmark, edit only src/deck/content.js. Do not update AGENTS.md, src/styles.css or any other files.',
     allowed: [CONTENT],
     checks: (dir, base) => {
       const placeholders = base[CONTENT].match(/\[(?:CONFIRM|TBD):[^\]]*\]/g) ?? [];
