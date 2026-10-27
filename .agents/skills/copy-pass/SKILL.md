@@ -20,6 +20,12 @@ the user declines, do the pass by hand with the rules below.
 
 ## 2. Edit with copy-editing
 
+For a pass over 3 or more pages, fan out (AGENTS.md, Working in parallel):
+one `page-worker` per page or section, each given that page's keys from
+`output/map.md`, this skill's rules below, and the copy-editing passes.
+You merge their diffs, read the titles in order across the deck, and keep
+the voice consistent. Shared keys (`META`, a divider's list) stay with you.
+
 Run the copy-editing skill's passes over each page's strings. Then apply the
 deck's own rules, which win over the skill's:
 

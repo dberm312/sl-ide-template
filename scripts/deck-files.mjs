@@ -14,7 +14,8 @@ const CONTENT = 'src/deck/content.js';
 const keysOf = (src) => [...src.matchAll(/import\s*\{([^}]*)\}\s*from\s*'[^']*\/deck\/content\.js'/g)]
   .flatMap((m) => m[1].split(',').map((s) => s.trim().split(/\s+as\s+/)[0]).filter(Boolean));
 
-// The deck's entries ({ id, kind, file, keys }; a flow's pages are `<id>-N`),
+// The deck's entries ({ id, kind, file, keys }; a flow's pages are `<id>-N`
+// and `blocks` names its body, e.g. 'memo.body'),
 // the content keys every page reads (`shared`) and content.js's top-level
 // exports with the line each starts on.
 export function deckSources(root) {
@@ -27,8 +28,8 @@ export function deckSources(root) {
     const file = modules.get(m[3]);
     if (file) pages.push({ id: m[1], kind: m[2], file, keys: keysOf(read(file)) });
   }
-  for (const m of index.matchAll(/flow\(\s*'([^']+)'\s*,\s*(\w+)/g)) {
-    pages.push({ id: m[1], kind: 'flow', file: 'src/slides/index.jsx', keys: [m[2]] });
+  for (const m of index.matchAll(/flow\(\s*'([^']+)'\s*,\s*([\w.]+)/g)) {
+    pages.push({ id: m[1], kind: 'flow', file: 'src/slides/index.jsx', keys: [m[2].split('.')[0]], blocks: m[2] });
   }
   // index.jsx reads the rest itself for the divider's list of appendix pages.
   const indexKeys = keysOf(index).filter((k) => !pages.some((p) => p.kind === 'flow' && p.keys.includes(k)));

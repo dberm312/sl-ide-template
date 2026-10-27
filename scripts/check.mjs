@@ -7,6 +7,11 @@
 //   pnpm check --changed    -> audit, and shoot the pages `git diff` touches
 //   SCALE=2 pnpm check 2    -> shots at 2x
 //   pnpm check --stop       -> stop this worktree's warm Chrome
+//   pnpm map [--json]       -> (check --map) print the deck map, no shots
+//
+// Every call also writes the deck map, output/map.md and output/map.json
+// (scripts/deck-map.mjs): each page's label, title, files, content keys,
+// words and audit status.
 //
 // It measures the running `pnpm dev` when there is one for this checkout
 // (.sl-ide/dev.json, confirmed through /__sl-ide/root); otherwise it builds
@@ -18,6 +23,7 @@ import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { changedPages } from './deck-files.mjs';
+import { deckMap, mapText } from './deck-map.mjs';
 import { serve } from './serve.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -29,8 +35,10 @@ const started = performance.now();
 const args = process.argv.slice(2);
 const flags = new Set(args.filter((a) => a.startsWith('--')));
 const wanted = args.filter((a) => !a.startsWith('--'));
-if ([...flags].some((f) => f !== '--changed' && f !== '--stop') || (flags.has('--changed') && wanted.length)) {
-  console.error('usage: pnpm check [labels... | --changed] | pnpm check --stop');
+const known = ['--changed', '--stop', '--map', '--json'];
+if ([...flags].some((f) => !known.includes(f)) || (flags.has('--changed') && wanted.length)
+  || (flags.has('--json') && !flags.has('--map')) || (flags.has('--map') && (wanted.length || flags.has('--changed')))) {
+  console.error('usage: pnpm check [labels... | --changed] | pnpm check --stop | pnpm map [--json]');
   process.exit(2);
 }
 
@@ -170,13 +178,13 @@ async function tab(port) {
   return { send, until, close };
 }
 
-// The #audit report and the page ids it measured, in deck order.
+// The #audit report and its rows as data ({ id, label, words, status, … }), in deck order.
 async function audit(t, url) {
   await t.send('Page.navigate', { url: `${url}#audit` });
   return t.until(`(() => {
     const el = document.getElementById('audit');
     return el && /^AUDIT {2}\\d+ pages/.test(el.textContent)
-      ? JSON.stringify({ report: el.textContent, ids: el.dataset.ids.split(' ') }) : null;
+      ? JSON.stringify({ report: el.textContent, rows: JSON.parse(el.dataset.pages) }) : null;
   })()`, 'the audit');
 }
 
@@ -201,42 +209,52 @@ try {
   const scale = Number(process.env.SCALE ?? 1);
   const [served, chrome] = await Promise.all([devServer().then((d) => d ?? dist()), devtools()]);
   source = served;
-  const [a, p] = await Promise.all([tab(chrome.port), tab(chrome.port)]);
+  const mapOnly = flags.has('--map');
+  const [a, p] = await Promise.all([tab(chrome.port), mapOnly ? null : tab(chrome.port)]);
   tabs.push(a, p);
-  const [{ report, ids }, boxes] = await Promise.all([audit(a, source.url), printed(p, source.url, scale)]);
-  console.log(report);
+  const [{ report, rows }, boxes] = await Promise.all([audit(a, source.url), p && printed(p, source.url, scale)]);
+  const ids = rows.map((r) => r.id);
+  const labels = rows.map((r) => r.label);
 
-  const lines = report.split('\n');
-  const labels = lines.slice(2, 2 + ids.length).map((l) => l.trim().split(/\s+/)[0]);
-  if (boxes.length !== ids.length) throw new Error(`#print has ${boxes.length} pages, the audit ${ids.length}`);
-  let pages;
-  if (flags.has('--changed')) pages = changedPages(root, ids);
-  else if (wanted.length) {
-    pages = wanted.map((w) => {
-      const i = w.startsWith('@') ? Number(w.slice(1)) - 1 : labels.indexOf(w);
-      if (!(i >= 0 && i < ids.length)) throw new Error(`no page '${w}' (labels: ${labels.join(' ')})`);
-      return i;
-    });
-  } else pages = ids.map((_, i) => i);
+  const map = await deckMap(root, { report, rows, source: source.what });
+  fs.mkdirSync(path.join(root, 'output'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'output', 'map.md'), mapText(map));
+  fs.writeFileSync(path.join(root, 'output', 'map.json'), `${JSON.stringify(map, null, 2)}\n`);
+  if (mapOnly) {
+    console.log(flags.has('--json') ? JSON.stringify(map, null, 2) : mapText(map).trimEnd());
+  } else {
+    console.log(report);
 
-  const out = path.join(root, 'output', 'shots');
-  fs.mkdirSync(out, { recursive: true });
-  if (flags.has('--changed') && !pages.length) console.log('no page changed since the last commit');
-  for (const i of pages) {
-    const { data } = await p.send('Page.captureScreenshot', {
-      format: 'png', captureBeyondViewport: true, clip: { ...boxes[i], scale: 1 },
-    });
-    const name = `page-${labels[i] === '—' ? `at${i + 1}` : labels[i]}.png`;
-    fs.writeFileSync(path.join(out, name), Buffer.from(data, 'base64'));
-    console.log(`wrote output/shots/${name}`);
+    if (boxes.length !== ids.length) throw new Error(`#print has ${boxes.length} pages, the audit ${ids.length}`);
+    let pages;
+    if (flags.has('--changed')) pages = changedPages(root, ids);
+    else if (wanted.length) {
+      pages = wanted.map((w) => {
+        const i = w.startsWith('@') ? Number(w.slice(1)) - 1 : labels.indexOf(w);
+        if (!(i >= 0 && i < ids.length)) throw new Error(`no page '${w}' (labels: ${labels.join(' ')})`);
+        return i;
+      });
+    } else pages = ids.map((_, i) => i);
+
+    const out = path.join(root, 'output', 'shots');
+    fs.mkdirSync(out, { recursive: true });
+    if (flags.has('--changed') && !pages.length) console.log('no page changed since the last commit');
+    for (const i of pages) {
+      const { data } = await p.send('Page.captureScreenshot', {
+        format: 'png', captureBeyondViewport: true, clip: { ...boxes[i], scale: 1 },
+      });
+      const name = `page-${labels[i] === '—' ? `at${i + 1}` : labels[i]}.png`;
+      fs.writeFileSync(path.join(out, name), Buffer.from(data, 'base64'));
+      console.log(`wrote output/shots/${name}`);
+    }
+    console.log(`check: ${((performance.now() - started) / 1000).toFixed(2)} s on ${source.what}${chrome.warm ? '' : ', Chrome started'}`);
+    process.exitCode = GATE.test(report) ? 1 : 0;
   }
-  console.log(`check: ${((performance.now() - started) / 1000).toFixed(2)} s on ${source.what}${chrome.warm ? '' : ', Chrome started'}`);
-  process.exitCode = GATE.test(report) ? 1 : 0;
 } catch (err) {
   console.error(`error: ${err.message}`);
   process.exitCode = 1;
 } finally {
-  await Promise.all(tabs.map((t) => t.close()));
+  await Promise.all(tabs.filter(Boolean).map((t) => t.close()));
   source?.server?.close();
 }
 process.exit();
