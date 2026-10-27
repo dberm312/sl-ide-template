@@ -8,7 +8,7 @@ description: Audit, build and print the deck PDF, check its fonts, commit and pu
 Run each step in order from the repo root. Stop at the first failure, show
 the output, and do not commit or push.
 
-1. **Audit:** `mkdir -p output && bash -o pipefail -c 'pnpm run audit | tee output/feedback-audit.txt'`. Every page must read `ok`. Keep this output for step 8; it stays local and is never sent.
+1. **Audit:** `mkdir -p output && bash -o pipefail -c 'pnpm run audit | tee output/feedback-audit.txt'`. Every page must read `ok`. Keep this output for step 8; it stays local and is never sent. Use `pnpm run audit` here, not `pnpm check`: it measures a clean build, as CI does.
 2. **PDF:** `pnpm pdf`. It writes `output/<META.pdfName>.pdf`.
 3. **Fonts:** `scripts/check-fonts.sh`. Any fallback font means a glyph is
    missing from the self-hosted fonts; stop and say which.

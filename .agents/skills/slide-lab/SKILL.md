@@ -98,7 +98,7 @@ Only when the user says which take goes in.
    pages, delete their component, content block and CSS.
 4. Fix hand references to page labels (`AGENTS.md` lists them; `grep` for
    the old labels in `content.js`). Update the page list in `AGENTS.md`.
-5. `pnpm run audit` must pass; look at the page with `pnpm shots <label>`.
+5. Look at the page with `pnpm check <label>`, then `pnpm run audit` must pass.
 6. Empty `src/lab/takes/` back to the idle session (an `index.js` with
    `takes: []`, `reference: []`) and delete `.lab/`.
 7. Don't commit unless asked; offer `/ship-it`.

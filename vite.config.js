@@ -20,6 +20,23 @@ function slIde() {
         res.setHeader('Cache-Control', 'no-store');
         res.end(JSON.stringify(status(root)));
       });
+      // `pnpm check` finds this server through .sl-ide/dev.json and asks
+      // /__sl-ide/root which checkout it serves before measuring it.
+      const real = fs.realpathSync(root);
+      server.middlewares.use('/__sl-ide/root', (_req, res) => {
+        res.setHeader('Cache-Control', 'no-store');
+        res.end(real);
+      });
+      const devFile = path.join(root, '.sl-ide', 'dev.json');
+      server.httpServer?.once('listening', () => {
+        fs.mkdirSync(path.dirname(devFile), { recursive: true });
+        fs.writeFileSync(devFile, `${JSON.stringify({ port: server.httpServer.address().port, pid: process.pid })}\n`);
+      });
+      server.httpServer?.once('close', () => {
+        try {
+          if (JSON.parse(fs.readFileSync(devFile, 'utf8')).pid === process.pid) fs.rmSync(devFile);
+        } catch { /* already gone */ }
+      });
       const printUrls = server.printUrls.bind(server);
       server.printUrls = () => {
         printUrls();

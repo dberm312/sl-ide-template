@@ -87,8 +87,8 @@ Never vendor a third-party skill's files into the repo.
 
 - `.slide` is a fixed 1280 × 720 px box (13.333 × 7.5 in at 96 px/in) with
   `overflow: hidden`. Content that doesn't fit is clipped silently, so
-  `pnpm run audit` is the gate: run it before calling a page done, and look
-  at the page with `pnpm shots <label>`.
+  `pnpm run audit` is the gate: run it before calling a page done. While
+  editing, `pnpm check <label>` audits and shoots the page in one fast call.
 - Regions are absolutely positioned from inch boxes with
   `box([x, y, w, h])` (`src/components/geometry.js`). Don't reflow them into
   normal document flow.
@@ -142,6 +142,7 @@ has the slide starter.
 
 | | |
 |---|---|
+| `pnpm check [labels] [--changed]` | the audit plus `output/shots/page-<label>.png` in one call, in well under a second once warm: it measures the running `pnpm dev` and keeps one Chrome up per worktree. `--changed` shoots the pages `git diff` touches. Exits 1 where the audit would. Use it while editing. |
 | `pnpm run audit` | CLIPPED / SPILL / OVERLAP / WORDY per page, LONG per memo; exits 1 on any. RAGGED and RUNT are advisory. Not `pnpm audit`, which audits dependencies. |
 | `pnpm shots [labels]` | `output/shots/page-<label>.png` at 1:1 (`SCALE=2` for 2x) |
 | `pnpm pdf` | `output/<META.pdfName>.pdf`, plus `output/cover.png` (the first page, for the deck list on sl-ide cloud) |
@@ -150,8 +151,9 @@ has the slide starter.
 | `pnpm publish-deck` | publish `dist/` and the PDF to sl-ide cloud (CI does this on push) |
 | `pnpm new-project <name>` | another deck next to this one, via `pnpm create sl-ide` |
 
-Commits don't run the audit, so they stay fast. Run `pnpm run audit` before
-pushing a deck change. CI on push audits the pushed commit, and a failing
+While editing, check with `pnpm check <label>` (or `--changed`) after each
+change and look at the shot. Commits don't run the audit, so they stay fast.
+Run `pnpm run audit`, a clean build, before pushing a deck change. CI on push audits the pushed commit, and a failing
 page stops the publish.
 
 ## Working with the user

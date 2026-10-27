@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "audit": "./scripts/audit.sh",
+    "check": "node scripts/check.mjs",
     "pdf": "./scripts/pdf.sh",
     "publish-deck": "node scripts/publish-deck.mjs",
     "shots": "./scripts/shots.sh",
