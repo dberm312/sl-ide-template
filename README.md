@@ -161,6 +161,7 @@ has the slide starter.
 
 ```sh
 pnpm check 2          # audit + output/shots/page-2.png, warm (--changed: pages git diff touches)
+pnpm map              # output/map.md: each page's label, title, files, content keys, words, audit
 pnpm run audit        # CLIPPED / SPILL / OVERLAP / WORDY per page, LONG per memo; exits 1 on any
 pnpm shots 2 A1       # output/shots/page-<label>.png (no args = all; SCALE=2 for 2x)
 pnpm pdf              # output/<META.pdfName>.pdf, vector, fonts embedded; and output/cover.png

@@ -9,6 +9,7 @@
     "build": "vite build",
     "audit": "./scripts/audit.sh",
     "check": "node scripts/check.mjs",
+    "map": "node scripts/check.mjs --map",
     "pdf": "./scripts/pdf.sh",
     "publish-deck": "node scripts/publish-deck.mjs",
     "shots": "./scripts/shots.sh",

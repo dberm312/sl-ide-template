@@ -15,6 +15,11 @@ the user asks for slides, run the **new-deck** skill first. It runs
 from a brand source (DESIGN.md and the tokens), then outlines the story.
 `node scripts/doctor.js` reports what's left; `pnpm dev` prints the same.
 
+To find a page's files, start with `output/map.md` (`pnpm map`; every
+`pnpm check` rewrites it): each page's label, title, component, the
+`content.js` keys it reads, words and audit status, and for a memo the body
+blocks on each printed page. Then open just those files.
+
 ## Harness vs. deck
 
 Each deck is its own repo made by `pnpm create sl-ide` (README, "Start a
@@ -143,6 +148,7 @@ has the slide starter.
 | | |
 |---|---|
 | `pnpm check [labels] [--changed]` | the audit plus `output/shots/page-<label>.png` in one call, in well under a second once warm: it measures the running `pnpm dev` and keeps one Chrome up per worktree. `--changed` shoots the pages `git diff` touches. Exits 1 where the audit would. Use it while editing. |
+| `pnpm map [--json]` | `output/map.md` (and `map.json`): the deck map above |
 | `pnpm run audit` | CLIPPED / SPILL / OVERLAP / WORDY per page, LONG per memo; exits 1 on any. RAGGED and RUNT are advisory. Not `pnpm audit`, which audits dependencies. |
 | `pnpm shots [labels]` | `output/shots/page-<label>.png` at 1:1 (`SCALE=2` for 2x) |
 | `pnpm pdf` | `output/<META.pdfName>.pdf`, plus `output/cover.png` (the first page, for the deck list on sl-ide cloud) |
