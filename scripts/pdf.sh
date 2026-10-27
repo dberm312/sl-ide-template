@@ -23,6 +23,6 @@ OUT_DIR="${OUT_DIR:-output}"
 NAME=$(node -e "import('./src/deck/content.js').then((m) => console.log(m.META.pdfName || 'deck'))")
 mkdir -p "$OUT_DIR"
 build_dist
-serve_dist 8241
+serve_dist
 OUT_PDF="$OUT_DIR/$NAME.pdf" OUT_COVER="$OUT_DIR/cover.png" PAGE_W="$PAGE_W" PAGE_H="$PAGE_H" \
-  node scripts/render.mjs 8241 "${STEPS[@]}"
+  node scripts/render.mjs "$PORT" "${STEPS[@]}"

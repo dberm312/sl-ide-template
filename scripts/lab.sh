@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Check and screenshot the slide lab's takes (lab.html), for the agent to look at
 # before you do. The lab lives on the dev server only, so this starts one
-# on its own port and stops it again.
+# on a free port (so parallel worktrees don't collide) and stops it again.
 #
 #   ./scripts/lab.sh            -> fit report, then output/lab/<id>.png for every take
 #   ./scripts/lab.sh strip      -> report, then just that take's screenshot
@@ -14,15 +14,19 @@ source scripts/lib.sh
 find_chrome
 page_size
 SCALE="${SCALE:-1}"
-PORT=8244
+LOG=$(mktemp "${TMPDIR:-/tmp}/sl-ide-lab.XXXXXX")
 
-pnpm exec vite --port "$PORT" --strictPort >/dev/null 2>&1 &
+node node_modules/vite/bin/vite.js --port 0 --strictPort --clearScreen false >"$LOG" 2>&1 &
 SERVER_PID=$!
-trap 'kill $SERVER_PID 2>/dev/null' EXIT
-for _ in $(seq 1 50); do
-  curl -s -o /dev/null "http://localhost:$PORT/lab.html" && break
-  sleep 0.2
+trap 'kill $SERVER_PID 2>/dev/null; rm -f -- "$LOG"' EXIT
+PORT=
+for _ in $(seq 1 100); do
+  PORT=$(sed -n 's|.*Local:.*http://localhost:\([0-9]*\)/.*|\1|p' "$LOG" | head -1)
+  [[ -n "$PORT" ]] && curl -s -o /dev/null "http://localhost:$PORT/lab.html" && break
+  kill -0 "$SERVER_PID" 2>/dev/null || break
+  sleep 0.1
 done
+[[ -n "$PORT" ]] || { cat "$LOG" >&2; echo "error: could not start the lab's dev server" >&2; exit 1; }
 
 URL="http://localhost:$PORT/lab.html"
 REPORT=$("$CHROME" --headless --disable-gpu --virtual-time-budget=15000 \

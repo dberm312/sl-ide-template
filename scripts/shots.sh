@@ -14,10 +14,10 @@ chrome_flags
 page_size
 SCALE="${SCALE:-1}"
 build_dist >/dev/null
-serve_dist 8243
+serve_dist
 
 # Printed labels in deck order, read off the audit report ("—" for unnumbered).
-LABELS=($(CHROME="$CHROME" node scripts/render.mjs 8243 report | awk 'NR > 2 && NF >= 3 && $2 ~ /^[0-9]+$/ { print $1 }'))
+LABELS=($(CHROME="$CHROME" node scripts/render.mjs "$PORT" report | awk 'NR > 2 && NF >= 3 && $2 ~ /^[0-9]+$/ { print $1 }'))
 N=${#LABELS[@]}
 (( N > 0 )) || { echo "error: could not read the page list" >&2; exit 1; }
 
@@ -40,7 +40,7 @@ mkdir -p "$OUT"
 STEP=$(( PAGE_H + 24 ))
 H=$(( 24 + N * STEP ))
 "$CHROME" "${CHROME_FLAGS[@]}" --hide-scrollbars --force-device-scale-factor="$SCALE" \
-  --window-size=$PAGE_W,$H --screenshot="$OUT/all.png" "http://127.0.0.1:8243/index.html#print" 2>/dev/null
+  --window-size=$PAGE_W,$H --screenshot="$OUT/all.png" "http://127.0.0.1:$PORT/index.html#print" 2>/dev/null
 for i in "${PAGES[@]}"; do
   label=${LABELS[$(( i - 1 ))]}
   [[ "$label" == "—" ]] && label="at$i"
