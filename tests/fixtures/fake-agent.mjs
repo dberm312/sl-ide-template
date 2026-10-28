@@ -11,13 +11,16 @@ const dir = codex ? args[args.indexOf('-C') + 1] : process.cwd();
 const mode = process.env.FAKE_AGENT_MODE ?? 'good';
 const file = path.join(dir, 'src/deck/content.js');
 const s = fs.readFileSync(file, 'utf8');
-if (mode === 'overflow-comment') {
+if (mode === 'overflow-comment' || mode === 'overflow-repeat') {
   const original = s.split('\n').find((line) => line.includes(' It also keeps every number,'));
-  fs.writeFileSync(file, s.replace(/(Give it the card class so the audit measures it\.)[^']*/, '$1') + `\n// fit: ${original}\n`);
+  const replacement = mode === 'overflow-repeat'
+    ? '$1 It also keeps every number, name and source exactly as written.' : '$1';
+  fs.writeFileSync(file, s.replace(/(Give it the card class so the audit measures it\.)[^']*/, replacement) + `\n// fit: ${original}\n`);
 } else {
   fs.writeFileSync(file, s.replace("title: 'Three steps take this starter to your first real deck'", "title: 'Three steps to your first real deck'"));
 }
 if (mode === 'styles') fs.appendFileSync(path.join(dir, 'src/styles.css'), '\n/* bench */\n');
+if (mode === 'missing-content') fs.rmSync(file);
 if (mode === 'commit') execFileSync('git', ['-c', 'user.name=a', '-c', 'user.email=a@b', 'commit', '-qam', 'agent'], { cwd: dir });
 const say = (e) => console.log(JSON.stringify(e));
 if (mode === 'descendant') {

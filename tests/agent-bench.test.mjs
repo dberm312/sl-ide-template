@@ -65,6 +65,22 @@ test('an overflow fix preserves the original in a fit comment without failing li
   for (const result of results) assert.equal(result.pass, true, JSON.stringify(result.checks));
 });
 
+test('shortening repeated overflow copy may preserve its opening phrase', async () => {
+  const { results } = await bench('overflow-repeat', '--task', 'overflow-fix', '--agent', 'both');
+  for (const result of results) assert.equal(result.pass, true, JSON.stringify(result.checks));
+});
+
+test('a broken edit is recorded as a failed attempt without losing the report', async () => {
+  const { results, summary } = await bench('missing-content', '--agent', 'both');
+  assert.equal(results.length, 2);
+  for (const result of results) {
+    assert.equal(result.pass, false);
+    assert.equal(result.checks['run completed'], false);
+    assert.match(result.scoringError, /ENOENT/);
+  }
+  assert.ok(summary.every((s) => s.runs === 1 && s.passRate === 0));
+});
+
 test('the wall cap stops tool descendants holding the agent pipes open', { skip: process.platform === 'win32' }, async () => {
   const { results: [result] } = await bench('descendant', '--agent', 'claude', '--timeout-min', '0.033333');
   assert.equal(result.tools.FixtureChild, 1, 'the fixture spawned its tool before the cap');

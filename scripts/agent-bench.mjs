@@ -147,6 +147,7 @@ const allowedBy = (list, f) => list.some((a) => (typeof a === 'string' ? a === f
 
 async function one(agent, task, n) {
   const dir = await project();
+  let result;
   try {
     await git(dir, 'init', '-q');
     await git(dir, 'add', '-A');
@@ -155,7 +156,7 @@ async function one(agent, task, n) {
     if (task.setup) await git(dir, 'commit', '-qam', 'bench seed');
     const base = { 'src/deck/content.js': fs.readFileSync(path.join(dir, 'src/deck/content.js'), 'utf8') };
     const head = (await git(dir, 'rev-parse', 'HEAD')).stdout.trim();
-    const result = await invoke(agent, task.prompt, dir);
+    result = await invoke(agent, task.prompt, dir);
     fs.rmSync(path.join(dir, '.agent-last-message'), { force: true });
 
     const audit = await run('./scripts/audit.sh', [], { cwd: dir, env: { ...process.env, pnpm_config_verify_deps_before_run: 'false' } })
@@ -176,6 +177,13 @@ async function one(agent, task, n) {
     console.log(`${agent.padEnd(6)} ${task.id.padEnd(14)} #${n}  ${pass ? 'pass' : 'FAIL'}  ${result.wall.toFixed(1)} s`
       + (pass ? '' : `  (${Object.entries(checks).filter(([, v]) => !v).map(([k]) => k).join(', ')})`));
     return { agent, task: task.id, run: n, pass, checks, changed, ...result };
+  } catch (err) {
+    // A broken agent edit must fail this attempt, not discard every result.
+    console.log(`${agent.padEnd(6)} ${task.id.padEnd(14)} #${n}  FAIL  (could not score: ${err.message})`);
+    return {
+      agent, task: task.id, run: n, ...result, pass: false,
+      checks: { 'run completed': false }, scoringError: err.message,
+    };
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

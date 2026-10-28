@@ -41,7 +41,7 @@ export const TASKS = [
       } catch { /* invalid content also fails the audit */ }
       return {
         // The original wording belongs in // fit:, not in the rendered card.
-        'copy shortened': typeof body === 'string' && !body.includes(LONG.trim().slice(0, 60)),
+        'copy shortened': typeof body === 'string' && body.length < (CARD + LONG).length,
         'fit: mark': /\/\/ fit:/.test(read(dir, CONTENT)),
       };
     },
