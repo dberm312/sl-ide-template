@@ -19,7 +19,7 @@ if (process.argv.includes('install')) process.exit(0);
 const base = process.cwd().includes('sl-ide-bench-ref-');
 if (process.env.FAIL_CURRENT === '1') {
   const report = /--test-reporter-destination=(\\S+)/.exec(process.env.NODE_OPTIONS ?? '')?.[1];
-  if (report) fs.writeFileSync(report, '<testsuite><testcase name="diagnostic fixture"><failure>expected diagnostic detail</failure></testcase></testsuite>');
+  if (report) fs.writeFileSync(report, '<testsuite><testcase name="unrelated pass"/><testcase name="diagnostic fixture"><failure>expected diagnostic detail</failure></testcase></testsuite>');
 }
 process.exit((base ? process.env.FAIL_BASE : process.env.FAIL_CURRENT) === '1' ? 23 : 0);
 `, { mode: 0o755 });

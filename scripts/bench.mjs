@@ -86,7 +86,7 @@ function bench(cwd, label) {
           // diagnostics before the temporary report directory is removed.
           if (tests && fs.existsSync(file)) {
             const xml = fs.readFileSync(file, 'utf8');
-            for (const match of xml.matchAll(/<testcase\b([^>]*)>([\s\S]*?)<\/testcase>/g)) {
+            for (const match of xml.matchAll(/<testcase\b([^>]*?)(?<!\/)>([\s\S]*?)<\/testcase>/g)) {
               if (/<(?:failure|error)\b/.test(match[2])) {
                 process.stderr.write(`${attr(match[1], 'name') ?? 'test failure'}:\n${match[2].slice(0, 8000)}\n`);
               }
