@@ -239,11 +239,12 @@ New decks are restricted. To share publicly, open the deck's cloud page and
 choose Share to add viewers or allow “Anyone with the link”. Publishing never changes sharing.
 
 It also needs the repo secret `SL_IDE_PUBLISH_TOKEN`, a publish token for
-the deck owner. `pnpm create sl-ide` sets up both. For a deck made without it:
-`pnpm create sl-ide login` saves a publish token, then
-`gh secret set SL_IDE_PUBLISH_TOKEN -R <owner>/<deck>` with it (always name the
-deck's repo: with an `upstream` remote, gh can pick sl-ide's), and add the config. Tokens are
-listed and revoked at app.sl-ide.com/tokens. Without a config, CI still prints, and skips publishing.
+the deck owner. `pnpm create sl-ide` sets up both. For a deck made without it,
+add the config, then run `pnpm create sl-ide@latest token` in the deck to set
+the secret. Tokens are listed and revoked at app.sl-ide.com/tokens. Without a
+config, CI still prints, and skips publishing. Before uploading anything, the
+publisher asks the cloud whether its token may publish this deck, and stops
+with the fix if not.
 
 By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 
@@ -326,7 +327,7 @@ when it is checked out beside it (or at `$SL_IDE_TEMPLATE_DIR`):
 the upload session and manifest, index.html going last, per-request deadlines
 and retries after slow, failed and lost responses (uploads and recording the
 version; only timeouts, lost connections, 408, 429 and 5xx are retried), checksum mismatches, interrupted runs leaving the live
-version alone, malformed requests, rejected tokens and other users' decks,
+version alone, malformed requests, rejected tokens and other users' decks (refused before any upload),
 the 4 MB limit, exact branch names, unpublishing, and slides and memo PDFs
 printed by Chrome (template-A / cloud-G). Run it after changing the publisher
 or the workflows that call it.
