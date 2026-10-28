@@ -100,10 +100,12 @@ Then follow the guide `pnpm dev` prints:
 3. **Build slides.** Ask for pages in plain words. In the preview, press
    `c` and click anything to copy a comment for your agent, ask for
    `/slide-lab` to compare takes on a page, `/copy-pass` to tighten the
-   words, and `/ship-it` to audit, print and commit.
+   words, and `/ship-it` to audit, print, commit and push, then wait for CI to
+   publish it.
 
 The dev bar shows a "Setup · N steps left" chip until steps 1 and 2 are done.
-`pnpm doctor` prints the same checklist.
+`pnpm doctor` prints the same checklist. Both also show the deck repo's latest
+Publish deck run (through `gh`, when it's signed in) and flag a failure.
 
 ### Why a lockfile instead of bundled skills?
 
@@ -170,7 +172,7 @@ pnpm lab              # fit report and screenshots for the slide lab's takes
 pnpm ask fit 2 A1     # TypeSafe: does the picture on each page fit it? (JSON)
 pnpm ask find pricing # TypeSafe: which pages mention a topic? (JSON)
 pnpm fonts            # re-fetch the self-hosted fonts listed in scripts/fonts.sh
-pnpm doctor           # setup checklist
+pnpm doctor           # setup checklist and the last publish
 pnpm new-project NAME # start another deck next to this one (sl-ide-create)
 pnpm use-format memo  # turn a fresh project into a memo (starters/memo)
 ```

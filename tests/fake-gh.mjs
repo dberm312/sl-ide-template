@@ -1,6 +1,6 @@
-// A stand-in for the gh CLI, for preview-comment.test.mjs: just the commands
-// scripts/preview-comment.mjs runs, against a JSON file of PRs and comments
-// ($FAKE_GH_STATE). `-q` filters go through the real jq, as gh's would.
+// A stand-in for the gh CLI, for preview-comment.test.mjs and doctor.test.mjs:
+// just the commands scripts/preview-comment.mjs and scripts/doctor.js run,
+// against a JSON file of PRs, comments and runs ($FAKE_GH_STATE). `-q` filters go through the real jq, as gh's would.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 
@@ -21,12 +21,15 @@ const out = (data) => {
 };
 const prOf = (n) => state.prs.find((p) => String(p.number) === String(n)) ?? fail(`no PR ${n}`);
 
-if (flag('--repo') && flag('--repo') !== state.repo) fail(`wrong repo ${flag('--repo')}`);
+const repo = flag('--repo') ?? flag('-R');
+if (repo && repo !== state.repo) fail(`wrong repo ${repo}`);
 
 if (args[0] === 'pr' && args[1] === 'view') {
   out({ headRefName: prOf(args[2]).head });
 } else if (args[0] === 'pr' && args[1] === 'list') {
   out(state.prs.filter((p) => p.head === flag('--head') && p.state === flag('--state')).map((p) => ({ number: p.number })));
+} else if (args[0] === 'run' && args[1] === 'list') {
+  out((state.runs ?? []).slice(0, Number(flag('-L') ?? 20)));
 } else if (args[0] === 'pr' && args[1] === 'comment') {
   prOf(args[2]);
   state.comments.push({ id: state.nextId++, pr: Number(args[2]), body: flag('--body') });

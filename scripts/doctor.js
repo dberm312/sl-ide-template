@@ -4,9 +4,14 @@
 //   - the "Setup · N steps left" chip in the dev bar (/__sl-ide/status)
 //   - `pnpm doctor`, which prints the same banner and exits 1 until set up
 //
+// `pnpm doctor` and `pnpm dev` also show the deck repo's latest Publish deck
+// run (lastPublish), so a failing publish shows up locally. It is information,
+// never a setup step: gh missing, signed out or offline only hides it.
+//
 // Setup is three things: the agent skills are reachable, PRODUCT.md exists,
 // and DESIGN.md exists. Impeccable writes both docs (init, then a style pass);
 // the /new-deck skill runs it. Chrome is reported but optional for preview.
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -100,9 +105,83 @@ export function status(root = ROOT) {
   };
 }
 
+const GH_MS = 3000;
+
+// Never rejects and never outlives `ms`: { code, out, err }, code null when it
+// timed out and 'ENOENT' when the command is missing.
+function run(cmd, args, cwd, ms = GH_MS) {
+  return new Promise((resolve) => {
+    let out = '';
+    let err = '';
+    let done = false;
+    const finish = (code) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      resolve({ code, out: out.trim(), err: err.trim() });
+    };
+    const child = spawn(cmd, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, GH_PROMPT_DISABLED: '1', GIT_TERMINAL_PROMPT: '0' } });
+    const timer = setTimeout(() => { child.kill('SIGKILL'); finish(null); }, ms);
+    child.stdout.on('data', (d) => { out += d; });
+    child.stderr.on('data', (d) => { err += d; });
+    child.on('error', (e) => finish(e.code ?? 'error'));
+    child.on('close', (code) => finish(code));
+  });
+}
+
+const ago = (iso) => {
+  const min = Math.round((Date.now() - Date.parse(iso)) / 60_000);
+  if (!Number.isFinite(min)) return '';
+  if (min < 60) return `${Math.max(min, 0)} min ago`;
+  if (min < 48 * 60) return `${Math.round(min / 60)} h ago`;
+  return `${Math.round(min / 1440)} days ago`;
+};
+
+// The latest Publish deck run on the deck's own repo: { state, detail, fix? },
+// state ok | failed | running | unknown. Always `-R` origin: with an
+// `upstream` remote, gh's default repo can be sl-ide itself. null when the
+// deck has no sl-ide.config.json (nothing to publish).
+export async function lastPublish(root = ROOT, ms = GH_MS) {
+  if (!fs.existsSync(path.join(root, 'sl-ide.config.json'))) return null;
+  const origin = await run('git', ['remote', 'get-url', 'origin'], root, ms);
+  if (origin.code !== 0 || !origin.out) return { state: 'unknown', detail: 'no origin remote yet; push the deck to publish it' };
+  const repo = origin.out;
+  const gh = await run('gh', ['run', 'list', '-R', repo, '--workflow', 'publish.yml', '-L', '1',
+    '--json', 'databaseId,status,conclusion,headBranch,headSha,createdAt,url'], root, ms);
+  if (gh.code === 'ENOENT') return { state: 'unknown', detail: 'install the GitHub CLI (gh) to see it' };
+  if (gh.code === null) return { state: 'unknown', detail: `gh took over ${ms / 1000} s (offline?)` };
+  if (gh.code !== 0) {
+    if (/auth login|not logged in|authenticat/i.test(gh.err)) return { state: 'unknown', detail: 'gh is not signed in', fix: 'gh auth login' };
+    return { state: 'unknown', detail: `gh could not read ${repo}'s runs: ${gh.err.split('\n')[0].slice(0, 120)}` };
+  }
+  let r;
+  try {
+    [r] = JSON.parse(gh.out);
+  } catch {
+    return { state: 'unknown', detail: 'gh gave an unreadable answer' };
+  }
+  if (!r) return { state: 'unknown', detail: 'no Publish deck run yet' };
+  const at = `${r.headBranch} @${String(r.headSha).slice(0, 7)}`;
+  if (r.status !== 'completed') return { state: 'running', detail: `${at} ${String(r.status).replace('_', ' ')}, started ${ago(r.createdAt)}`, url: r.url };
+  if (['success', 'skipped', 'neutral'].includes(r.conclusion)) return { state: 'ok', detail: `${at} passed ${ago(r.createdAt)}`, url: r.url };
+  return {
+    state: 'failed',
+    detail: `${at} ${String(r.conclusion).replace('_', ' ')} ${ago(r.createdAt)}`,
+    fix: `gh run view ${r.databaseId} -R ${repo} --log-failed`,
+    url: r.url,
+  };
+}
+
 const c = process.stdout.isTTY || process.env.FORCE_COLOR
-  ? { b: (s) => `\x1b[1m${s}\x1b[22m`, d: (s) => `\x1b[2m${s}\x1b[22m`, g: (s) => `\x1b[32m${s}\x1b[39m`, y: (s) => `\x1b[33m${s}\x1b[39m`, cy: (s) => `\x1b[36m${s}\x1b[39m` }
-  : { b: (s) => s, d: (s) => s, g: (s) => s, y: (s) => s, cy: (s) => s };
+  ? { b: (s) => `\x1b[1m${s}\x1b[22m`, d: (s) => `\x1b[2m${s}\x1b[22m`, g: (s) => `\x1b[32m${s}\x1b[39m`, y: (s) => `\x1b[33m${s}\x1b[39m`, r: (s) => `\x1b[31m${s}\x1b[39m`, cy: (s) => `\x1b[36m${s}\x1b[39m` }
+  : { b: (s) => s, d: (s) => s, g: (s) => s, y: (s) => s, r: (s) => s, cy: (s) => s };
+
+export function publishLine(p) {
+  if (!p) return '';
+  const mark = { ok: c.g('✓'), failed: c.r('✕'), running: c.y('○'), unknown: c.d('·') }[p.state];
+  const text = p.state === 'failed' ? `${c.b('Publish deck failed:')} ${p.detail}` : c.d(p.detail);
+  return `  ${mark} ${'Last publish'.padEnd(13)} ${text}${p.fix ? `  ${c.cy(p.fix)}` : ''}\n`;
+}
 
 export function banner(st = status(), url = 'http://localhost:5173/') {
   const done = st.checks.every((k) => k.ok);
@@ -144,10 +223,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
   const linked = linkSkills();
   if (linked.length && !process.argv.includes('--json')) console.log(`linked for Claude Code: ${linked.join(', ')}`);
   const st = status();
+  const publish = await lastPublish();
   if (process.argv.includes('--json')) {
-    console.log(JSON.stringify(st, null, 2));
+    console.log(JSON.stringify({ ...st, publish }, null, 2));
   } else {
     console.log(banner(st));
+    if (publish) console.log(publishLine(publish));
   }
   process.exit(st.checks.every((k) => k.ok) ? 0 : 1);
 }
