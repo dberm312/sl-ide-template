@@ -86,15 +86,14 @@ const tokenCommand = `${base === 'https://app.sl-ide.com' ? '' : `SL_IDE_URL=${b
 function authHint(res) {
   if (res.status !== 401) return '';
   const { reason } = parse(res.text);
-  const renew = `In this deck's folder, run \`${tokenCommand}\` to give its repo a new token, then rerun the job.`;
   const fixes = {
-    missing: `SL_IDE_PUBLISH_TOKEN is not a publish token. In this deck's folder, run \`${tokenCommand}\` to set it, then rerun the job.`,
-    unknown: renew,
-    revoked: renew,
-    expired: renew,
+    missing: 'Set SL_IDE_PUBLISH_TOKEN to a publish token (a GitHub Actions secret in CI).',
+    unknown: `Mint a new token at ${base}/tokens, then \`gh secret set SL_IDE_PUBLISH_TOKEN\`, then rerun the job.`,
+    revoked: `In this deck's folder, run \`${tokenCommand}\`; it mints a new deck token and runs \`gh secret set SL_IDE_PUBLISH_TOKEN\`. Then rerun the job.`,
+    expired: `Mint a new token at ${base}/tokens, then \`gh secret set SL_IDE_PUBLISH_TOKEN\`, then rerun the job.`,
     'owner-missing': `The account that minted this token no longer exists. Sign in as the deck's owner and run \`${tokenCommand}\` in its folder; a deck whose owner was deleted must be transferred first.`,
   };
-  return `\n  ${Object.hasOwn(fixes, reason) ? `${reason}: ${fixes[reason]}` : `Check SL_IDE_PUBLISH_TOKEN, or run \`${tokenCommand}\` in this deck's folder.`}`;
+  return `\n  ${Object.hasOwn(fixes, reason) ? `${reason}: ${fixes[reason]}` : `Check SL_IDE_PUBLISH_TOKEN or mint a new token at ${base}/tokens.`}`;
 }
 
 // Why the cloud's check before uploading refused this deck (403 `reason`).
