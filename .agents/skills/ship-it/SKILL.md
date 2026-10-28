@@ -25,9 +25,9 @@ the output, and do not commit or push.
      rebase would replay upstream's commits one by one and drop the
      merge's resolution, even with `--rebase=merges`.
    - Otherwise `git pull --rebase`.
-   - On a conflict, stop and show it. Resolve it under the update-sl-ide
-     owner rules, or back out with `git merge --abort` (or
-     `git rebase --abort`).
+   - On a conflict, stop and show it. Preserve both sides' intended
+     changes; ask if unclear. To cancel, use `git merge --abort` or
+     `git rebase --abort`, depending on the operation.
 7. **Publish:** the push runs CI, which publishes to sl-ide cloud when the
    repo has `sl-ide.config.json`. Don't wait for it. Report the link now,
    built from the config's slug: `app.sl-ide.com/d/<slug>/` on main, or
