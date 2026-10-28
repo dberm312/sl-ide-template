@@ -13,7 +13,8 @@ const fake = path.join(root, 'tests/fixtures/fake-agent.mjs');
 async function bench(mode, ...args) {
   const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'agent-bench-test-')), 'report.json');
   await promisify(execFile)(process.execPath, ['scripts/agent-bench.mjs', ...args, '--task', 'copy-edit', '--runs', '1'],
-    { cwd: root, env: { ...process.env, CLAUDE_BIN: fake, CODEX_BIN: fake, FAKE_AGENT_MODE: mode, AGENT_BENCH_OUT: out } });
+    { cwd: root, env: { ...process.env, CLAUDE_BIN: fake, CODEX_BIN: fake, FAKE_AGENT_MODE: mode, AGENT_BENCH_OUT: out,
+      ...(mode === 'dependency-env' && { pnpm_config_verify_deps_before_run: 'true' }) } });
   const report = JSON.parse(fs.readFileSync(out, 'utf8'));
   fs.rmSync(path.dirname(out), { recursive: true, force: true });
   return report;
@@ -50,6 +51,11 @@ test('an agent error fails even after a correct edit', async () => {
     assert.ok(result.error);
     assert.equal(result.pass, false);
   }
+});
+
+test('agent commands reuse installed dependencies even when parent verification is enabled', async () => {
+  const { results } = await bench('dependency-env', '--agent', 'both');
+  assert.ok(results.every((result) => result.pass));
 });
 
 test('invalid run counts and caps stop before running an agent', async () => {

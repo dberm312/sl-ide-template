@@ -114,7 +114,11 @@ function invoke(agent, prompt, dir) {
   return new Promise((resolve) => {
     const started = performance.now();
     const grouped = process.platform !== 'win32';
-    const child = spawn(bin, args, { cwd: dir, stdio: ['ignore', 'pipe', 'pipe'], detached: grouped });
+    const child = spawn(bin, args, {
+      cwd: dir, stdio: ['ignore', 'pipe', 'pipe'], detached: grouped,
+      // Copies share installed dependencies; pnpm must not try to replace the symlink.
+      env: { ...process.env, pnpm_config_verify_deps_before_run: 'false' },
+    });
     const stop = () => {
       if (grouped && child.pid) {
         try { process.kill(-child.pid, 'SIGKILL'); return; } catch { /* group already gone */ }

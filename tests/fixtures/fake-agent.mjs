@@ -9,6 +9,9 @@ const args = process.argv.slice(2);
 const codex = args[0] === 'exec';
 const dir = codex ? args[args.indexOf('-C') + 1] : process.cwd();
 const mode = process.env.FAKE_AGENT_MODE ?? 'good';
+if (mode === 'dependency-env' && process.env.pnpm_config_verify_deps_before_run !== 'false') {
+  throw new Error('agent commands must use the installed shared dependencies');
+}
 const file = path.join(dir, 'src/deck/content.js');
 const s = fs.readFileSync(file, 'utf8');
 if (mode === 'overflow-comment' || mode === 'overflow-repeat') {
