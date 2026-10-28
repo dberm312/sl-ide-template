@@ -197,7 +197,7 @@ const finalizeStart = performance.now();
 const res = await request('recording the version', `${base}/api/publish/${slug}/${sha}`, {
   method: 'POST',
   headers: { ...auth, 'Content-Type': 'application/json' },
-  body: JSON.stringify({ uploadId, manifest, branch, title: META.deckTitle, format: META.format === 'memo' ? 'memo' : 'slides', repo, pages, hasPdf }),
+  body: JSON.stringify({ uploadId, manifest, branch, title: META.deckTitle, format: META.format === 'memo' ? 'memo' : 'slides', repo, repoId: process.env.GITHUB_REPOSITORY_ID || null, pages, hasPdf }),
 });
 const out = parse(res.text);
 const finalizeMs = Math.round(performance.now() - finalizeStart);
