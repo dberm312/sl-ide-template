@@ -247,7 +247,10 @@ another deck. `tests/serve.test.mjs` audits two differently edited copies
 concurrently.
 `pnpm check` keeps its state in each checkout's `.sl-ide/` (the warm
 Chrome, and `dev.json`, where `pnpm dev` says which port it is on) and asks
-the dev server for its checkout path before using it.
+the dev server for its checkout path before using it. Without a dev server,
+checks in the same checkout take turns building and measuring `dist/`, so a
+rebuild cannot remove files another check is using. Different worktrees
+remain independent.
 
 ## Browser smoke checks
 

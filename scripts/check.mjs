@@ -20,6 +20,7 @@
 // 10 idle minutes. The audit is always the whole deck. It exits 1 on the same
 // flags as `pnpm run audit`, which stays the gate before a push and in CI.
 import { execFileSync, spawn } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { changedPages } from './deck-files.mjs';
@@ -79,17 +80,66 @@ function newest(p) {
   return Math.max(0, ...fs.readdirSync(p).map((f) => newest(path.join(p, f))));
 }
 
-async function dist() {
-  const dir = path.join(root, 'dist');
-  const built = fs.statSync(path.join(dir, 'index.html'), { throwIfNoEntry: false })?.mtimeMs ?? 0;
-  const inputs = ['src', 'public', 'index.html', 'lab.html', 'vite.config.js', 'package.json'];
-  const fresh = built > 0 && inputs.every((f) => newest(path.join(root, f)) < built);
-  if (!fresh) {
-    execFileSync(process.execPath, [path.join(root, 'node_modules/vite/bin/vite.js'), 'build', '--logLevel', 'warn'],
-      { cwd: root, stdio: ['ignore', 2, 2] });
+// Fallback checks in one checkout share dist/. Keep the build and the pages
+// it serves together; a concurrent rebuild must not empty an active server.
+async function lockDist() {
+  const parent = path.join(root, '.sl-ide');
+  fs.mkdirSync(parent, { recursive: true });
+  const lock = path.join(parent, 'check-dist.lock');
+  const prepared = fs.mkdtempSync(path.join(parent, 'check-dist-pending-'));
+  const marker = `owner-${process.pid}-${randomUUID()}`;
+  fs.writeFileSync(path.join(prepared, marker), '');
+  const removeMarker = (dir, name) => {
+    try { fs.unlinkSync(path.join(dir, name)); } catch (err) { if (err.code !== 'ENOENT') throw err; }
+    // Never remove recursively: a new owner may already have replaced the
+    // empty directory, in which case its unique marker keeps it non-empty.
+    try { fs.rmdirSync(dir); } catch (err) { if (!['ENOENT', 'ENOTEMPTY', 'EEXIST'].includes(err.code)) throw err; }
+  };
+  try {
+    for (;;) {
+      try {
+        // The prepared directory is already non-empty when published, so
+        // another caller can never mistake a live acquisition for stale state.
+        fs.renameSync(prepared, lock);
+        return () => removeMarker(lock, marker);
+      } catch (err) {
+        if (!['EEXIST', 'ENOTEMPTY'].includes(err.code) && !(err.code === 'EPERM' && fs.existsSync(lock))) throw err;
+      }
+      let owners;
+      try { owners = fs.readdirSync(lock); } catch (err) {
+        if (err.code === 'ENOENT') continue;
+        throw err;
+      }
+      if (!owners.length) removeMarker(lock, marker);
+      for (const name of owners) {
+        const owner = /^owner-(\d+)-/.exec(name);
+        if (!owner) throw new Error('invalid check dist lock');
+        if (!alive(Number(owner[1]))) removeMarker(lock, name);
+      }
+      await sleep(50);
+    }
+  } finally {
+    if (fs.existsSync(prepared)) removeMarker(prepared, marker);
   }
-  const server = await serve(dir);
-  return { url: `http://127.0.0.1:${server.address().port}/index.html`, what: fresh ? 'dist/' : 'a fresh build of dist/', server };
+}
+
+async function dist() {
+  const release = await lockDist();
+  try {
+    const dir = path.join(root, 'dist');
+    const built = fs.statSync(path.join(dir, 'index.html'), { throwIfNoEntry: false })?.mtimeMs ?? 0;
+    const inputs = ['src', 'public', 'index.html', 'lab.html', 'vite.config.js', 'package.json'];
+    const fresh = built > 0 && inputs.every((f) => newest(path.join(root, f)) < built);
+    if (!fresh) {
+      execFileSync(process.execPath, [path.join(root, 'node_modules/vite/bin/vite.js'), 'build', '--logLevel', 'warn'],
+        { cwd: root, stdio: ['ignore', 2, 2] });
+    }
+    const server = await serve(dir);
+    return { url: `http://127.0.0.1:${server.address().port}/index.html`, what: fresh ? 'dist/' : 'a fresh build of dist/', server, release };
+  } catch (err) {
+    release();
+    throw err;
+  }
 }
 
 // --- the warm Chrome --------------------------------------------------------
@@ -254,7 +304,11 @@ try {
   console.error(`error: ${err.message}`);
   process.exitCode = 1;
 } finally {
-  await Promise.all(tabs.filter(Boolean).map((t) => t.close()));
-  source?.server?.close();
+  try {
+    await Promise.all(tabs.filter(Boolean).map((t) => t.close()));
+    if (source?.server) await new Promise((resolve) => source.server.close(resolve));
+  } finally {
+    source?.release?.();
+  }
 }
 process.exit();
