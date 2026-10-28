@@ -85,12 +85,13 @@ const tokenCommand = `${base === 'https://app.sl-ide.com' ? '' : `SL_IDE_URL=${b
 
 function authHint(res) {
   if (res.status !== 401) return '';
+  const setSecret = `gh secret set SL_IDE_PUBLISH_TOKEN -R ${process.env.GITHUB_REPOSITORY || '<owner>/<deck>'}`;
   const { reason } = parse(res.text);
   const fixes = {
     missing: 'Set SL_IDE_PUBLISH_TOKEN to a publish token (a GitHub Actions secret in CI).',
-    unknown: `Mint a new token at ${base}/tokens, then \`gh secret set SL_IDE_PUBLISH_TOKEN\`, then rerun the job.`,
-    revoked: `In this deck's folder, run \`${tokenCommand}\`; it mints a new deck token and runs \`gh secret set SL_IDE_PUBLISH_TOKEN\`. Then rerun the job.`,
-    expired: `Mint a new token at ${base}/tokens, then \`gh secret set SL_IDE_PUBLISH_TOKEN\`, then rerun the job.`,
+    unknown: `Mint a new token at ${base}/tokens, then \`${setSecret}\`, then rerun the job.`,
+    revoked: `In this deck's folder, run \`${tokenCommand}\`; it mints a new deck token and runs \`${setSecret}\`. Then rerun the job.`,
+    expired: `Mint a new token at ${base}/tokens, then \`${setSecret}\`, then rerun the job.`,
     'owner-missing': `The account that minted this token no longer exists. Sign in as the deck's owner and run \`${tokenCommand}\` in its folder; a deck whose owner was deleted must be transferred first.`,
   };
   return `\n  ${Object.hasOwn(fixes, reason) ? `${reason}: ${fixes[reason]}` : `Check SL_IDE_PUBLISH_TOKEN or mint a new token at ${base}/tokens.`}`;

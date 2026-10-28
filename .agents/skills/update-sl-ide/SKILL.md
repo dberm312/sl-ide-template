@@ -41,6 +41,10 @@ A path that fits none of these is the deck's: keep it and mention it.
    uncommitted and ask whether to commit or stash it first.
 2. `git remote get-url upstream`. If that fails, add it:
    `git remote add upstream https://github.com/dberm312/sl-ide-template.git`.
+   With two remotes, gh can pick `upstream` as its default repo and show
+   sl-ide's runs and PRs instead of the deck's. So if `gh repo set-default --view`
+   doesn't print the deck's `<owner>/<name>` (from `git remote get-url origin`),
+   run `gh repo set-default <owner>/<name>`. Skip this if gh isn't installed.
 3. `git fetch upstream`.
 4. `BASE=$(git merge-base HEAD upstream/main)`. If there is none, the deck
    doesn't share sl-ide's history. Stop and ask; never use

@@ -73,7 +73,8 @@ usually wrote it). If the file is missing, ask for the team's slug and write it
 as `{ "slug": "<deck>", "team": "<team>" }`. New decks are team-only; if the
 user wants anyone with the link to open it, tell them to save “Anyone with the
 link” under Sharing on `app.sl-ide.com/decks/<slug>` after the first publish. Confirm the
-repo has the `SL_IDE_PUBLISH_TOKEN` secret (`gh secret list`); if not, have
+repo has the `SL_IDE_PUBLISH_TOKEN` secret
+(`gh secret list -R "$(git remote get-url origin)"`); if not, have
 the user run `! pnpm create sl-ide login` and set it from the token saved in
 `~/.config/sl-ide/credentials.json`, under `servers["https://app.sl-ide.com"].teams.<team>.token`
 (never print the token).

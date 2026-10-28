@@ -3,10 +3,11 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import slideShot from './scripts/slide-shot.js';
-import { banner, linkSkills, status } from './scripts/doctor.js';
+import { banner, lastPublish, linkSkills, publishLine, status } from './scripts/doctor.js';
 
 // The getting-started banner under Vite's URLs on every `pnpm dev`: the full
-// guide until setup is done (skills, PRODUCT.md, DESIGN.md), one line after.
+// guide until setup is done (skills, PRODUCT.md, DESIGN.md), one line after,
+// then the deck's last publish once gh answers (time-boxed, never blocking).
 // Also serves the same checks to the dev bar's setup chip.
 function slIde() {
   return {
@@ -42,6 +43,7 @@ function slIde() {
         printUrls();
         const url = server.resolvedUrls?.local?.[0];
         console.log(banner(status(root), url));
+        lastPublish(root).then((p) => { if (p) console.log(publishLine(p)); });
       };
     },
   };
