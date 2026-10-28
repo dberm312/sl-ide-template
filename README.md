@@ -167,6 +167,8 @@ pnpm shots 2 A1       # output/shots/page-<label>.png (no args = all; SCALE=2 fo
 pnpm pdf              # output/<META.pdfName>.pdf, vector, fonts embedded; and output/cover.png
 pnpm publish-deck     # publish dist/ and the PDF to sl-ide cloud (CI does this)
 pnpm lab              # fit report and screenshots for the slide lab's takes
+pnpm ask fit 2 A1     # TypeSafe: does the picture on each page fit it? (JSON)
+pnpm ask find pricing # TypeSafe: which pages mention a topic? (JSON)
 pnpm fonts            # re-fetch the self-hosted fonts listed in scripts/fonts.sh
 pnpm doctor           # setup checklist
 pnpm new-project NAME # start another deck next to this one (sl-ide-create)
@@ -176,6 +178,28 @@ pnpm use-format memo  # turn a fresh project into a memo (starters/memo)
 Use `pnpm run audit`, not `pnpm audit` (that's pnpm's dependency audit).
 The audit, PDF and screenshots need Chrome or Chromium (`CHROME=/path` to
 point at one).
+
+### Typed questions (TypeSafe)
+
+`pnpm ask` puts typed questions about the pages to
+[TypeSafe](https://typesafe.ai)'s Jev and prints its answers as JSON, with
+calibrated probabilities: `fit` sends each page's shot (or any PNG or JPEG,
+such as a slide-lab take) and asks whether its picture fits; `find` sends
+every page's text and asks which pages mention a topic. The questions and the
+thresholds that turn answers into verdicts are in `scripts/ask-questions.mjs`;
+`--dry-run` prints the requests without sending them. A failed call exits 1
+and is never read as a "no".
+
+It needs an API key from [typesafe.ai](https://typesafe.ai) in your
+environment (your shell profile, say), never in the deck's repo:
+
+```sh
+export TYPESAFE_API_KEY=...
+```
+
+The pages you ask about leave your machine: `fit` sends the page images,
+`find` every page's text. To write new questions, the `typesafe-ai` skill
+(`pnpm skills`) knows the API.
 
 On every push, CI (`.github/workflows/publish.yml`) audits the deck, prints
 the PDF, checks its fonts and publishes the deck to sl-ide cloud. A failing
@@ -233,7 +257,7 @@ By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 | `PRODUCT.md`, `DESIGN.md` | audience and visual system, written by impeccable |
 | `AGENTS.md` | the working agreement for agents (`CLAUDE.md` imports it) |
 | `.agents/skills/` | new-deck, slide-lab, copy-pass, ship-it, clean-up, update-sl-ide (symlinked into `.claude/skills/`) |
-| `skills-lock.json` | the third-party skills this repo expects |
+| `skills-lock.json` | the third-party skills this repo expects (impeccable, copy-editing, copywriting, typesafe-ai) |
 | `scripts/` | audit, pdf, shots, lab, fonts, doctor |
 
 ## Parallel worktrees

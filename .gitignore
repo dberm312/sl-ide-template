@@ -12,9 +12,11 @@ output/
 .agents/skills/impeccable/
 .agents/skills/copy-editing/
 .agents/skills/copywriting/
+.agents/skills/typesafe-ai/
 .claude/skills/impeccable
 .claude/skills/copy-editing
 .claude/skills/copywriting
+.claude/skills/typesafe-ai
 .impeccable/live/
 .impeccable/config.local.json
 

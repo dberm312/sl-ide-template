@@ -57,6 +57,7 @@ divider and A1 Where things live. It explains the harness; replace it.
 | `impeccable` | Product context, visual system, critique and polish | `skills-lock.json` |
 | `copy-editing` | Editing passes on existing copy | `skills-lock.json` |
 | `copywriting` | Writing new copy from scratch | `skills-lock.json` |
+| `typesafe-ai` | Writing new TypeSafe questions for `pnpm ask` | `skills-lock.json` |
 
 This repo's skills live in `.agents/skills/` (Codex reads them there) and
 are symlinked into `.claude/skills/` (Claude Code). The third-party ones are
@@ -153,6 +154,8 @@ has the slide starter.
 | `pnpm shots [labels]` | `output/shots/page-<label>.png` at 1:1 (`SCALE=2` for 2x) |
 | `pnpm pdf` | `output/<META.pdfName>.pdf`, plus `output/cover.png` (the first page, for the deck list on sl-ide cloud) |
 | `pnpm lab` | the slide lab's fit report and screenshots |
+| `pnpm ask fit <labels or images>` | typed questions answered by TypeSafe's Jev, as JSON: does each page's picture fit it (`fits`, `misfit` with reasons, `no-picture`, `unsure`) and where it sits. Images are PNG or JPEG, 280–1568 px a side, e.g. `output/lab/<id>.png`. Needs `TYPESAFE_API_KEY`; a failed call exits 1, never a "no". |
+| `pnpm ask find <topic>` | which pages mention a topic, each with Jev's probability, most likely first |
 | `node scripts/doctor.js` | setup status |
 | `pnpm publish-deck` | publish `dist/` and the PDF to sl-ide cloud (CI does this on push) |
 | `pnpm new-project <name>` | another deck next to this one, via `pnpm create sl-ide` |
