@@ -80,13 +80,12 @@ function newest(p) {
   return Math.max(0, ...fs.readdirSync(p).map((f) => newest(path.join(p, f))));
 }
 
-// Fallback checks in one checkout share dist/. Keep the build and the pages
-// it serves together; a concurrent rebuild must not empty an active server.
-async function lockDist() {
-  const parent = path.join(root, '.sl-ide');
+// A process-owned directory protects the build and Chrome startup sections.
+// Unique markers let dead owners be cleared without deleting a new owner.
+async function lockDirectory(lock) {
+  const parent = path.dirname(lock);
   fs.mkdirSync(parent, { recursive: true });
-  const lock = path.join(parent, 'check-dist.lock');
-  const prepared = fs.mkdtempSync(path.join(parent, 'check-dist-pending-'));
+  const prepared = fs.mkdtempSync(path.join(parent, `${path.basename(lock)}-pending-`));
   const marker = `owner-${process.pid}-${randomUUID()}`;
   fs.writeFileSync(path.join(prepared, marker), '');
   const removeMarker = (dir, name) => {
@@ -113,7 +112,7 @@ async function lockDist() {
       if (!owners.length) removeMarker(lock, marker);
       for (const name of owners) {
         const owner = /^owner-(\d+)-/.exec(name);
-        if (!owner) throw new Error('invalid check dist lock');
+        if (!owner) throw new Error(`invalid ${path.basename(lock)} owner`);
         if (!alive(Number(owner[1]))) removeMarker(lock, name);
       }
       await sleep(50);
@@ -123,8 +122,10 @@ async function lockDist() {
   }
 }
 
+// Fallback checks hold dist/ through measurement, so another build cannot
+// remove the files that their server is using.
 async function dist() {
-  const release = await lockDist();
+  const release = await lockDirectory(path.join(root, '.sl-ide/check-dist.lock'));
   try {
     const dir = path.join(root, 'dist');
     const built = fs.statSync(path.join(dir, 'index.html'), { throwIfNoEntry: false })?.mtimeMs ?? 0;
@@ -157,37 +158,42 @@ function findChrome() {
 }
 
 async function devtools() {
-  const c = readJson(chromeFile);
-  if (c && alive(c.pid) && await text(`http://127.0.0.1:${c.port}/json/version`)) {
-    const now = new Date();
-    fs.utimesSync(chromeFile, now, now);
-    return { port: c.port, warm: true };
-  }
-  // One start at a time per worktree; a second check waits and reuses it.
-  fs.mkdirSync(state, { recursive: true });
-  const lock = path.join(state, 'chrome.lock');
+  // Validate only after acquiring the startup lock: another caller may have
+  // finished starting Chrome while this caller waited for the lock.
+  const release = await lockDirectory(path.join(state, 'chrome.lock'));
   try {
-    fs.mkdirSync(lock);
-  } catch (err) {
-    if (err.code !== 'EEXIST') throw err;
-    if (Date.now() - (fs.statSync(lock, { throwIfNoEntry: false })?.mtimeMs ?? 0) > 20_000) {
-      fs.rmSync(lock, { recursive: true, force: true });
-    } else await sleep(100);
-    return devtools();
-  }
-  try {
+    const c = readJson(chromeFile);
+    if (c && alive(c.pid)) {
+      const end = Date.now() + 15_000;
+      while (Date.now() < end && alive(c.pid)) {
+        // Keep a responsive keeper from becoming idle while we probe it.
+        if (readJson(chromeFile)?.pid === c.pid) {
+          const now = new Date();
+          try { fs.utimesSync(chromeFile, now, now); } catch (err) { if (err.code !== 'ENOENT') throw err; }
+          if (await text(`http://127.0.0.1:${c.port}/json/version`)) return { port: c.port, warm: true };
+        }
+        await sleep(50);
+      }
+      // A timeout is not evidence that a live keeper is safe to replace:
+      // it may still be serving another check's tabs.
+      if (alive(c.pid)) throw new Error('warm Chrome is not responding (pnpm check --stop to restart it)');
+    }
     fs.rmSync(chromeFile, { force: true });
     const keeper = spawn(process.execPath, [path.join(import.meta.dirname, 'check-chrome.mjs'), chromeFile, findChrome()],
       { detached: true, stdio: 'ignore' });
     keeper.unref();
-    for (let i = 0; i < 300 && keeper.exitCode === null; i += 1) {
-      const port = readJson(chromeFile)?.port;
-      if (port) return { port, warm: false };
+    const end = Date.now() + 15_000;
+    while (Date.now() < end && keeper.exitCode === null) {
+      const current = readJson(chromeFile);
+      if (current?.pid === keeper.pid && await text(`http://127.0.0.1:${current.port}/json/version`)) {
+        return { port: current.port, warm: false };
+      }
       await sleep(50);
     }
+    try { process.kill(keeper.pid, 'SIGTERM'); } catch { /* already exited */ }
     throw new Error('could not start Chrome');
   } finally {
-    fs.rmSync(lock, { recursive: true, force: true });
+    release();
   }
 }
 

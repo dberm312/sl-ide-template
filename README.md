@@ -336,3 +336,25 @@ Reports are scrubbed before being saved to `.sl-ide/outbox/`, and again before
 retrying. Delivery times out after five seconds. Failed deliveries stay queued
 (up to 20 reports) for a later run; successful ones move to `.sl-ide/sent/`.
 Existing decks get the scripts through `/update-sl-ide` and stay opted out.
+
+## Agent benchmark
+
+`pnpm agent-bench` runs headless Claude Code (`claude -p`) and Codex
+(`codex exec`) on five fixed deck tasks (`bench/agent-tasks.mjs`: a copy
+edit, a seeded overflow fix, a new appendix page, a pasted comment, a
+multi-page pass), each in a throwaway copy of this project. Every run is
+checked by script, never by the agent's word: the audit passes, only the
+task's files changed, nothing was committed, every figure survives, plus
+the task's own checks. It records wall time, turns, tool calls, reads
+before the first edit, tokens, cost and whether the agent ran the audit
+or `pnpm check`, into `output/agent-bench.json`.
+
+```bash
+pnpm agent-bench --agent claude --task copy-edit --runs 1   # one cheap run
+pnpm agent-bench --runs 3 --baseline                        # write bench/agent-baseline.json
+pnpm agent-bench --runs 3 --compare                         # diff against it
+```
+
+It spends tokens, so it is local and manual; CI never runs it. Each run is
+capped (`--max-turns 40`, `--budget 2` USD for Claude, `--timeout-min 15`);
+a capped run fails. `--jobs` (default 2) sets how many run at once.

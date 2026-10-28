@@ -80,7 +80,19 @@ function bench(cwd, label) {
         const r = spawnSync(cmd, [...args, ...(extra.args ?? [])], { cwd, env: { ...process.env, ...extra.env }, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
         ms.push(Math.round(performance.now() - start));
         ok = r.status === 0;
-        if (!ok) process.stderr.write(`${label} ${name} failed (exit ${r.status ?? r.signal}):\n${`${r.stdout}${r.stderr}`.slice(-4000)}\n`);
+        if (!ok) {
+          process.stderr.write(`${label} ${name} failed (exit ${r.status ?? r.signal}):\n${`${r.stdout}${r.stderr}`.slice(-4000)}\n`);
+          // Reporters write failures to XML instead of stdout. Preserve their
+          // diagnostics before the temporary report directory is removed.
+          if (tests && fs.existsSync(file)) {
+            const xml = fs.readFileSync(file, 'utf8');
+            for (const match of xml.matchAll(/<testcase\b([^>]*?)(?<!\/)>([\s\S]*?)<\/testcase>/g)) {
+              if (/<(?:failure|error)\b/.test(match[2])) {
+                process.stderr.write(`${attr(match[1], 'name') ?? 'test failure'}:\n${match[2].slice(0, 8000)}\n`);
+              }
+            }
+          }
+        }
         if (tests) slow = slowest(file);
       }
       results[name] = { median_ms: Math.round(median(ms)), min_ms: Math.min(...ms), runs_ms: ms, ok };

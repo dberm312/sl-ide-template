@@ -1,0 +1,118 @@
+{
+  "date": "2026-10-28T01:44:48.420Z",
+  "node": "v26.12.1",
+  "os": "darwin 25.6.0",
+  "cpus": 8,
+  "summary": [
+    {
+      "agent": "claude",
+      "task": "copy-edit",
+      "runs": 3,
+      "passRate": 1,
+      "wall": 17.809565833,
+      "turns": 6,
+      "cost": 0.37609680000000006,
+      "tokens": 237623,
+      "ranAudit": 3
+    },
+    {
+      "agent": "claude",
+      "task": "overflow-fix",
+      "runs": 3,
+      "passRate": 1,
+      "wall": 48.170970540999996,
+      "turns": 12,
+      "cost": 0.543559,
+      "tokens": 569284,
+      "ranAudit": 3
+    },
+    {
+      "agent": "claude",
+      "task": "new-page",
+      "runs": 3,
+      "passRate": 1,
+      "wall": 38.61389079199999,
+      "turns": 12,
+      "cost": 0.5335624,
+      "tokens": 422605,
+      "ranAudit": 3
+    },
+    {
+      "agent": "claude",
+      "task": "comment-paste",
+      "runs": 3,
+      "passRate": 1,
+      "wall": 19.924361458,
+      "turns": 6,
+      "cost": 0.36533020000000005,
+      "tokens": 220435,
+      "ranAudit": 3
+    },
+    {
+      "agent": "claude",
+      "task": "multi-page",
+      "runs": 3,
+      "passRate": 1,
+      "wall": 63.44060608300002,
+      "turns": 16,
+      "cost": 0.5932838,
+      "tokens": 313851,
+      "ranAudit": 3
+    },
+    {
+      "agent": "codex",
+      "task": "copy-edit",
+      "runs": 3,
+      "passRate": 1,
+      "wall": 45.60178070800001,
+      "turns": 1,
+      "cost": null,
+      "tokens": 366688,
+      "ranAudit": 3
+    },
+    {
+      "agent": "codex",
+      "task": "overflow-fix",
+      "runs": 3,
+      "passRate": 1,
+      "wall": 46.11595554200001,
+      "turns": 1,
+      "cost": null,
+      "tokens": 387467,
+      "ranAudit": 3
+    },
+    {
+      "agent": "codex",
+      "task": "new-page",
+      "runs": 3,
+      "passRate": 1,
+      "wall": 30.69185158300004,
+      "turns": 1,
+      "cost": null,
+      "tokens": 171687,
+      "ranAudit": 3
+    },
+    {
+      "agent": "codex",
+      "task": "comment-paste",
+      "runs": 3,
+      "passRate": 1,
+      "wall": 13.267536416999995,
+      "turns": 1,
+      "cost": null,
+      "tokens": 87658,
+      "ranAudit": 3
+    },
+    {
+      "agent": "codex",
+      "task": "multi-page",
+      "runs": 3,
+      "passRate": 1,
+      "wall": 83.215024875,
+      "turns": 1,
+      "cost": null,
+      "tokens": 404979,
+      "ranAudit": 3
+    }
+  ]
+}
