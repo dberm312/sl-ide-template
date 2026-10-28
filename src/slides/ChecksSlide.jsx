@@ -1,6 +1,6 @@
 import SlideShell from '../components/SlideShell.jsx';
 import { box } from '../components/geometry.js';
-import { checks } from '../deck/content.js';
+import { checks } from '../deck/pages/checks.js';
 
 export const title = checks.title;
 

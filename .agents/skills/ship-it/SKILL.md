@@ -12,7 +12,7 @@ the output, and do not commit or push.
 2. **PDF:** `pnpm pdf`. It writes `output/<META.pdfName>.pdf`.
 3. **Fonts:** `scripts/check-fonts.sh`. Any fallback font means a glyph is
    missing from the self-hosted fonts; stop and say which.
-4. **Placeholders:** `grep -n "\[CONFIRM:\|\[TBD:" src/deck/content.js`. Don't
+4. **Placeholders:** `grep -rn "\[CONFIRM:\|\[TBD:" src/deck/`. Don't
    stop for them, but list them in the report: they print highlighted.
    Also say whether `META.watermark` is still on.
 5. **Commit:** `git status`. If nothing changed, say so and skip to push.

@@ -1,23 +1,27 @@
 // Which pages a change touches, for `pnpm check --changed`. A static read
 // of src/slides/index.jsx and the pages' imports, no parser:
 //   a page component        -> its page
-//   a content.js export     -> the pages whose component imports it
-//   styles, shell, index    -> every page
+//   a page's copy module    -> the pages whose component imports it
+//     (src/deck/pages/*.js)
+//   content.js, styles, shell, index -> every page
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const EVERY_PAGE = /^(index\.html|src\/(App|main)\.jsx|src\/styles\.css|src\/slides\/index\.jsx|src\/(components|fonts)\/)/;
-const CONTENT = 'src/deck/content.js';
+const EVERY_PAGE = /^(index\.html|src\/(App|main)\.jsx|src\/styles\.css|src\/slides\/index\.jsx|src\/deck\/content\.js|src\/(components|fonts)\/)/;
+export const PAGES_DIR = 'src/deck/pages';
 
-// Names a file imports from content.js.
-const keysOf = (src) => [...src.matchAll(/import\s*\{([^}]*)\}\s*from\s*'[^']*\/deck\/content\.js'/g)]
-  .flatMap((m) => m[1].split(',').map((s) => s.trim().split(/\s+as\s+/)[0]).filter(Boolean));
+// What a file imports from src/deck: [{ key, file }], where file is the
+// module (src/deck/content.js, or a page's src/deck/pages/<name>.js).
+const importsOf = (src) => [...src.matchAll(/import\s*\{([^}]*)\}\s*from\s*'[^']*\/deck\/((?:pages\/)?[\w-]+\.js)'/g)]
+  .flatMap((m) => m[1].split(',').map((s) => s.trim().split(/\s+as\s+/)[0]).filter(Boolean)
+    .map((key) => ({ key, file: `src/deck/${m[2]}` })));
+const pageKeys = (src) => importsOf(src).filter((i) => i.file.startsWith(`${PAGES_DIR}/`));
 
-// The deck's entries ({ id, kind, file, keys }; a flow's pages are `<id>-N`
-// and `blocks` names its body, e.g. 'memo.body'),
-// the content keys every page reads (`shared`) and content.js's top-level
-// exports with the line each starts on.
+// The deck's entries ({ id, kind, file, content }; content is the
+// [{ key, file }] it reads from its page modules; a flow's pages are `<id>-N`
+// and `blocks` names its body, e.g. 'memo.body'), and what index.jsx itself
+// reads from page modules (for the divider's list of appendix pages).
 export function deckSources(root) {
   const read = (f) => fs.readFileSync(path.join(root, f), 'utf8');
   const index = read('src/slides/index.jsx');
@@ -26,38 +30,26 @@ export function deckSources(root) {
   const pages = [];
   for (const m of index.matchAll(/entry\(\s*'([^']+)'\s*,\s*'([^']+)'\s*,\s*(\w+)/g)) {
     const file = modules.get(m[3]);
-    if (file) pages.push({ id: m[1], kind: m[2], file, keys: keysOf(read(file)) });
+    if (file) pages.push({ id: m[1], kind: m[2], file, content: pageKeys(read(file)) });
   }
+  const indexReads = pageKeys(index);
   for (const m of index.matchAll(/flow\(\s*'([^']+)'\s*,\s*([\w.]+)/g)) {
-    pages.push({ id: m[1], kind: 'flow', file: 'src/slides/index.jsx', keys: [m[2].split('.')[0]], blocks: m[2] });
+    const key = m[2].split('.')[0];
+    pages.push({ id: m[1], kind: 'flow', file: 'src/slides/index.jsx', content: indexReads.filter((i) => i.key === key), blocks: m[2] });
   }
-  // index.jsx reads the rest itself for the divider's list of appendix pages.
-  const indexKeys = keysOf(index).filter((k) => !pages.some((p) => p.kind === 'flow' && p.keys.includes(k)));
-  const components = path.join(root, 'src/components');
-  const shared = new Set((fs.existsSync(components) ? fs.readdirSync(components) : [])
-    .flatMap((f) => keysOf(read(`src/components/${f}`))));
-  const exports = read(CONTENT).split('\n').flatMap((l, i) => {
-    const m = /^export\s+(?:const|let|function)\s+(\w+)/.exec(l);
-    return m ? [{ key: m[1], line: i + 1 }] : [];
-  });
-  return { pages, indexKeys, shared, exports };
+  const flowKeys = new Set(pages.filter((p) => p.kind === 'flow').flatMap((p) => p.content.map((c) => c.key)));
+  return { pages, indexReads: indexReads.filter((i) => !flowKeys.has(i.key)) };
 }
 
-// changes: [{ file, lines }] with repo-relative paths and the new file's
-// changed line numbers (null: the whole file). Returns { all, ids }.
-export function pagesFor(changes, { pages, indexKeys, shared, exports }) {
+// changes: repo-relative paths. Returns { all, ids }.
+export function pagesFor(changes, { pages, indexReads }) {
   const ids = new Set();
   const add = (list) => list.forEach((p) => ids.add(p.id));
-  for (const { file, lines } of changes) {
+  for (const file of changes) {
     if (EVERY_PAGE.test(file)) return { all: true, ids };
-    if (file === CONTENT) {
-      if (!lines) return { all: true, ids };
-      for (const line of lines) {
-        const key = exports.findLast((e) => e.line <= line)?.key;
-        if (!key || shared.has(key)) return { all: true, ids };
-        add(pages.filter((p) => p.keys.includes(key)));
-        if (indexKeys.includes(key)) add(pages.filter((p) => p.kind === 'divider'));
-      }
+    if (file.startsWith(`${PAGES_DIR}/`)) {
+      add(pages.filter((p) => p.content.some((c) => c.file === file)));
+      if (indexReads.some((c) => c.file === file)) add(pages.filter((p) => p.kind === 'divider'));
     } else if (file.startsWith('src/slides/')) {
       const mine = pages.filter((p) => p.file === file);
       if (!mine.length) return { all: true, ids }; // a helper several pages may share
@@ -69,33 +61,13 @@ export function pagesFor(changes, { pages, indexKeys, shared, exports }) {
   return { all: false, ids };
 }
 
-// `git diff --unified=0` -> [{ file, lines }].
-export function parseDiff(text) {
-  const out = [];
-  let cur = null;
-  let from = null;
-  for (const line of text.split('\n')) {
-    let m;
-    if ((m = /^--- (?:a\/(.*)|\/dev\/null)$/.exec(line))) from = m[1] ?? null;
-    else if ((m = /^\+\+\+ (?:b\/(.*)|\/dev\/null)$/.exec(line))) {
-      cur = m[1] ? { file: m[1], lines: [] } : null;
-      out.push(cur ?? { file: from, lines: null });
-    } else if (cur && (m = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/.exec(line))) {
-      const start = Number(m[1]);
-      const n = m[2] === undefined ? 1 : Number(m[2]);
-      for (let i = 0; i < Math.max(n, 1); i += 1) cur.lines.push(start + i);
-    }
-  }
-  return out;
-}
-
 // What changed since the last commit: staged, unstaged and untracked.
 export function gitChanges(root) {
   const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   return [
-    ...parseDiff(git('diff', '--unified=0', '--no-color', '--no-ext-diff', '--relative', 'HEAD')),
-    ...git('ls-files', '--others', '--exclude-standard').split('\n').filter(Boolean).map((file) => ({ file, lines: null })),
-  ];
+    ...git('diff', '--name-only', '--no-renames', '--relative', 'HEAD').split('\n'),
+    ...git('ls-files', '--others', '--exclude-standard').split('\n'),
+  ].filter(Boolean);
 }
 
 // Indexes of the deck's pages (`pageIds`, in deck order, as the audit

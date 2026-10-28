@@ -29,7 +29,7 @@ import SlideShell from './SlideShell.jsx';
 //   { pageBreak: true } starts a new page
 // A block taller than a whole page is placed anyway and fails the audit.
 //
-// Block shapes, in content.js:
+// Block shapes, in a page module (src/deck/pages/):
 //   'A paragraph, with **bold**.'      or { p: '…' }
 //   { h1: '…' } { h2: '…' } { h3: '…' }
 //   { ul: ['…', '…'] }  { ol: ['…', '…'] }

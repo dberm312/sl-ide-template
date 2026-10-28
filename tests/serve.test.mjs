@@ -85,7 +85,7 @@ test('concurrent audits in two copies each report their own deck', { timeout: 12
     fs.cpSync(root, dir, { recursive: true, filter: (src) => !skip.has(path.basename(src)) || path.dirname(src) !== root });
     // A symlinked node_modules, as the smoke tests use; pnpm's install check would refuse it.
     fs.symlinkSync(path.join(root, 'node_modules'), path.join(dir, 'node_modules'));
-    const content = path.join(dir, 'src/deck/content.js');
+    const content = path.join(dir, 'src/deck/pages/cover.js');
     const src = fs.readFileSync(content, 'utf8');
     assert.ok(src.includes("title: 'Cover',"));
     fs.writeFileSync(content, src.replace("title: 'Cover',", `title: '${title}',`));

@@ -80,9 +80,10 @@ for f in sorted(code_files + glob.glob('src/**/*.css', recursive=True)):
     if not re.search(r"['/]" + re.escape(base) + r"(\.\w+)?'", all_code):
         print(' ', f)
 
-section('content.js keys no component reads')
-content = strip_comments(code['src/deck/content.js'], blank_strings=True)
-others = strip_comments('\n'.join(t for f, t in code.items() if not f.endswith('content.js')))
+section('Copy keys no component reads (src/deck/)')
+deck = [f for f in code if f.startswith('src/deck/')]
+content = strip_comments('\n'.join(code[f] for f in deck), blank_strings=True)
+others = strip_comments('\n'.join(t for f, t in code.items() if f not in deck))
 # Keys of the logo map are read by portco id; skip any that names a logo file.
 logos = {os.path.splitext(os.path.basename(p))[0].replace('-', '')
          for p in glob.glob('public/logos/*')}

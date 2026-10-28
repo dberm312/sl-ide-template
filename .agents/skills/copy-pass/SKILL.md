@@ -1,11 +1,11 @@
 ---
 name: copy-pass
-description: Edit the deck's copy in src/deck/content.js with the copy-editing skill, under the deck's rules (numbers never change, placeholders stay, every page still fits). Use when the user says "copy pass", "tighten the copy", "edit the words", "proofread the deck", "this sounds like AI", "de-slop", "/copy-pass", or asks to improve the writing on one page or all of them.
+description: Edit the deck's copy in src/deck/pages/ with the copy-editing skill, under the deck's rules (numbers never change, placeholders stay, every page still fits). Use when the user says "copy pass", "tighten the copy", "edit the words", "proofread the deck", "this sounds like AI", "de-slop", "/copy-pass", or asks to improve the writing on one page or all of them.
 ---
 
 # Copy pass
 
-The deck's words all live in `src/deck/content.js`. This pass edits them
+The deck's words all live in `src/deck/pages/`, one module per page. This pass edits them
 with the **copy-editing** skill, then proves every page still fits. If
 copy-editing isn't installed, offer `pnpm skills`; if
 the user declines, do the pass by hand with the rules below.
@@ -15,13 +15,13 @@ the user declines, do the pass by hand with the rules below.
 - Which pages? Default to every page. Read `PRODUCT.md` (audience, voice,
   brand commitments) and the "This deck" section of `AGENTS.md` (standing
   decisions about wording) before editing; both outrank general advice.
-- Read each page's block in `content.js` alongside its screenshot
+- Read each page's module alongside its screenshot
   (`pnpm check <label>`), since a line that reads well can still wrap badly.
 
 ## 2. Edit with copy-editing
 
 For a pass over 3 or more pages, fan out (AGENTS.md, Working in parallel):
-one `page-worker` per page or section, each given that page's keys from
+one `page-worker` per page or section, each given that page's module from
 `output/map.md`, this skill's rules below, and the copy-editing passes.
 You merge their diffs, read the titles in order across the deck, and keep
 the voice consistent. Shared keys (`META`, a divider's list) stay with you.

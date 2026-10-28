@@ -67,7 +67,7 @@ next to it. `pnpm create sl-ide login` switches the signed-in account.
 **Keeping pulls clean.** Harness files belong to sl-ide: `src/components/`,
 `src/lab/` (except `takes/`), `scripts/`, `vite.config.js`,
 `.github/` and the skills in `.agents/skills/`. A deck's own work goes in
-`src/deck/content.js`, `src/slides/`, its blocks in `src/styles.css`,
+`src/deck/`, `src/slides/`, its blocks in `src/styles.css`,
 `PRODUCT.md`, `DESIGN.md`, `sl-ide.config.json` and the "This deck" section
 of `AGENTS.md`. Fix a harness bug in sl-ide first, then pull it into the
 decks, so it never has to be redone per deck. In a deck, the
@@ -144,7 +144,7 @@ install it for real work.
 ## Memos
 
 A memo is the same IDE on US Letter pages (8.5 × 11 in, portrait). You
-write its body as blocks in `src/deck/content.js` (paragraphs, headings,
+write its body as blocks in `src/deck/pages/memo.js` (paragraphs, headings,
 lists, tables, callouts) and the paginator in `src/components/Flow.jsx`
 lays them onto as many pages as they need. It splits paragraphs between
 lines, lists between items and tables between rows (repeating the header),
@@ -161,7 +161,7 @@ has the slide starter.
 
 ```sh
 pnpm check 2          # audit + output/shots/page-2.png, warm (--changed: pages git diff touches)
-pnpm map              # output/map.md: each page's label, title, files, content keys, words, audit
+pnpm map              # output/map.md: each page's label, title, files, copy keys, words, audit
 pnpm run audit        # CLIPPED / SPILL / OVERLAP / WORDY per page, LONG per memo; exits 1 on any
 pnpm shots 2 A1       # output/shots/page-<label>.png (no args = all; SCALE=2 for 2x)
 pnpm pdf              # output/<META.pdfName>.pdf, vector, fonts embedded; and output/cover.png
@@ -224,7 +224,8 @@ By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 
 | Path | |
 |---|---|
-| `src/deck/content.js` | every word and every region box, in inches |
+| `src/deck/pages/` | every word and every region box, in inches: one module per page |
+| `src/deck/content.js` | what every page shares: `META`, the page zones, `rich()` |
 | `src/slides/` | one component per page; `index.jsx` sets the order and the appendix |
 | `src/styles.css` | design tokens on `:root`, then page styles, then the IDE chrome |
 | `src/components/` | the harness: page shell, memo paginator, dev bar, rail, comment mode, find, audit |

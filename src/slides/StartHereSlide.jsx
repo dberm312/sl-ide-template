@@ -1,7 +1,7 @@
 import SlideShell from '../components/SlideShell.jsx';
 import Rich from '../components/Rich.jsx';
 import { box } from '../components/geometry.js';
-import { startHere } from '../deck/content.js';
+import { startHere } from '../deck/pages/startHere.js';
 import { AGENT_LOGOS } from './agentLogos.js';
 
 export const title = startHere.title;

@@ -1,6 +1,6 @@
 import SlideShell from '../components/SlideShell.jsx';
 import { box } from '../components/geometry.js';
-import { appendixDivider } from '../deck/content.js';
+import { appendixDivider } from '../deck/pages/appendixDivider.js';
 
 export const title = appendixDivider.title;
 

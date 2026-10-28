@@ -42,7 +42,7 @@ Sort what you find into three groups:
 
 The docs are `README.md`, `AGENTS.md`, `DESIGN.md`, `PRODUCT.md` and
 `.agents/skills/*/SKILL.md`. Build the deck's actual state from
-`src/slides/index.jsx` (order, appendix labels) and `src/deck/content.js`
+`src/slides/index.jsx` (order, appendix labels) and `src/deck/pages/`
 (titles, headline numbers, `[TBD]` and `[CONFIRM]` placeholders), and the
 tokens from `src/styles.css` `:root`. Then check each doc for:
 

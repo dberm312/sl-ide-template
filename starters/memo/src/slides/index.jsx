@@ -1,6 +1,6 @@
 import * as Files from './FilesPage.jsx';
 import { flow } from '../components/Flow.jsx';
-import { memo } from '../deck/content.js';
+import { memo } from '../deck/pages/memo.js';
 
 const entry = (id, kind, mod, props) => ({
   id, kind, Component: mod.default, title: mod.title, props,

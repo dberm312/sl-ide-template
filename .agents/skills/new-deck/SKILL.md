@@ -138,11 +138,11 @@ Name any fixed pages (an exhibit, an appendix table) at the end.
 Once the titles are approved:
 
 1. Delete the starter's page components (`StartHereSlide`, `AnatomySlide`,
-   `ChecksSlide`, `FilesSlide`), their blocks in `content.js` and their CSS
-   blocks. Keep the cover and the divider and adapt them.
-2. One component per page in `src/slides/`, one block per page in
-   `content.js`, one CSS block per page in `styles.css`. Register them in
-   `src/slides/index.jsx`.
+   `ChecksSlide`, `FilesSlide`), their modules in `src/deck/pages/` and
+   their CSS blocks. Keep the cover and the divider and adapt them.
+2. One component per page in `src/slides/`, one module per page in
+   `src/deck/pages/<key>.js` exporting `<key>`, one CSS block per page in
+   `styles.css`. Register them in `src/slides/index.jsx`.
 3. Write first-pass copy from what the user gave you. Every fact or figure
    you don't have becomes `[TBD: what is needed]`. Never invent numbers,
    names, quotes or results.
@@ -156,7 +156,7 @@ Once the titles are approved:
 7. Suggest a next step: `/copy-pass` once the content is in, `/slide-lab`
    for any page they're unsure of, `/ship-it` when they want a PDF.
 
-**For a memo**, replace `memo.body` in `content.js` with the approved
+**For a memo**, replace `memo.body` in `src/deck/pages/memo.js` with the approved
 outline as blocks (the shapes are listed at the top of
 `src/components/Flow.jsx`): the `memohead`, then a heading and paragraphs
 per section. Never hand-break the copy to fit a page; the paginator does

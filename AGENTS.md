@@ -16,8 +16,8 @@ from a brand source (DESIGN.md and the tokens), then outlines the story.
 `node scripts/doctor.js` reports what's left; `pnpm dev` prints the same.
 
 To find a page's files, start with `output/map.md` (`pnpm map`; every
-`pnpm check` rewrites it): each page's label, title, component, the
-`content.js` keys it reads, words and audit status, and for a memo the body
+`pnpm check` rewrites it): each page's label, title, component, the page
+module and keys it reads, words and audit status, and for a memo the body
 blocks on each printed page. Then open just those files.
 
 ## Harness vs. deck
@@ -68,10 +68,13 @@ Never vendor a third-party skill's files into the repo.
 
 ## Sources of truth
 
-- **Copy and geometry:** `src/deck/content.js`. Every word and every region
-  box lives there; components only place them. The user's copy goes in as
-  written. If it overflows, shorten the words, never a number, and mark the
-  change `// fit:` with the original wording.
+- **Copy and geometry:** one plain module per page, `src/deck/pages/<key>.js`,
+  exporting `<key>`; the page's component imports it. Every word and every
+  region box lives there; components only place them. A memo's flowing body
+  is `pages/memo.js`. What every page shares (`META`, `ZONES`, `rich()`) is in
+  `src/deck/content.js`. The user's copy goes in as written. If it
+  overflows, shorten the words, never a number, and mark the change
+  `// fit:` with the original wording.
 - **`[CONFIRM: …]` and `[TBD: …]`** render exactly as written, highlighted.
   Never invent a replacement: no made-up figures, names, quotes, customers
   or results. Any illustrative figure is labelled "Illustrative".
@@ -168,17 +171,18 @@ Two subagent roles ship in `.claude/agents/` (Claude Code; for another
 agent, pass the file's body as the subagent's instructions):
 `deck-explorer` answers "where is X / what does page N say" read-only from
 `output/map.md`; `page-worker` owns one page, edits only its component and
-its keys, runs `pnpm check <label>` and returns the diff and audit line.
+its page module, runs `pnpm check <label>` and returns the diff and audit line.
 
 - **Fan out per page** when a task touches 3 or more pages that are
   independent: one `page-worker` each. Stay serial for token, `styles.css`,
   component or `index.jsx` changes, which touch every page.
 - **Name each worker's files before launching it**, from the map: its
-  component and its keys in `content.js`. `content.js` and `styles.css`
-  are shared hotspots; no two workers own the same key. Give a worker its
-  own worktree (`git worktree add`, then `pnpm install`) when its files
-  overlap another's; `pnpm check` is safe in parallel worktrees. Never
-  stash; each worktree commits on its own branch.
+  component and its page module in `src/deck/pages/`. Workers on different
+  pages share no file, so they can run in this checkout. Give a worker its
+  own worktree (`git worktree add`, then `pnpm install`) only when its files
+  overlap another's, such as two pages built from one component; `pnpm check`
+  is safe in parallel worktrees. Never stash; each worktree commits on its
+  own branch.
 - **The parent merges**, resolves any overlap under the deck rules, and
   runs one whole-deck `pnpm run audit` at the end.
 
@@ -186,8 +190,8 @@ its keys, runs `pnpm check <label>` and returns the diff and audit line.
 
 - **Comment mode:** the user presses `c` in the preview, clicks an element
   and pastes a block naming the slide, a CSS path and the element's text.
-  Find the element from the path and the text, and edit `content.js` or the
-  page's component, not the DOM.
+  Find the element from the path and the text, and edit the page's module in
+  `src/deck/pages/` or its component, not the DOM.
 - When asked for options on a page, use **slide-lab** rather than describing
   alternatives in chat.
 - Record standing decisions in "This deck" above, dated and attributed, the

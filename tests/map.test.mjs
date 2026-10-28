@@ -11,19 +11,20 @@ import { deckMap, mapText } from '../scripts/deck-map.mjs';
 const root = path.resolve(import.meta.dirname, '..');
 const row = (id, kind, label, extra = {}) => ({ id, kind, label, words: 50, budget: 340, status: 'ok', title: id, ...extra });
 
-test("each page names its component and the content.js keys it reads", async () => {
+test("each page names its component, its page module and the keys it reads", async () => {
   const map = await deckMap(root, {
     report: 'AUDIT  2 pages  0 need attention\n', source: 'dist/',
     rows: [row('anatomy', 'content', '3'), row('appendix', 'divider', '—', { budget: null })],
   });
   const [anatomy, divider] = map.pages;
   assert.equal(anatomy.file, 'src/slides/AnatomySlide.jsx');
+  assert.deepEqual(anatomy.modules, ['src/deck/pages/anatomy.js']);
   assert.match(anatomy.content[0], /^anatomy\.\{title,.*cards\[0\.\.\d+\]/);
   assert.equal(divider.file, 'src/slides/AppendixDivider.jsx');
   assert.ok(divider.content.some((c) => c.startsWith('files.')), 'index.jsx reads appendix keys for the divider');
   assert.equal(map.handReferences, 'none yet.');
   const text = mapText(map);
-  assert.match(text, /^@1 {2}3 {2}anatomy .*src\/slides\/AnatomySlide\.jsx .*words 50\/340 {2}audit ok$/m);
+  assert.match(text, /^@1 {2}3 {2}anatomy .*src\/slides\/AnatomySlide\.jsx +src\/deck\/pages\/anatomy\.js: anatomy\.\{.*words 50\/340 {2}audit ok$/m);
   assert.match(text, /^@2 .*words 50 +audit ok$/m);
 });
 
@@ -58,7 +59,7 @@ test('pnpm map measures the deck and writes output/map.md and map.json', async (
   assert.deepEqual(await targets(), before, 'repeated maps do not retain browser tabs');
   assert.deepEqual(map.pages.map((p) => p.label), ['—', '2', '3', '4', '—', 'A1']);
   assert.ok(map.pages.every((p) => p.audit === 'ok' && p.file && p.title));
-  assert.equal(map.pages[2].title, 'Each page is copy in content.js, placed in inch boxes');
+  assert.equal(map.pages[2].title, 'Each page is a copy module placed in inch boxes');
   assert.match(fs.readFileSync(path.join(root, 'output/map.md'), 'utf8'), /^@3 {2}3 {3}anatomy/m);
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root, 'output/map.json'), 'utf8')).pages, map.pages);
   await assert.rejects(run('--map', '2'), /usage/);
