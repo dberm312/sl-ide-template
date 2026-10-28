@@ -14,8 +14,13 @@ function fixture(t) {
   const baseline = JSON.stringify({ commands: { test: { median_ms: 1000 } } });
   fs.writeFileSync(path.join(dir, 'bench/baseline.json'), baseline);
   fs.writeFileSync(path.join(dir, 'bin/pnpm'), `#!${process.execPath}
+import fs from 'node:fs';
 if (process.argv.includes('install')) process.exit(0);
 const base = process.cwd().includes('sl-ide-bench-ref-');
+if (process.env.FAIL_CURRENT === '1') {
+  const report = /--test-reporter-destination=(\\S+)/.exec(process.env.NODE_OPTIONS ?? '')?.[1];
+  if (report) fs.writeFileSync(report, '<testsuite><testcase name="diagnostic fixture"><failure>expected diagnostic detail</failure></testcase></testsuite>');
+}
 process.exit((base ? process.env.FAIL_BASE : process.env.FAIL_CURRENT) === '1' ? 23 : 0);
 `, { mode: 0o755 });
   fs.writeFileSync(path.join(dir, 'bin/git'), `#!${process.execPath}
@@ -45,6 +50,7 @@ test('a failed current command cannot replace a saved baseline', (t) => {
   assert.equal(r.status, 1, r.stderr);
   assert.equal(box.baseline(), box.original);
   assert.match(r.stderr, /refusing to save/);
+  assert.match(r.stderr, /diagnostic fixture:[\s\S]*expected diagnostic detail/);
   assert.match(r.stdout, /\| test \| [^\n]*\| — \|/);
 });
 
