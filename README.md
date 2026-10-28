@@ -228,9 +228,11 @@ were on main are kept.
 If the account that owned the deck was deleted, the deck is orphaned and
 publishing it fails until it has a new owner. Sign in with the new account,
 start a claim at `app.sl-ide.com/claim/<slug>`, and run the Claim deck
-workflow (`.github/workflows/claim-deck.yml`) with the code it shows:
-`gh workflow run claim-deck.yml -f code=<code>`. GitHub's OIDC token proves
-the run is in this repo; the deck then belongs to the new account. Run
+workflow (`.github/workflows/claim-deck.yml`) on `main` with the code it
+shows: `gh workflow run claim-deck.yml -f code=<code>`. GitHub's OIDC token
+proves the run is in this repo (by name, and by GitHub's repository id, which
+every publish sends as `GITHUB_REPOSITORY_ID`); the deck then belongs to the
+new account. Run
 `pnpm create sl-ide token` to set a new `SL_IDE_PUBLISH_TOKEN`.
 
 A deck publishes when it has `sl-ide.config.json`:
