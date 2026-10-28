@@ -80,17 +80,32 @@ function limitHint(res) {
   return `\n  sl-ide usage limit reached: ${limit}. ${after ? `It resets in about ${Math.ceil(after / 60_000)} min; rerun this job then.` : 'Ask sl-ide to raise it.'}`;
 }
 
+// The command that gives this deck's repo a new deck token (create-sl-ide).
+const tokenCommand = `${base === 'https://app.sl-ide.com' ? '' : `SL_IDE_URL=${base} `}pnpm create sl-ide@latest token`;
+
 function authHint(res) {
   if (res.status !== 401) return '';
   const { reason } = parse(res.text);
+  const renew = `In this deck's folder, run \`${tokenCommand}\` to give its repo a new token, then rerun the job.`;
   const fixes = {
-    missing: 'Set SL_IDE_PUBLISH_TOKEN to a publish token (a GitHub Actions secret in CI).',
-    unknown: `Mint a new token at ${base}/tokens, then \`gh secret set SL_IDE_PUBLISH_TOKEN\`, then rerun the job.`,
-    revoked: `Mint a new token at ${base}/tokens, then \`gh secret set SL_IDE_PUBLISH_TOKEN\`, then rerun the job.`,
-    expired: `Mint a new token at ${base}/tokens, then \`gh secret set SL_IDE_PUBLISH_TOKEN\`, then rerun the job.`,
-    'owner-missing': 'The account that minted this token no longer exists; sign in and mint a new one (the deck may need its owner moved).',
+    missing: `SL_IDE_PUBLISH_TOKEN is not a publish token. In this deck's folder, run \`${tokenCommand}\` to set it, then rerun the job.`,
+    unknown: renew,
+    revoked: renew,
+    expired: renew,
+    'owner-missing': `The account that minted this token no longer exists. Sign in as the deck's owner and run \`${tokenCommand}\` in its folder; a deck whose owner was deleted must be transferred first.`,
   };
-  return `\n  ${Object.hasOwn(fixes, reason) ? `${reason}: ${fixes[reason]}` : `Check SL_IDE_PUBLISH_TOKEN or mint a new token at ${base}/tokens.`}`;
+  return `\n  ${Object.hasOwn(fixes, reason) ? `${reason}: ${fixes[reason]}` : `Check SL_IDE_PUBLISH_TOKEN, or run \`${tokenCommand}\` in this deck's folder.`}`;
+}
+
+// Why the cloud's check before uploading refused this deck (403 `reason`).
+function deckHint(res) {
+  if (res.status !== 403) return '';
+  const { reason, deck } = parse(res.text);
+  const fixes = {
+    'other-owner': `This deck belongs to another account. Sign in as its owner (\`pnpm create sl-ide@latest login\`) and run \`${tokenCommand}\` in this deck's folder, ask for the deck to be transferred, or choose another "slug" in sl-ide.config.json.`,
+    'other-deck': `SL_IDE_PUBLISH_TOKEN publishes only the deck "${deck}". In this deck's folder, run \`${tokenCommand}\` to give its repo its own token.`,
+  };
+  return Object.hasOwn(fixes, reason) ? `\n  ${reason}: ${fixes[reason]}` : '';
 }
 
 // One attempt: { status, ok, text, retryAfter }, status 0 when no answer came.
@@ -177,6 +192,13 @@ async function upload({ from, to }) {
 }
 
 console.log(`publish-deck: ${slug} @ ${sha.slice(0, 7)} (${branch}) -> ${base}`);
+// Nothing is uploaded unless this token may publish this deck.
+async function preflight() {
+  const res = await request(`checking ${slug}`, `${base}/api/publish/${slug}`, { headers: auth });
+  if (res.status === 401) die(`the cloud rejected SL_IDE_PUBLISH_TOKEN${authHint(res)}`);
+  if (!res.ok) die(`checking ${slug} before uploading ${retryable(res.status) ? 'failed' : 'rejected'}: ${res.status} ${parse(res.text).error ?? res.text}${limitHint(res)}${deckHint(res)}`);
+}
+await preflight();
 const uploadStart = performance.now();
 const rest = files.slice(0, -1);
 const last = files[files.length - 1];
