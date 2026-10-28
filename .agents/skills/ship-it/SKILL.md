@@ -18,8 +18,16 @@ the output, and do not commit or push.
 5. **Commit:** `git status`. If nothing changed, say so and skip to push.
    Otherwise stage the changed files by name (never `output/` or `dist/`)
    and commit with a short imperative subject that describes the change.
-6. **Push:** if there is a remote, `git pull --rebase`, then `git push` to the
-   current branch. No remote: say so and stop.
+6. **Push:** if there is a remote, bring in what origin has, then `git push`
+   to the current branch. No remote: say so and stop.
+   - If `git rev-list --merges @{u}..HEAD` lists anything (an unpushed
+     `Pull sl-ide` merge from update-sl-ide), `git pull --no-rebase`. A
+     rebase would replay upstream's commits one by one and drop the
+     merge's resolution, even with `--rebase=merges`.
+   - Otherwise `git pull --rebase`.
+   - On a conflict, stop and show it. Resolve it under the update-sl-ide
+     owner rules, or back out with `git merge --abort` (or
+     `git rebase --abort`).
 7. **Publish:** the push runs CI, which publishes to sl-ide cloud when the
    repo has `sl-ide.config.json`. Don't wait for it. Report the link now,
    built from the config's slug: `app.sl-ide.com/d/<slug>/` on main, or

@@ -141,3 +141,6 @@ uncommitted so it can be fixed or aborted.
 Report in a few lines: the upstream range pulled, what it brings, the
 deck-owned paths kept or dropped, contract changes ported, the check
 results and the commit hash. Say that `/ship-it` pushes and publishes it.
+Push only with ship-it, or with `git pull --no-rebase` then `git push`;
+never `git pull --rebase`, which flattens the merge and loses its
+resolution.
