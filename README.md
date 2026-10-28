@@ -239,7 +239,8 @@ choose Share to add viewers or allow “Anyone with the link”. Publishing neve
 It also needs the repo secret `SL_IDE_PUBLISH_TOKEN`, a publish token for
 the deck owner. `pnpm create sl-ide` sets up both. For a deck made without it:
 `pnpm create sl-ide login` saves a publish token, then
-`gh secret set SL_IDE_PUBLISH_TOKEN` with it, and add the config. Tokens are
+`gh secret set SL_IDE_PUBLISH_TOKEN -R <owner>/<deck>` with it (always name the
+deck's repo: with an `upstream` remote, gh can pick sl-ide's), and add the config. Tokens are
 listed and revoked at app.sl-ide.com/tokens. Without a config, CI still prints, and skips publishing.
 
 By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.

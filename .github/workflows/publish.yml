@@ -80,7 +80,7 @@ jobs:
           if [[ ! -f sl-ide.config.json ]]; then
             echo "::notice::No sl-ide.config.json, so not publishing. pnpm new-project sets one up."
           elif [[ -z "$SL_IDE_PUBLISH_TOKEN" ]]; then
-            echo "::warning::sl-ide.config.json is set but the SL_IDE_PUBLISH_TOKEN secret is missing: gh secret set SL_IDE_PUBLISH_TOKEN"
+            echo "::warning::sl-ide.config.json is set but the SL_IDE_PUBLISH_TOKEN secret is missing: gh secret set SL_IDE_PUBLISH_TOKEN -R ${{ github.repository }}"
           else
             pnpm run publish-deck
           fi

@@ -82,12 +82,13 @@ function limitHint(res) {
 
 function authHint(res) {
   if (res.status !== 401) return '';
+  const setSecret = `gh secret set SL_IDE_PUBLISH_TOKEN -R ${process.env.GITHUB_REPOSITORY || '<owner>/<deck>'}`;
   const { reason } = parse(res.text);
   const fixes = {
     missing: 'Set SL_IDE_PUBLISH_TOKEN to a publish token (a GitHub Actions secret in CI).',
-    unknown: `Mint a new token at ${base}/tokens, then \`gh secret set SL_IDE_PUBLISH_TOKEN\`, then rerun the job.`,
-    revoked: `Mint a new token at ${base}/tokens, then \`gh secret set SL_IDE_PUBLISH_TOKEN\`, then rerun the job.`,
-    expired: `Mint a new token at ${base}/tokens, then \`gh secret set SL_IDE_PUBLISH_TOKEN\`, then rerun the job.`,
+    unknown: `Mint a new token at ${base}/tokens, then \`${setSecret}\`, then rerun the job.`,
+    revoked: `Mint a new token at ${base}/tokens, then \`${setSecret}\`, then rerun the job.`,
+    expired: `Mint a new token at ${base}/tokens, then \`${setSecret}\`, then rerun the job.`,
     'owner-missing': 'The account that minted this token no longer exists; sign in and mint a new one (the deck may need its owner moved).',
   };
   return `\n  ${Object.hasOwn(fixes, reason) ? `${reason}: ${fixes[reason]}` : `Check SL_IDE_PUBLISH_TOKEN or mint a new token at ${base}/tokens.`}`;
