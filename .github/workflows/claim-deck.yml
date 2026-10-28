@@ -1,6 +1,6 @@
 # Claim this deck on sl-ide cloud after its owner's account was deleted. Sign
 # in, start a claim at app.sl-ide.com/claim/<slug>, then run this with the
-# code it shows: `gh workflow run claim-deck.yml -f code=<code>`, or Actions →
+# code it shows: `gh workflow run claim-deck.yml -R "$(git remote get-url origin)" --ref main -f code=<code>`, or Actions →
 # Claim deck → Run workflow. The deck goes to the account that started the
 # claim (scripts/claim-deck.mjs).
 name: Claim deck
