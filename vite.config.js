@@ -114,10 +114,14 @@ function labFeedback() {
             return labReply(res, 400, 'round must be an integer from 0 to 9999');
           }
           const text = `${JSON.stringify(data, null, 2)}\n`;
-          fs.mkdirSync(dir, { recursive: true });
-          fs.writeFileSync(path.join(dir, 'feedback.json'), text);
-          // One file per send as well, so earlier rounds stay readable.
-          fs.writeFileSync(path.join(dir, `feedback-r${round}-${Date.now()}.json`), text);
+          try {
+            fs.mkdirSync(dir, { recursive: true });
+            fs.writeFileSync(path.join(dir, 'feedback.json'), text);
+            // One file per send as well, so earlier rounds stay readable.
+            fs.writeFileSync(path.join(dir, `feedback-r${round}-${Date.now()}.json`), text);
+          } catch (err) {
+            return labReply(res, 500, `could not write .lab: ${err.code ?? err.message}`);
+          }
           labReply(res, 200, 'ok');
         });
       });

@@ -143,6 +143,19 @@ describe('lab feedback endpoint', { concurrency: false }, () => {
     assert.deepEqual(listing(), []);
   });
 
+  test('a failed write answers 500 and the dev server stays up', async () => {
+    clear();
+    fs.writeFileSync(lab(), 'not a directory');
+    try {
+      const res = await post({ round: 1 });
+      assert.equal(res.status, 500);
+      assert.match(res.text, /EEXIST|ENOTDIR/);
+    } finally {
+      clear();
+    }
+    assert.equal((await post({ round: 1 })).status, 200);
+  });
+
   test('non-POST methods get 405', async () => {
     const res = await fetch(`${base}/__lab/feedback`);
     assert.equal(res.status, 405);
