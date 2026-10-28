@@ -67,6 +67,12 @@ WORDY). Then **look at every screenshot** in `output/lab/` and fix what the
 checks can't see: ragged wraps, a range broken across lines, dead space,
 misaligned cells. Don't show a take you haven't looked at.
 
+When a take holds a photo, screenshot or illustration and `TYPESAFE_API_KEY`
+is set, also run `pnpm ask fit output/lab/<id>.png` for those takes. Fix any
+`misfit` (its `reasons` say what: `subject_cut`, `covers_text`, `distorted`)
+and look again at any `unsure`. An error from it means the check didn't run;
+say so rather than reading it as a pass.
+
 ## 4. Show it
 
 Start the dev server if it isn't running (`pnpm dev`, in the background) and

@@ -51,6 +51,12 @@ the pages you touched. Fix any RAGGED line the edit created (reword so the
 last line is fuller, or shorter so it holds one line), and look at each
 shot. Finish with `pnpm run audit`, which must read ok on every page.
 
+When a rename or a cut should reach every page that mentions something (a
+product name, a figure, a claim) and `TYPESAFE_API_KEY` is set,
+`pnpm ask find "<topic>"` lists the pages that mention it, including ones
+that word it differently from a grep. Check each `mentions` and `unsure`
+page by reading it; an error means the search didn't run.
+
 ## 4. Report
 
 A short list per page: what changed and why, in a line each. Call out

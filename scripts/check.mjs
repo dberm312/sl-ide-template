@@ -11,7 +11,8 @@
 //
 // Every call also writes the deck map, output/map.md and output/map.json
 // (scripts/deck-map.mjs): each page's label, title, files, content keys,
-// words and audit status.
+// words and audit status. A call that shoots also writes each printed page's
+// text to output/text.json (read by scripts/ask.mjs).
 //
 // It measures the running `pnpm dev` when there is one for this checkout
 // (.sl-ide/dev.json, confirmed through /__sl-ide/root); otherwise it builds
@@ -254,7 +255,7 @@ async function printed(t, url, scale) {
     if (location.hash !== '#print' || !els.length) return null;
     return JSON.stringify(els.map((el) => {
       const r = el.getBoundingClientRect();
-      return { x: r.left + scrollX, y: r.top + scrollY, width: r.width, height: r.height };
+      return { x: r.left + scrollX, y: r.top + scrollY, width: r.width, height: r.height, text: el.innerText };
     }));
   })`, 'the printed pages');
 }
@@ -292,12 +293,16 @@ try {
       });
     } else pages = ids.map((_, i) => i);
 
+    // Each printed page's text, for `pnpm ask find` (scripts/ask.mjs).
+    const text = rows.map((r, i) => ({ position: i + 1, label: r.label, id: r.id, title: r.title, text: boxes[i].text }));
+    fs.writeFileSync(path.join(root, 'output', 'text.json'), `${JSON.stringify({ source: source.what, pages: text }, null, 2)}\n`);
+
     const out = path.join(root, 'output', 'shots');
     fs.mkdirSync(out, { recursive: true });
     if (flags.has('--changed') && !pages.length) console.log('no page changed since the last commit');
     for (const i of pages) {
       const { data } = await p.send('Page.captureScreenshot', {
-        format: 'png', captureBeyondViewport: true, clip: { ...boxes[i], scale: 1 },
+        format: 'png', captureBeyondViewport: true, clip: { x: boxes[i].x, y: boxes[i].y, width: boxes[i].width, height: boxes[i].height, scale: 1 },
       });
       const name = `page-${labels[i] === '—' ? `at${i + 1}` : labels[i]}.png`;
       fs.writeFileSync(path.join(out, name), Buffer.from(data, 'base64'));
