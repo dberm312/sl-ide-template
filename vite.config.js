@@ -47,6 +47,28 @@ function slIde() {
   };
 }
 
+const LAB_MAX_BODY = 256 * 1024;
+
+// Only the lab page on this dev server may post (SL-76): browsers mark a
+// cross-site fetch with Sec-Fetch-Site and Origin, and requiring a JSON body
+// means a cross-site fetch must pass a CORS preflight first.
+function labSameOrigin(req) {
+  const site = req.headers['sec-fetch-site'];
+  if (site !== undefined && site !== 'same-origin') return false;
+  const origin = req.headers.origin;
+  if (origin === undefined) return true;
+  try {
+    return new URL(origin).host === req.headers.host;
+  } catch {
+    return false;
+  }
+}
+
+function labReply(res, status, text) {
+  res.statusCode = status;
+  res.end(text);
+}
+
 // The slide lab (lab.html) posts verdicts and notes here; the agent reads
 // them from .lab/feedback.json. Dev server only, so the build never sees it.
 function labFeedback() {
@@ -56,25 +78,51 @@ function labFeedback() {
     configureServer(server) {
       const dir = path.resolve(server.config.root, '.lab');
       server.middlewares.use('/__lab/feedback', (req, res) => {
-        if (req.method !== 'POST') {
-          res.statusCode = 405;
-          res.end();
-          return;
+        if (req.method !== 'POST') return labReply(res, 405, '');
+        if (!labSameOrigin(req)) return labReply(res, 403, 'cross-site request');
+        const type = (req.headers['content-type'] ?? '').split(';')[0].trim().toLowerCase();
+        if (type !== 'application/json') return labReply(res, 415, 'expected application/json');
+        if (Number(req.headers['content-length']) > LAB_MAX_BODY) {
+          res.setHeader('Connection', 'close');
+          return labReply(res, 413, 'too large');
         }
-        let body = '';
-        req.on('data', (chunk) => { body += chunk; });
-        req.on('end', () => {
-          try {
-            const data = JSON.parse(body);
-            fs.mkdirSync(dir, { recursive: true });
-            fs.writeFileSync(path.join(dir, 'feedback.json'), `${JSON.stringify(data, null, 2)}\n`);
-            // One file per send as well, so earlier rounds stay readable.
-            fs.writeFileSync(path.join(dir, `feedback-r${data.round}-${Date.now()}.json`), `${JSON.stringify(data, null, 2)}\n`);
-            res.end('ok');
-          } catch {
-            res.statusCode = 400;
-            res.end('bad json');
+        const chunks = [];
+        let size = 0;
+        let tooLarge = false;
+        req.on('data', (chunk) => {
+          if (tooLarge) return;
+          size += chunk.length;
+          if (size > LAB_MAX_BODY) {
+            tooLarge = true;
+            chunks.length = 0;
+            res.setHeader('Connection', 'close');
+            labReply(res, 413, 'too large');
+            return;
           }
+          chunks.push(chunk);
+        });
+        req.on('end', () => {
+          if (tooLarge) return;
+          let data;
+          try {
+            data = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+          } catch {
+            return labReply(res, 400, 'bad json');
+          }
+          const round = data?.round;
+          if (!Number.isInteger(round) || round < 0 || round > 9999) {
+            return labReply(res, 400, 'round must be an integer from 0 to 9999');
+          }
+          const text = `${JSON.stringify(data, null, 2)}\n`;
+          try {
+            fs.mkdirSync(dir, { recursive: true });
+            fs.writeFileSync(path.join(dir, 'feedback.json'), text);
+            // One file per send as well, so earlier rounds stay readable.
+            fs.writeFileSync(path.join(dir, `feedback-r${round}-${Date.now()}.json`), text);
+          } catch (err) {
+            return labReply(res, 500, `could not write .lab: ${err.code ?? err.message}`);
+          }
+          labReply(res, 200, 'ok');
         });
       });
     },

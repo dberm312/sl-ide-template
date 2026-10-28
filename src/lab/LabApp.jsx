@@ -146,7 +146,9 @@ function Board() {
     };
     setStatus('Sending…');
     try {
-      const res = await fetch('/__lab/feedback', { method: 'POST', body: JSON.stringify(body, null, 2) });
+      const res = await fetch('/__lab/feedback', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body, null, 2),
+      });
       if (!res.ok) throw new Error(res.statusText);
       setStatus(`Sent ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}. Tell your agent “lab feedback”.`);
     } catch {
