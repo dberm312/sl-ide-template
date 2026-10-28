@@ -39,4 +39,4 @@ const res = await fetch(`${base}/api/claim/${slug}`, {
 });
 const out = await res.json().catch(() => ({}));
 if (!res.ok) die(`${base} refused the claim (${res.status}): ${out.error ?? 'no reason given'}`);
-console.log(`claim-deck: "${slug}" now belongs to the account that started the claim. From that account, run \`pnpm create sl-ide token\` here to set a new SL_IDE_PUBLISH_TOKEN.`);
+console.log(`claim-deck: "${slug}" now belongs to the account that started the claim. From that account, run \`pnpm create sl-ide@latest token\` here to set a new SL_IDE_PUBLISH_TOKEN.`);

@@ -233,7 +233,7 @@ shows: `gh workflow run claim-deck.yml -f code=<code>`. GitHub's OIDC token
 proves the run is in this repo (by name, and by GitHub's repository id, which
 every publish sends as `GITHUB_REPOSITORY_ID`); the deck then belongs to the
 new account. Run
-`pnpm create sl-ide token` to set a new `SL_IDE_PUBLISH_TOKEN`.
+`pnpm create sl-ide@latest token` to set a new `SL_IDE_PUBLISH_TOKEN`.
 
 A deck publishes when it has `sl-ide.config.json`:
 
