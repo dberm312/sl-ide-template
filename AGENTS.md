@@ -50,7 +50,7 @@ divider and A1 Where things live. It explains the harness; replace it.
 | `new-deck` | Start a deck: audience, style, story | this repo |
 | `slide-lab` | Compare 2–4 takes on a page side by side, then promote one | this repo |
 | `copy-pass` | Edit the deck's copy under the deck's rules | this repo, uses copy-editing |
-| `ship-it` | Audit, print, check fonts, commit, push | this repo |
+| `ship-it` | Audit, print, check fonts, commit, push, wait for the publish | this repo |
 | `clean-up` | Remove dead code; fix doc drift | this repo |
 | `give-feedback` | Report harness friction or turn automatic feedback on/off | this repo |
 | `update-sl-ide` | Pull the latest harness from sl-ide, keep the deck's own files | this repo |
@@ -156,7 +156,7 @@ has the slide starter.
 | `pnpm lab` | the slide lab's fit report and screenshots |
 | `pnpm ask fit <labels or images>` | typed questions answered by TypeSafe's Jev, as JSON: does each page's picture fit it (`fits`, `misfit` with reasons, `no-picture`, `unsure`) and where it sits. Images are PNG or JPEG, 280–1568 px a side, e.g. `output/lab/<id>.png`. Needs `TYPESAFE_API_KEY`; a failed call exits 1, never a "no". |
 | `pnpm ask find <topic>` | which pages mention a topic, each with Jev's probability, most likely first |
-| `node scripts/doctor.js` | setup status |
+| `node scripts/doctor.js` | setup status, and the deck repo's latest Publish deck run |
 | `pnpm publish-deck` | publish `dist/` and the PDF to sl-ide cloud (CI does this on push) |
 | `pnpm new-project <name>` | another deck next to this one, via `pnpm create sl-ide` |
 
