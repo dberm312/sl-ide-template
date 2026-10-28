@@ -19,10 +19,11 @@ const RUN = { databaseId: 123, headBranch: 'main', headSha: 'abcdef0123456789', 
 // No user or system git config: the VM's url.insteadOf would rewrite ORIGIN.
 const GIT_ENV = { GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1' };
 
+// Canonical paths keep doctor.js's entrypoint check working on macOS /var symlinks.
 // A deck in a temp dir with its own copy of doctor.js and a PATH holding only
 // git and, when given, a gh: 'fake' (tests/fake-gh.mjs) or a shell body.
 async function deck(t, { config = true, origin = ORIGIN, gh, runs = [], setUp = false } = {}) {
-  const dir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'sl-ide-doctor-'));
+  const dir = await fs.promises.realpath(await fs.promises.mkdtemp(path.join(os.tmpdir(), 'sl-ide-doctor-')));
   t.after(() => fs.promises.rm(dir, { recursive: true, force: true }));
   fs.mkdirSync(path.join(dir, 'scripts'));
   fs.mkdirSync(path.join(dir, 'bin'));
