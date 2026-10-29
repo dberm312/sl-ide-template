@@ -10,9 +10,10 @@ imports it.
 ## Getting started
 
 If `PRODUCT.md` or `DESIGN.md` is missing, the deck hasn't been set up. When
-the user asks for slides, run the **new-deck** skill first. It runs
-**impeccable** to capture the audience (PRODUCT.md) and learn the style
-from a brand source (DESIGN.md and the tokens), then outlines the story.
+the user asks for slides, run the **deck-setup** skill first. It runs
+**impeccable** to capture the audience and purpose (PRODUCT.md), learns the
+style from a brand source (DESIGN.md and the tokens), sets the format, then
+outlines the story. Run it again when the purpose, style or format changes.
 `node scripts/doctor.js` reports what's left; `pnpm dev` prints the same.
 
 To find a page's files, start with `output/map.md` (`pnpm map`; every
@@ -32,7 +33,7 @@ drift apart. In the sl-ide-template repo itself, keep everything brand-neutral.
 
 ## This deck
 
-<!-- new-deck fills this in: the page list in order (one line each: label,
+<!-- deck-setup fills this in: the page list in order (one line each: label,
      action title, what the page shows) and the standing decisions about
      story, numbers and voice, each dated and attributed, e.g.
      "(Alex, 2026-10-14)". Keep it a description of the deck as it is now. -->
@@ -47,7 +48,7 @@ divider and A1 Where things live. It explains the harness; replace it.
 
 | Skill | When | Source |
 |---|---|---|
-| `new-deck` | Start a deck: audience, style, story | this repo |
+| `deck-setup` | Set or change the deck's purpose, style and format, then the story | this repo |
 | `slide-lab` | Compare 2–4 takes on a page side by side, then promote one | this repo |
 | `copy-pass` | Edit the deck's copy under the deck's rules | this repo, uses copy-editing |
 | `ship-it` | Audit, print, check fonts, commit, push, wait for the publish | this repo |

@@ -16,7 +16,7 @@ export const memo = {
     {
       ol: [
         'Run **pnpm skills** to restore impeccable, copy-editing and copywriting, unless you have them installed globally.',
-        'Run **/new-deck**. Impeccable asks who the memo is for and what it must do (PRODUCT.md), then learns the style from your brand (DESIGN.md and the tokens).',
+        'Run **/deck-setup**. Impeccable asks who the memo is for and what it must do (PRODUCT.md), then learns the style from your brand (DESIGN.md and the tokens).',
         'Ask for the memo in plain words, or paste a draft. It lands in **memo.body** as blocks, and the preview pages it as you go.',
         'Run **/copy-pass** to tighten the words, then **/ship-it** to audit, print and commit.',
       ],

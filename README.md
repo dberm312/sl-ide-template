@@ -8,14 +8,14 @@ the layout checks; the agent writes and edits your slides.
 
 | Works with | | How |
 |---|---|---|
-| **Anthropic** | <img src=".github/agents/claude.svg" height="20" alt="" align="absmiddle"> Claude &nbsp; <img src=".github/agents/claude-code.svg" height="20" alt="" align="absmiddle"> Claude Code | Skills as slash commands: `/new-deck`, `/slide-lab`, `/ship-it` |
-| **OpenAI** | <img src=".github/agents/chatgpt.svg" height="20" alt="" align="absmiddle"> ChatGPT &nbsp; <img src=".github/agents/codex.svg" height="20" alt="" align="absmiddle"> Codex | The same skills: `$new-deck`, `$slide-lab`, `$ship-it` |
+| **Anthropic** | <img src=".github/agents/claude.svg" height="20" alt="" align="absmiddle"> Claude &nbsp; <img src=".github/agents/claude-code.svg" height="20" alt="" align="absmiddle"> Claude Code | Skills as slash commands: `/deck-setup`, `/slide-lab`, `/ship-it` |
+| **OpenAI** | <img src=".github/agents/chatgpt.svg" height="20" alt="" align="absmiddle"> ChatGPT &nbsp; <img src=".github/agents/codex.svg" height="20" alt="" align="absmiddle"> Codex | The same skills: `$deck-setup`, `$slide-lab`, `$ship-it` |
 | **Any AI agent** | Works natively | Everything is plain files in the repo (`AGENTS.md`, skills, scripts), so any agent that reads files and runs commands picks it up. No plugin. |
 
 Logos belong to their owners.
 
 > **Agents: this README is sl-ide's, not the deck's.** When you set up a new
-> project from this template (`/new-deck`), rewrite it for that project.
+> project from this template (`/deck-setup`), rewrite it for that project.
 > Keep one line at the top linking back to
 > [sl-ide](https://github.com/dberm312/sl-ide-template) and saying what it is (the
 > IDE this deck is built in, with its docs and commands). Everything below
@@ -93,10 +93,11 @@ Then follow the guide `pnpm dev` prints:
    ([marketingskills](https://github.com/coreyhaines31/marketingskills))
    from `skills-lock.json`. Skip it if you have them installed globally.
 2. **Learn the style.** Open Claude Code (or Codex) here and run
-   `/new-deck` (`$new-deck` in Codex). Impeccable interviews you for
+   `/deck-setup` (`$deck-setup` in Codex). Impeccable interviews you for
    `PRODUCT.md` (who reads the deck, and what it must do), then reads your
    brand from a website, a PDF or a guide and writes `DESIGN.md` and the
    tokens. Then it drafts the story as action titles for you to approve.
+   Run it again whenever the deck's purpose, style or format changes.
 3. **Build slides.** Ask for pages in plain words. In the preview, press
    `c` and click anything to copy a comment for your agent, ask for
    `/slide-lab` to compare takes on a page, `/copy-pass` to tighten the
@@ -271,7 +272,7 @@ By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 | `src/lab/` | the slide lab board; `takes/` holds the current session |
 | `PRODUCT.md`, `DESIGN.md` | audience and visual system, written by impeccable |
 | `AGENTS.md` | the working agreement for agents (`CLAUDE.md` imports it) |
-| `.agents/skills/` | new-deck, slide-lab, copy-pass, ship-it, clean-up, update-sl-ide (symlinked into `.claude/skills/`) |
+| `.agents/skills/` | deck-setup, slide-lab, copy-pass, ship-it, clean-up, update-sl-ide (symlinked into `.claude/skills/`) |
 | `skills-lock.json` | the third-party skills this repo expects (impeccable, copy-editing, copywriting, typesafe-ai) |
 | `scripts/` | audit, pdf, shots, lab, fonts, doctor |
 

@@ -3,7 +3,7 @@
 #
 #   pnpm fonts
 #
-# Edit FACES to change the deck's type (the /new-deck skill does this when it
+# Edit FACES to change the deck's type (the /deck-setup skill does this when it
 # sets the style), then add a matching @font-face per file in src/styles.css.
 # Each entry is  <file-stem>:<css2 family query>.  The file stem must start
 # with the family in kebab case (inter-tight-…), because scripts/check-fonts.sh

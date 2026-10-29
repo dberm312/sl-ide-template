@@ -7,7 +7,7 @@
 
    Three parts, in order:
      1. fonts and DESIGN TOKENS (:root). The starter's tokens are a neutral
-        placeholder. /new-deck has impeccable replace them with your visual
+        placeholder. /deck-setup has impeccable replace them with your visual
         system and record it in DESIGN.md. Slides never hard-code a colour.
      2. the page frame and shared building blocks, then one block per page
      3. the screen-only IDE chrome (dev bar, rail, sorter), which has its
@@ -34,7 +34,7 @@
 @font-face { font-family: "Source Serif 4"; src: url("./fonts/source-serif-400i.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: block; }
 @font-face { font-family: "JetBrains Mono"; src: url("./fonts/jetbrains-mono-400.woff2") format("woff2"); font-weight: 400; font-display: block; }
 
-/* --- design tokens (placeholder until /new-deck) ------------------------- */
+/* --- design tokens (placeholder until /deck-setup) ------------------------- */
 :root {
   --ink:      #1d1f24;   /* body and headline type */
   --paper:    #ffffff;   /* page ground */
@@ -627,7 +627,7 @@ b, strong { font-weight: 700; }
   .devbar-logo i { font-style: normal; color: var(--ide-accent-soft); }
   .devbar-deck { color: #b0aea5; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .devbar-count { margin-left: 0; }
-  /* Setup chip: shown until /new-deck is done. */
+  /* Setup chip: shown until /deck-setup is done. */
   .devbar-setup {
     align-self: flex-start; padding: 3px 10px; border-radius: 999px; white-space: nowrap;
     border: 1px dashed var(--ide-accent-soft); color: var(--ide-accent-soft); font-weight: 600;

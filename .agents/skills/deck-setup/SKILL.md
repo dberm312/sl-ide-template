@@ -1,13 +1,15 @@
 ---
-name: new-deck
-description: Start a new deck or memo in sl-ide. Checks setup and the format (16:9 slides or a US Letter memo), runs impeccable to capture the audience (PRODUCT.md) and learn the visual style from a brand source (DESIGN.md and the tokens in src/styles.css), then outlines the story (action titles, or a memo's headings) and replaces the starter pages. Use when the user says "new deck", "start a deck", "new memo", "write a memo", "set up the deck", "learn the style", "/new-deck", or when PRODUCT.md or DESIGN.md is missing and they ask for slides.
+name: deck-setup
+description: Set or change what a deck is for, how it looks and its format. Captures the audience and purpose (PRODUCT.md), learns the visual style from a brand source (DESIGN.md and the tokens in src/styles.css), sets the format (16:9 slides or a US Letter memo), then outlines the story (action titles, or a memo's headings) and builds the pages. Runs on a fresh project from the starter, and again whenever the purpose, style or format changes. Use when the user says "set up the deck", "new deck", "start a deck", "new memo", "change the style", "restyle", "rebrand", "learn the style", "change the audience", "switch to a memo", "switch to slides", "/deck-setup", or when PRODUCT.md or DESIGN.md is missing and they ask for slides.
 ---
 
-# New deck
+# Deck setup
 
-Takes the sl-ide starter to a real deck in four stages. Each stage ends with
-something on disk, so the run can stop and resume. Read `AGENTS.md` first;
-its rules apply throughout.
+Sets the deck's purpose, style and format, then shapes the story to match.
+On a fresh project it takes the sl-ide starter to a real deck in four
+stages. On a deck that's already set up, it reruns only the stages the
+change needs. Each stage ends with something on disk, so the run can stop
+and resume. Read `AGENTS.md` first; its rules apply throughout.
 
 ## 0. Check setup
 
@@ -17,13 +19,24 @@ Run `node scripts/doctor.js --json`.
   `pnpm skills`. It restores the skills in
   `skills-lock.json` into `.agents/skills/` and `.claude/skills/`, which are
   gitignored. If the user declines, or there is no network, say impeccable is
-  unavailable and do steps 1 and 2 by hand: run the interview below yourself
+  unavailable and do stages 1 and 2 by hand: run the interview below yourself
   and write PRODUCT.md and DESIGN.md from the answers, inventing nothing.
 - Make sure `pnpm dev` is running in the background, so the user watches
   pages change. Give them the URL Vite prints.
 
-If PRODUCT.md and DESIGN.md both exist, this is not a new deck: ask whether
-to redo the style, redo the story, or stop.
+If PRODUCT.md and DESIGN.md both exist, the deck is already set up. Ask
+what is changing, unless the user said, and run only those stages:
+
+| Change | Stages |
+|---|---|
+| **Purpose**: audience, the decision it drives, presented vs. pre-read | 1, then 3 and 4 if the story no longer fits |
+| **Style**: a new brand source, a rebrand, a different look | 2 |
+| **Format**: slides to memo or back | Format below, then 3 and 4 |
+
+Update PRODUCT.md and DESIGN.md in place rather than starting them over,
+and keep the standing decisions in `AGENTS.md` unless the change overrides
+them. On a set-up deck, stage 4 rebuilds or edits the user's own pages: it
+never deletes copy without carrying it over.
 
 **Format.** Read `META.format` in `src/deck/content.js` (missing means
 `'slides'`). A project is one format: 16:9 slides, or a memo on US Letter
@@ -33,9 +46,13 @@ they want, ask first, before the interview: "Slides (16:9 pages) or a memo
 (US Letter pages, text flowing from page to page)?" If they want a memo and
 the project has the slide starter, run `pnpm use-format memo`; it swaps in
 the memo starter. `pnpm create sl-ide --format memo` will have done this
-already. Never switch a project whose
-pages are already the user's own. Where the steps below differ for a memo,
-they say so.
+already.
+
+Switching a deck whose pages are already the user's own is a rebuild, not a
+swap (`pnpm use-format` refuses). Confirm with the user first, then set
+`META.format`, draft the new format's outline from the existing copy in
+stage 3, and build it in stage 4; the old pages go only once their content
+has a home. Where the steps below differ for a memo, they say so.
 
 ## 1. Product truth: PRODUCT.md
 
@@ -124,6 +141,9 @@ new type and colours broke (a heavier face sets wider, so titles may wrap).
 
 ## 3. Story: the action titles
 
+On a deck being changed rather than started, begin from its current page
+list and mark what moves, merges, goes or is new.
+
 Draft the deck as titles only, one line each, in a numbered list in chat:
 cover, the main pages, then any appendix. Each title states the page's
 point as a full sentence; read in order, the titles alone tell the story.
@@ -134,13 +154,16 @@ section heading as a sentence stating the section's point, with a line
 under each on what it says. Read in order, the headings tell the argument.
 Name any fixed pages (an exhibit, an appendix table) at the end.
 
-## 4. Replace the starter pages
+## 4. Build the pages
 
 Once the titles are approved:
 
-1. Delete the starter's page components (`StartHereSlide`, `AnatomySlide`,
+1. On the starter, delete the starter's page components (`StartHereSlide`, `AnatomySlide`,
    `ChecksSlide`, `FilesSlide`), their modules in `src/deck/pages/` and
    their CSS blocks. Keep the cover and the divider and adapt them.
+   On a deck being changed, edit the pages the new titles keep, and
+   delete a page only once its copy lives on another page or the user
+   cut it.
 2. One component per page in `src/slides/`, one module per page in
    `src/deck/pages/<key>.js` exporting `<key>`, one CSS block per page in
    `styles.css`. Register them in `src/slides/index.jsx`.
@@ -161,7 +184,7 @@ Once the titles are approved:
 outline as blocks (the shapes are listed at the top of
 `src/components/Flow.jsx`): the `memohead`, then a heading and paragraphs
 per section. Never hand-break the copy to fit a page; the paginator does
-that. Replace the starter's appendix page, or remove it from
+that. Replace the starter's appendix page (on the starter), or remove it from
 `src/slides/index.jsx` if the memo has none. Then steps 3 to 7 as above;
 the audit's RUNT note means the last page holds a line or two, usually a
 sentence to cut.

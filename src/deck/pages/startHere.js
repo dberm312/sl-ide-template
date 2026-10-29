@@ -11,7 +11,7 @@ export const startHere = {
     {
       n: '2',
       head: 'Learn the style',
-      cmd: '/new-deck',
+      cmd: '/deck-setup',
       body: 'Impeccable interviews you for **PRODUCT.md** (audience, purpose, constraints), then reads your brand from a site, PDF or guide and writes **DESIGN.md** and the tokens.',
     },
     {
@@ -28,5 +28,5 @@ export const startHere = {
     { maker: 'OpenAI', marks: [['chatgpt', 'ChatGPT'], ['codex', 'Codex']] },
   ],
   agentsNote: 'and any AI agent, natively',
-  footer: 'Codex users: invoke skills as $new-deck, $slide-lab and so on. The terminal under pnpm dev and the setup chip in the dev bar show which steps are left.',
+  footer: 'Codex users: invoke skills as $deck-setup, $slide-lab and so on. The terminal under pnpm dev and the setup chip in the dev bar show which steps are left.',
 };

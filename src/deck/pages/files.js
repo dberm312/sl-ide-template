@@ -8,7 +8,7 @@ export const files = {
     ['src/styles.css', 'Tokens on :root, then page styles, then the dev chrome.'],
     ['PRODUCT.md · DESIGN.md', 'Audience and visual system, written by impeccable.'],
     ['AGENTS.md', 'The rules every agent follows here (CLAUDE.md imports it).'],
-    ['.agents/skills/', 'new-deck, slide-lab, copy-pass, ship-it, clean-up.'],
+    ['.agents/skills/', 'deck-setup, slide-lab, copy-pass, ship-it, clean-up.'],
     ['skills-lock.json', 'The third-party skills this repo expects.'],
     ['scripts/', 'audit, pdf, shots, lab, fonts, doctor.'],
   ],
