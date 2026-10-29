@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { cp, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,7 +21,10 @@ export function editorSuite(format) {
         return !/^(node_modules|\.git|dist|output|\.agents|\.claude)(\/|$)/.test(rel);
       } });
       await symlink(path.join(root, 'node_modules'), path.join(dir, 'node_modules'));
-      if (format === 'memo') await cp(path.join(root, 'starters/memo'), dir, { recursive: true });
+      if (format === 'memo') {
+        await promisify(execFile)(process.execPath, ['scripts/use-format.mjs', 'memo'], { cwd: dir });
+        expect((await readdir(path.join(dir, 'src/deck/pages'))).sort()).toEqual(['files.js', 'memo.js']);
+      }
       // The runner loader avoids writing Vite's bundled config through the
       // node_modules symlink. Mutable files stay in this disposable project.
       dev = await createServer({ root: dir, configLoader: 'runner', server: { host: '127.0.0.1', port: 0 } });
@@ -110,6 +113,15 @@ export function editorSuite(format) {
       await page.keyboard.press('g');
       await page.locator('.vw-cell').nth(2).click();
       await expect(page).toHaveURL(/#view\/3$/);
+      // Page copy lives outside content.js. Editing that module must update
+      // the visible page without losing the viewer's position.
+      const module = path.join(dir, 'src/deck/pages', format === 'slides' ? 'anatomy.js' : 'files.js');
+      const copy = await readFile(module, 'utf8');
+      await writeFile(module, copy.replace(/title:\s*(['"])(.*?)\1/, "title: 'Page module reload verified'"));
+      try {
+        await expect(page.locator('.vw-stage').getByRole('heading', { name: 'Page module reload verified', exact: true })).toBeVisible();
+        await expect(page).toHaveURL(/#view\/3$/);
+      } finally { await writeFile(module, copy); }
       // Change a source file, then require a fresh load of the changed deck.
       const content = path.join(dir, 'src/deck/content.js');
       const original = await readFile(content, 'utf8');

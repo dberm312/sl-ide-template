@@ -4,7 +4,7 @@ import * as Anatomy from './AnatomySlide.jsx';
 import * as Checks from './ChecksSlide.jsx';
 import * as Divider from './AppendixDivider.jsx';
 import * as Files from './FilesSlide.jsx';
-import { files } from '../deck/content.js';
+import { files } from '../deck/pages/files.js';
 
 const entry = (id, kind, mod, props) => ({
   id, kind, Component: mod.default, title: mod.title, props,

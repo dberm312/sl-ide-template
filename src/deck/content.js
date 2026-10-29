@@ -1,11 +1,14 @@
-// Every word and every box on every page, in one plain module.
+// What every page shares: the page's zones, the deck's META, and rich().
 //
-// The React slides (src/slides/*) render from it. It is plain JS with no JSX,
-// so copy and geometry can be read and edited without touching a component.
-// Change copy here, never in a slide component.
+// Each page's words and boxes live in their own plain module,
+// src/deck/pages/<key>.js, exporting <key>; the page's component in
+// src/slides/ imports it. One file per page, so agents working on different
+// pages never edit the same file. The modules are plain JS with no JSX, so
+// copy and geometry can be read and edited without touching a component.
+// Change copy there, never in a slide component.
 //
-// The pages below are sl-ide's starter deck: they explain the harness, and
-// they are the pattern to copy. Replace them with your own as you build.
+// The starter deck's pages explain the harness, and they are the pattern to
+// copy. Replace them with your own as you build.
 //
 // Inline markup, parsed by rich() below:
 //   **bold**                 bold figures and key terms
@@ -59,110 +62,3 @@ export function rich(str) {
   if (last < str.length) out.push({ text: str.slice(last), bold: false });
   return out;
 }
-
-// --- Cover ------------------------------------------------------------------
-export const cover = {
-  title: 'Cover',
-  kicker: 'An IDE for building slides',
-  inBriefHead: 'In brief',
-  // One line per story beat. Read alone, they should tell the deck's story.
-  inBrief: [
-    'Pages are React components at a fixed 16:9 size, printed to a vector PDF',
-    'Claude Code, Codex or any AI agent writes the pages; you steer by commenting on them',
-    'Impeccable sets the visual system once, so every page shares it',
-    'An audit catches clipped, crowded and overlapping pages before you ship',
-  ],
-};
-
-// --- Start here ---------------------------------------------------------------
-export const startHere = {
-  title: 'Three steps take this starter to your first real deck',
-  lede: 'Open your coding agent in this folder, keep pnpm dev running, and work through these in order.',
-  steps: [
-    {
-      n: '1',
-      head: 'Install the skills',
-      cmd: 'pnpm skills',
-      body: 'Restores **impeccable**, **copy-editing** and **copywriting** from skills-lock.json into gitignored project folders. If you have them installed globally, there is nothing to do here.',
-    },
-    {
-      n: '2',
-      head: 'Learn the style',
-      cmd: '/new-deck',
-      body: 'Impeccable interviews you for **PRODUCT.md** (audience, purpose, constraints), then reads your brand from a site, PDF or guide and writes **DESIGN.md** and the tokens.',
-    },
-    {
-      n: '3',
-      head: 'Build the slides',
-      cmd: 'ask in plain words',
-      body: 'Ask for pages and they land in the preview. Press **c** to comment on any element, **/slide-lab** to compare takes and **/ship-it** to audit, print and commit the deck.',
-    },
-  ],
-  // sl-ide wraps the agent; the agent edits the pages. Marks in slides/agentLogos.js.
-  agentsHead: 'Works with',
-  agents: [
-    { maker: 'Anthropic', marks: [['claude', 'Claude'], ['claude-code', 'Claude Code']] },
-    { maker: 'OpenAI', marks: [['chatgpt', 'ChatGPT'], ['codex', 'Codex']] },
-  ],
-  agentsNote: 'and any AI agent, natively',
-  footer: 'Codex users: invoke skills as $new-deck, $slide-lab and so on. The terminal under pnpm dev and the setup chip in the dev bar show which steps are left.',
-};
-
-// --- Anatomy of a page ----------------------------------------------------------
-export const anatomy = {
-  title: 'Each page is copy in content.js, placed in inch boxes',
-  regions: {
-    left: [0.5, 1.45, 6.1, 5.2],
-    right: [6.95, 1.45, 5.88, 5.2],
-  },
-  leftHead: 'How a page is made',
-  points: [
-    '**content.js** holds every word and box; components only place them.',
-    '**One component per page** in src/slides/; index.jsx sets the order and the appendix.',
-    '**Tokens only**: colour and type live on :root in styles.css, never in a slide.',
-    '**Action titles** state the page’s point, so the titles alone tell the story.',
-    'Open facts stay visible: [TBD: a figure you still need] prints as written.',
-  ],
-  rightHead: 'Building blocks',
-  cards: [
-    { head: 'Region', body: 'A box placed by box([x, y, w, h]); the audit flags copy that overflows it.' },
-    { head: 'Card', body: 'A filled panel for one idea. Give it the card class so the audit measures it.' },
-    { head: 'Sticker', body: 'A titleTag such as PRELIMINARY marks a page as a first pass.', outline: true },
-  ],
-  footer: 'Source: sl-ide starter. The outlined card shows the one-per-page emphasis pattern: an outline, not a fill.',
-};
-
-// --- Checks -----------------------------------------------------------------------
-export const checks = {
-  title: 'The preview flags crowded or clipped pages as you edit',
-  regions: { table: [0.5, 1.45, 12.33, 5.2] },
-  head: ['Check', 'What it catches', 'Where you see it'],
-  rows: [
-    ['CLIPPED', 'Content runs past the footer. Pages are a fixed box, so the PDF would hide it.', 'Rail badge, pnpm run audit'],
-    ['SPILL', 'A card or region is too small for its own copy.', 'Rail badge, pnpm run audit'],
-    ['OVERLAP', 'Two stacked bands print on top of each other.', 'Rail badge, pnpm run audit'],
-    ['WORDY', 'The page is over the word budget (META.wordBudget).', 'Rail word count, audit'],
-    ['RAGGED', 'A wrapped line ends in a stub under a third of the width. Advisory.', 'pnpm run audit'],
-    ['Fonts', 'A glyph fell back to a system font in the PDF.', 'CI, before publishing'],
-  ],
-  footer: 'On push, CI runs the audit, prints the PDF and publishes to sl-ide cloud. A failing page stops the publish.',
-};
-
-// --- Appendix -------------------------------------------------------------------
-export const appendixDivider = { title: 'Appendix' };
-
-export const files = {
-  title: 'Where things live',
-  short: 'Where things live',
-  regions: { table: [0.5, 1.45, 12.33, 5.2] },
-  rows: [
-    ['src/deck/content.js', 'Every word and region box. Edit copy here.'],
-    ['src/slides/', 'One component per page; index.jsx sets the order.'],
-    ['src/styles.css', 'Tokens on :root, then page styles, then the dev chrome.'],
-    ['PRODUCT.md · DESIGN.md', 'Audience and visual system, written by impeccable.'],
-    ['AGENTS.md', 'The rules every agent follows here (CLAUDE.md imports it).'],
-    ['.agents/skills/', 'new-deck, slide-lab, copy-pass, ship-it, clean-up.'],
-    ['skills-lock.json', 'The third-party skills this repo expects.'],
-    ['scripts/', 'audit, pdf, shots, lab, fonts, doctor.'],
-  ],
-};

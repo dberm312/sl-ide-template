@@ -7,55 +7,37 @@ import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import { promisify } from 'node:util';
-import { changedPages, deckSources, pagesFor, parseDiff } from '../scripts/deck-files.mjs';
+import { changedPages, deckSources, pagesFor } from '../scripts/deck-files.mjs';
 
 const run = promisify(execFile);
 const root = path.resolve(import.meta.dirname, '..');
-const content = fs.readFileSync(path.join(root, 'src/deck/content.js'), 'utf8').split('\n');
-const lineOf = (re) => content.findIndex((l) => re.test(l)) + 1;
 const IDS = ['cover', 'start-here', 'anatomy', 'checks', 'appendix', 'files'];
 const pages = (changes) => changedPages(root, IDS, changes).map((i) => IDS[i]);
 
-test('a page component, or the content.js export it reads, maps to that page', () => {
-  assert.deepEqual(pages([{ file: 'src/slides/AnatomySlide.jsx', lines: [12] }]), ['anatomy']);
-  assert.deepEqual(pages([{ file: 'src/deck/content.js', lines: [lineOf(/^export const anatomy/) + 1] }]), ['anatomy']);
-  assert.deepEqual(pages([
-    { file: 'src/deck/content.js', lines: [lineOf(/^export const checks/) + 2] },
-    { file: 'src/slides/CoverSlide.jsx', lines: null },
-  ]), ['cover', 'checks']);
-  // The appendix page's block also names it on the divider (index.jsx's SHORT).
-  assert.deepEqual(pages([{ file: 'src/deck/content.js', lines: [lineOf(/^export const files/) + 1] }]), ['appendix', 'files']);
+test('a page component, or the page module it reads, maps to that page', () => {
+  assert.deepEqual(pages(['src/slides/AnatomySlide.jsx']), ['anatomy']);
+  assert.deepEqual(pages(['src/deck/pages/anatomy.js']), ['anatomy']);
+  assert.deepEqual(pages(['src/deck/pages/checks.js', 'src/slides/CoverSlide.jsx']), ['cover', 'checks']);
+  // The appendix page's module also names it on the divider (index.jsx's SHORT).
+  assert.deepEqual(pages(['src/deck/pages/files.js']), ['appendix', 'files']);
+  // A new module no component imports yet touches no page.
+  assert.deepEqual(pages(['src/deck/pages/draft.js']), []);
 });
 
-test('styles, shared components, META and helpers map to every page; docs and the lab to none', () => {
-  for (const change of [
-    { file: 'src/styles.css', lines: [3] },
-    { file: 'src/components/SlideShell.jsx', lines: [3] },
-    { file: 'src/slides/index.jsx', lines: [3] },
-    { file: 'src/slides/agentLogos.js', lines: [3] },
-    { file: 'src/deck/content.js', lines: [lineOf(/^export const META/) + 1] },
-    { file: 'src/deck/content.js', lines: null },
-  ]) assert.deepEqual(pages([change]), IDS, change.file);
-  assert.deepEqual(pages([{ file: 'README.md', lines: [1] }, { file: 'src/lab/takes/index.js', lines: [1] }]), []);
+test('styles, shared components, content.js and helpers map to every page; docs and the lab to none', () => {
+  for (const file of [
+    'src/styles.css', 'src/components/SlideShell.jsx', 'src/slides/index.jsx',
+    'src/slides/agentLogos.js', 'src/deck/content.js',
+  ]) assert.deepEqual(pages([file]), IDS, file);
+  assert.deepEqual(pages(['README.md', 'src/lab/takes/index.js']), []);
 });
 
 test("a memo's flowing body maps to every flow page", () => {
   const memo = path.join(root, 'starters/memo');
   const src = deckSources(memo);
-  assert.deepEqual(pagesFor([{ file: 'src/deck/content.js', lines: [src.exports.find((e) => e.key === 'memo').line + 1] }], src).ids, new Set(['memo']));
-  assert.deepEqual(changedPages(memo, ['memo-1', 'memo-2', 'files'], [{ file: 'src/slides/FilesPage.jsx', lines: [1] }]), [2]);
-});
-
-test('parseDiff reads changed lines, new files and deletions', () => {
-  assert.deepEqual(parseDiff([
-    'diff --git a/src/a.js b/src/a.js', '--- a/src/a.js', '+++ b/src/a.js', '@@ -3 +3,2 @@', '@@ -9,2 +10,0 @@',
-    '--- /dev/null', '+++ b/src/new.jsx', '@@ -0,0 +1,3 @@',
-    '--- a/src/gone.jsx', '+++ /dev/null', '@@ -1,4 +0,0 @@',
-  ].join('\n')), [
-    { file: 'src/a.js', lines: [3, 4, 10] },
-    { file: 'src/new.jsx', lines: [1, 2, 3] },
-    { file: 'src/gone.jsx', lines: null },
-  ]);
+  assert.deepEqual(pagesFor(['src/deck/pages/memo.js'], src).ids, new Set(['memo']));
+  assert.deepEqual(changedPages(memo, ['memo-1', 'memo-2', 'files'], ['src/slides/FilesPage.jsx']), [2]);
+  assert.deepEqual(changedPages(memo, ['memo-1', 'memo-2', 'files'], ['src/deck/pages/files.js']), [2]);
 });
 
 test('check audits and shoots warm, and never measures a dev server for another checkout', async (t) => {
