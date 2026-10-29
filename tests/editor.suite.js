@@ -113,6 +113,14 @@ export function editorSuite(format) {
       await page.keyboard.press('g');
       await page.locator('.vw-cell').nth(2).click();
       await expect(page).toHaveURL(/#view\/3$/);
+      // A number then Enter jumps to that page.
+      await page.keyboard.type('1');
+      await expect(page.locator('.vw-count')).toContainText('Go to 1');
+      await page.keyboard.press('Enter');
+      await expect(page).toHaveURL(/#view\/1$/);
+      await page.keyboard.type('3');
+      await page.keyboard.press('Enter');
+      await expect(page).toHaveURL(/#view\/3$/);
       // Page copy lives outside content.js. Editing that module must update
       // the visible page without losing the viewer's position.
       const module = path.join(dir, 'src/deck/pages', format === 'slides' ? 'anatomy.js' : 'files.js');
@@ -127,13 +135,13 @@ export function editorSuite(format) {
       const original = await readFile(content, 'utf8');
       await writeFile(content, original.replace(/deckTitle:\s*(['"])(.*?)\1/, "deckTitle: 'Smoke reload verified'"));
       try {
-        await expect(page.locator('.vw-title')).toHaveText('Smoke reload verified');
+        await expect(page).toHaveTitle('Smoke reload verified');
         await expect(page).toHaveURL(/#view\/3$/);
         const html = path.join(dir, 'index.html');
         const navigation = page.waitForEvent('load');
         await writeFile(html, (await readFile(html, 'utf8')) + '\n<!-- smoke full reload -->\n');
         await navigation;
-        await expect(page.locator('.vw-title')).toHaveText('Smoke reload verified');
+        await expect(page).toHaveTitle('Smoke reload verified');
         await expect(page.locator('.vw-count')).toContainText('3 /');
         await expect(page).toHaveURL(/#view\/3$/);
       } finally { await writeFile(content, original); }

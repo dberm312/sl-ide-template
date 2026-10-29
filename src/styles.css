@@ -673,27 +673,22 @@ b, strong { font-weight: 700; }
   .vw-strip-cell:focus-visible .thumb { outline-color: var(--ide-accent-soft); }
   .vw-btn.is-on { color: var(--ide-accent-soft); }
 
-  /* Title, top left; the controls, bottom centre. Both fade when idle. */
-  .vw-top {
-    position: absolute; top: 0; left: 0; right: 0; z-index: 2;
-    display: flex; align-items: baseline; gap: 12px; padding: 14px 20px;
-    background: linear-gradient(rgb(14 15 18 / 0.85), rgb(14 15 18 / 0));
-    transition: opacity 0.35s;
+  /* The controls float over the page, bottom centre, and fade when idle; so
+     does the dev server's way back to the editor, top right. */
+  .vw-edit {
+    position: absolute; top: 12px; right: 14px; z-index: 2; padding: 6px 10px; border-radius: 6px;
+    background: rgb(27 28 33 / 0.92); color: #b0aea5; text-decoration: none; transition: opacity 0.35s;
   }
-  .vw-title { font-weight: 700; font-size: 14px; color: #faf9f5; }
-  .vw-by { color: #8b8a84; }
-  .vw-edit { margin-left: auto; color: #b0aea5; text-decoration: none; }
   .vw-edit:hover { color: #faf9f5; }
   .viewer kbd {
     font-family: var(--mono); font-size: 11px; background: #2a2b31; border-radius: 3px;
     padding: 1px 5px; margin-left: 4px; color: #e8e6dc;
   }
 
-  /* The page, as large as the window allows, with room for the bar. */
+  /* The page, as large as the window allows; the bar sits over it. */
   .vw-stage {
     flex: 1; min-height: 0; position: relative;
-    display: grid; place-items: center; padding: 56px 24px 76px;
-    touch-action: pan-y;
+    display: grid; place-items: center; touch-action: pan-y;
   }
   /* Its own stacking context, so a slide's z-indexed parts (the draft tab)
      stay under the bar and the grid. */
@@ -701,9 +696,9 @@ b, strong { font-weight: 700; }
   /* A memo: every page down one scrolling column. */
   .vw-stage.is-doc {
     display: flex; flex-direction: column; align-items: center; gap: 24px;
-    overflow-y: auto; touch-action: auto;
+    padding: 24px 24px 76px; overflow-y: auto; touch-action: auto;
   }
-  .vw-stage.is-doc .vw-page { flex: none; scroll-margin-top: 56px; }
+  .vw-stage.is-doc .vw-page { flex: none; scroll-margin-top: 24px; }
   .vw-hit {
     position: absolute; top: 0; bottom: 0; width: 30%; z-index: 1;
     background: none; border: 0; padding: 0; cursor: pointer;
@@ -731,6 +726,7 @@ b, strong { font-weight: 700; }
     min-width: 64px; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; color: #faf9f5;
   }
   .vw-count span { color: #8b8a84; font-weight: 500; }
+  .vw-count.is-jump { color: var(--ide-accent-soft); }
   .vw-sep { width: 1px; height: 18px; background: #34353c; margin: 0 4px; }
   .vw-bar [data-tip] { position: relative; }
   .vw-bar [data-tip]:hover::after {
@@ -739,11 +735,8 @@ b, strong { font-weight: 700; }
     background: #faf9f5; color: #15161a; font-size: 12px; font-weight: 500; pointer-events: none;
   }
 
-  .vw-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #1d1e23; }
-  .vw-progress span { display: block; height: 100%; background: var(--ide-accent); transition: width 0.25s; }
-
   .viewer.is-idle { cursor: none; }
-  .viewer.is-idle :is(.vw-top, .vw-bar) { opacity: 0; pointer-events: none; }
+  .viewer.is-idle :is(.vw-edit, .vw-bar) { opacity: 0; pointer-events: none; }
   .viewer.is-idle .vw-bar { transform: translate(-50%, 8px); }
   .viewer.is-idle .vw-hit { cursor: none; }
 
@@ -769,9 +762,7 @@ b, strong { font-weight: 700; }
   .vw-cell-cap b { color: var(--ide-accent-soft); flex: none; }
 
   @media (max-width: 700px) {
-    .vw-stage { padding: 48px 8px 72px; }
-    .vw-top { padding: 12px 14px; }
-    .vw-by { display: none; }
+    .vw-stage.is-doc { padding: 12px 8px 72px; }
     .vw-hit { display: none; }
     /* No room for a column beside the page: the strip goes on top. */
     .viewer.is-side { flex-direction: column; }
@@ -781,6 +772,6 @@ b, strong { font-weight: 700; }
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .vw-top, .vw-bar, .vw-progress span { transition: none; }
+    .vw-edit, .vw-bar { transition: none; }
   }
 }

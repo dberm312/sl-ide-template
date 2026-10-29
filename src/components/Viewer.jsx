@@ -3,14 +3,15 @@ import SlideThumb from './SlideThumb.jsx';
 import { META } from '../deck/content.js';
 import { FORMAT, PAGE } from './page.js';
 
-// The audience's view of the deck: one page at a time, fitted to the window,
+// The audience's view of the deck: one page at a time, filling the window,
 // with the controls out of the way. A built deck (dist/, and so sl-ide cloud)
 // opens here by default; on the dev server it is the "View" route.
 //
 //   #view        page 1        #view/3   page 3 (positions, cover = 1)
 //
-// Keys: ← → (also space, PgUp/PgDn, j/k) · Home/End · g grid · f fullscreen
-// · b slides · d dock · Esc back to the editor (dev server only).
+// Keys: ← → (also space, PgUp/PgDn, j/k) · Home/End · a number then Enter
+// jumps to that page · g grid · f fullscreen · b slides · d dock · Esc back
+// to the editor (dev server only).
 //
 // The slides strip is the editor's rail for viewers: every page as a
 // thumbnail, docked on the left (a column) or on top (a row), the current one
@@ -32,6 +33,8 @@ import { FORMAT, PAGE } from './page.js';
 const MEMO = FORMAT === 'memo';
 const MEMO_MAX_SCALE = 1.4;
 const IDLE_MS = 2200;
+// Typed digits wait this long for Enter before they're dropped.
+const JUMP_MS = 1600;
 const PDF_PATH = './deck.pdf';
 // Thumbs are as wide as the side strip allows, or as tall as the top one.
 const STRIP_SIDE_W = MEMO ? 120 : 168;
@@ -106,6 +109,7 @@ export default function Viewer({ slides, pages, apx }) {
   const [hasPdf, setHasPdf] = useState(false);
   const [strip, setStrip] = useState(readStripOpen);
   const [place, setPlace] = useState(readStripPlace);
+  const [jump, setJump] = useState('');
   const side = place === 'side';
   const stageRef = useRef(null);
   const stripRef = useRef(null);
@@ -192,6 +196,13 @@ export default function Viewer({ slides, pages, apx }) {
     else document.documentElement.requestFullscreen?.().catch(() => {});
   }, []);
 
+  // Digits typed in a row, shown in the counter until Enter jumps there.
+  useEffect(() => {
+    if (!jump) return undefined;
+    const t = setTimeout(() => setJump(''), JUMP_MS);
+    return () => clearTimeout(t);
+  }, [jump]);
+
   useEffect(() => {
     const onKey = (e) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -200,6 +211,9 @@ export default function Viewer({ slides, pages, apx }) {
         if (k === 'Escape' || k === 'g') { e.preventDefault(); setGrid(false); }
         return;
       }
+      if (/^[0-9]$/.test(k)) { setJump((j) => (j + k).slice(-3)); return; }
+      if (jump && k === 'Enter') { e.preventDefault(); go(Number(jump) - 1); setJump(''); return; }
+      if (jump && (k === 'Escape' || k === 'Backspace')) { e.preventDefault(); setJump(k === 'Escape' ? '' : jump.slice(0, -1)); return; }
       // On the dev server, Esc goes back to editing (the fullscreen exit
       // takes it first when fullscreen is on).
       if (k === 'Escape' && import.meta.env.DEV && !document.fullscreenElement) {
@@ -217,7 +231,7 @@ export default function Viewer({ slides, pages, apx }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [grid, index, count, go, toggleFull]);
+  }, [grid, index, count, go, toggleFull, jump]);
 
   // Swipe: a mostly horizontal drag of 40px or more turns the page.
   useEffect(() => {
@@ -289,11 +303,7 @@ export default function Viewer({ slides, pages, apx }) {
       )}
 
       <div className="vw-main">
-        <header className="vw-top">
-          <span className="vw-title">{META.deckTitle}</span>
-          {META.author && <span className="vw-by">{META.author}</span>}
-          {import.meta.env.DEV && <a className="vw-edit" href="#preview">Back to editor <kbd>esc</kbd></a>}
-        </header>
+        {import.meta.env.DEV && <a className="vw-edit" href="#preview">Back to editor <kbd>esc</kbd></a>}
 
         {MEMO ? (
           <main className="vw-stage is-doc" ref={stageRef}>
@@ -320,7 +330,7 @@ export default function Viewer({ slides, pages, apx }) {
 
         <nav className="vw-bar" aria-label="Deck controls">
           <button type="button" className="vw-btn" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous page (←)" data-tip="Previous (←)"><Icon kind="prev" /></button>
-          <span className="vw-count" aria-live="polite">{index + 1} <span>/ {count}</span></span>
+          <span className={`vw-count${jump ? ' is-jump' : ''}`} aria-live="polite">{jump ? <>Go to {jump} <kbd>↵</kbd></> : <>{index + 1} <span>/ {count}</span></>}</span>
           <button type="button" className="vw-btn" onClick={() => go(index + 1)} disabled={index === count - 1} aria-label="Next page (→)" data-tip="Next (→)"><Icon kind="next" /></button>
           <span className="vw-sep" />
           <button type="button" className={`vw-btn${strip ? ' is-on' : ''}`} onClick={() => setStrip((o) => !o)} aria-pressed={strip} aria-label={strip ? 'Hide slides (b)' : 'Show slides (b)'} data-tip={strip ? 'Hide slides (b)' : 'Show slides (b)'}><Icon kind={side ? 'side' : 'top'} /></button>
@@ -333,8 +343,6 @@ export default function Viewer({ slides, pages, apx }) {
           )}
           <button type="button" className="vw-btn" onClick={toggleFull} aria-label={full ? 'Exit full screen (f)' : 'Full screen (f)'} data-tip={full ? 'Exit full screen (f)' : 'Full screen (f)'}><Icon kind={full ? 'exit' : 'full'} /></button>
         </nav>
-
-        <div className="vw-progress" aria-hidden="true"><span style={{ width: `${((index + 1) / count) * 100}%` }} /></div>
       </div>
 
       {grid && (
