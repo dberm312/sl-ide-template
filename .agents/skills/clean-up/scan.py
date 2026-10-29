@@ -29,7 +29,7 @@ def strip_comments(text, blank_strings=False):
     return TOKEN.sub(sub, text)
 
 
-css_files = ['src/styles.css', 'src/lab/lab.css', 'src/lab/takes/takes.css']
+css_files = ['src/styles.css', 'src/lab/lab.css', *sorted(glob.glob('src/lab/takes/*.css'))]
 css = strip_comments('\n'.join(read(f) for f in css_files if os.path.exists(f)))
 code_files = [f for f in glob.glob('src/**/*', recursive=True) if f.endswith(('.js', '.jsx'))]
 code = {f: read(f) for f in code_files}

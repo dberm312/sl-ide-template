@@ -20,8 +20,8 @@ built at runtime:
 - Keys read by index (`labels[row.kind]`, a logo map).
 - Classes that `DevBar.jsx`, `Audit.jsx` or `Inspector.jsx` query with
   `querySelector` or list in a selector constant (`BOXES`, `RAGGED_CHECK`).
-- The lab (`src/lab/`) is permanent tooling. When idle, `takes.css` is
-  nearly empty by design.
+- The lab (`src/lab/`) is permanent tooling. When idle, `takes/` holds
+  only `index.js`, by design.
 - The starter's building blocks in `styles.css` (`.card`, `.bullets`,
   `.table`, `.lede`, `.eyebrow`, `.section-title`, `.is-outline`, `.fill`)
   are the deck's vocabulary. Unused ones are **Redundant**, not Dead: propose.

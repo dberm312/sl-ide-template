@@ -49,7 +49,7 @@ divider and A1 Where things live. It explains the harness; replace it.
 | Skill | When | Source |
 |---|---|---|
 | `deck-setup` | Set or change the deck's purpose, style and format, then the story | this repo |
-| `slide-lab` | Compare 2–4 takes on a page side by side, then promote one | this repo |
+| `slide-lab` | Explore 2–4 takes on a page, each on a different axis, flip through them, then promote one | this repo |
 | `copy-pass` | Edit the deck's copy under the deck's rules | this repo, uses copy-editing |
 | `ship-it` | Audit, print, check fonts, commit, push, wait for the publish | this repo |
 | `clean-up` | Remove dead code; fix doc drift | this repo |
@@ -157,7 +157,7 @@ has the slide starter.
 | `pnpm run audit` | CLIPPED / SPILL / OVERLAP / WORDY per page, LONG per memo; exits 1 on any. RAGGED and RUNT are advisory. Not `pnpm audit`, which audits dependencies. |
 | `pnpm shots [labels]` | `output/shots/page-<label>.png` at 1:1 (`SCALE=2` for 2x) |
 | `pnpm pdf` | `output/<META.pdfName>.pdf`, plus `output/cover.png` (the first page, for the deck list on sl-ide cloud) |
-| `pnpm lab` | the slide lab's fit report and screenshots |
+| `pnpm lab [ids]` | the slide lab's fit report and `output/lab/<id>.png`, for every take or just the named ones (only those are loaded, so parallel take-workers don't break each other) |
 | `pnpm ask fit <labels or images>` | typed questions answered by TypeSafe's Jev, as JSON: does each page's picture fit it (`fits`, `misfit` with reasons, `no-picture`, `unsure`) and where it sits. Images are PNG or JPEG, 280–1568 px a side, e.g. `output/lab/<id>.png`. Needs `TYPESAFE_API_KEY`; a failed call exits 1, never a "no". |
 | `pnpm ask find <topic>` | which pages mention a topic, each with Jev's probability, most likely first |
 | `node scripts/doctor.js` | setup status, and the deck repo's latest Publish deck run |
@@ -171,11 +171,13 @@ page stops the publish.
 
 ## Working in parallel
 
-Two subagent roles ship in `.claude/agents/` (Claude Code; for another
+Three subagent roles ship in `.claude/agents/` (Claude Code; for another
 agent, pass the file's body as the subagent's instructions):
 `deck-explorer` answers "where is X / what does page N say" read-only from
 `output/map.md`; `page-worker` owns one page, edits only its component and
-its page module, runs `pnpm check <label>` and returns the diff and audit line.
+its page module, runs `pnpm check <label>` and returns the diff and audit line;
+`take-worker` writes one slide-lab take in its own two files, checks it with
+`pnpm lab <id>` and looks at the screenshot (see the slide-lab skill).
 
 - **Fan out per page** when a task touches 3 or more pages that are
   independent: one `page-worker` each. Stay serial for token, `styles.css`,

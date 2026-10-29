@@ -142,7 +142,7 @@ install it for real work.
 | `/#sorter` | thumbnails |
 | `/#print` | pages without chrome (what the PDF prints) |
 | `/#audit` | the layout report |
-| `/lab.html` | the slide lab (dev server only) |
+| `/lab.html` | the slide lab (dev server only): one take at a time, ← → to flip, `r` the page today, `g` all takes |
 
 ## Memos
 
@@ -169,7 +169,7 @@ pnpm run audit        # CLIPPED / SPILL / OVERLAP / WORDY per page, LONG per mem
 pnpm shots 2 A1       # output/shots/page-<label>.png (no args = all; SCALE=2 for 2x)
 pnpm pdf              # output/<META.pdfName>.pdf, vector, fonts embedded; and output/cover.png
 pnpm publish-deck     # publish dist/ and the PDF to sl-ide cloud (CI does this)
-pnpm lab              # fit report and screenshots for the slide lab's takes
+pnpm lab [ids]        # fit report and screenshots for the slide lab's takes (all, or just those)
 pnpm ask fit 2 A1     # TypeSafe: does the picture on each page fit it? (JSON)
 pnpm ask find pricing # TypeSafe: which pages mention a topic? (JSON)
 pnpm fonts            # re-fetch the self-hosted fonts listed in scripts/fonts.sh
@@ -269,7 +269,7 @@ By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 | `src/styles.css` | design tokens on `:root`, then page styles, then the IDE chrome |
 | `src/components/` | the harness: page shell, memo paginator, dev bar, rail, comment mode, find, audit |
 | `starters/` | the memo starter, copied in by `pnpm use-format memo` |
-| `src/lab/` | the slide lab board; `takes/` holds the current session |
+| `src/lab/` | the slide lab board; `takes/` holds the current session, one `.jsx` and `.css` per take |
 | `PRODUCT.md`, `DESIGN.md` | audience and visual system, written by impeccable |
 | `AGENTS.md` | the working agreement for agents (`CLAUDE.md` imports it) |
 | `.agents/skills/` | deck-setup, slide-lab, copy-pass, ship-it, clean-up, update-sl-ide (symlinked into `.claude/skills/`) |

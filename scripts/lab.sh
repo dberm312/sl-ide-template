@@ -4,10 +4,13 @@
 # on a free port (so parallel worktrees don't collide) and stops it again.
 #
 #   ./scripts/lab.sh            -> fit report, then output/lab/<id>.png for every take
-#   ./scripts/lab.sh strip      -> report, then just that take's screenshot
+#   ./scripts/lab.sh ta tb      -> report and screenshots for just those takes. Only
+#                                  they are imported, so a subagent checking its own
+#                                  take isn't broken by another's half-written one.
 #   SCALE=2 ./scripts/lab.sh    -> screenshots at 2x
 #
-# Exits 1 if any take is CLIPPED, SPILL, OVERLAP or WORDY, as audit.sh does.
+# Exits 1 if any take is CLIPPED, SPILL, OVERLAP, WORDY, BROKEN (doesn't
+# compile or throws) or UNKNOWN (no such id), as audit.sh does.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/lib.sh
@@ -29,18 +32,17 @@ done
 [[ -n "$PORT" ]] || { cat "$LOG" >&2; echo "error: could not start the lab's dev server" >&2; exit 1; }
 
 URL="http://localhost:$PORT/lab.html"
+AUDIT="#audit"
+(( $# )) && AUDIT="#audit=$(IFS=,; echo "$*")"
 REPORT=$("$CHROME" --headless --disable-gpu --virtual-time-budget=15000 \
-  --dump-dom "$URL#audit" 2>/dev/null | python3 -c '
+  --dump-dom "$URL$AUDIT" 2>/dev/null | python3 -c '
 import html, re, sys
 m = re.search(r"<pre id=\"lab-audit\"[^>]*>(.*?)</pre>", sys.stdin.read(), re.S)
 print(html.unescape(m.group(1)) if m else "lab: could not read the report")
 ')
 echo "$REPORT"
 
-IDS=("$@")
-if (( $# == 0 )); then
-  IDS=($(echo "$REPORT" | awk 'NR > 1 { print $1 }'))
-fi
+IDS=($(echo "$REPORT" | awk 'NR > 1 && !/UNKNOWN/ { print $1 }'))
 OUT=output/lab
 mkdir -p "$OUT"
 for id in ${IDS[@]+"${IDS[@]}"}; do
@@ -50,4 +52,4 @@ for id in ${IDS[@]+"${IDS[@]}"}; do
   echo "wrote $OUT/$id.png"
 done
 
-! echo "$REPORT" | grep -qE 'CLIPPED|SPILL|OVERLAP|WORDY|FONTS-PENDING|could not read'
+! echo "$REPORT" | grep -qE 'CLIPPED|SPILL|OVERLAP|WORDY|BROKEN|UNKNOWN|FONTS-PENDING|could not read|measuring'

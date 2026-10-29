@@ -37,15 +37,27 @@ body.lab-solo .slide { margin: 0; box-shadow: none; }
 .lab-seg button.is-ref { font-style: italic; }
 .lab-send { background: var(--ide-accent); color: #fff; border: 0; padding: 7px 14px; font-weight: 600; }
 
-/* --- one row per take: the slide, then its notes beside it ----------------- */
+/* --- Focus: one page as large as the window allows, notes beside it -------- */
+.lab.is-focus { height: 100vh; display: flex; flex-direction: column; padding-bottom: 20px; }
+.lab.is-focus .lab-bar { position: static; }
+.lab-focus { flex: 1; min-height: 0; display: flex; gap: 20px; }
+.lab-stage { flex: 1; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.lab-focus .lab-side { flex: none; width: 340px; overflow-y: auto; }
+.lab-keys { color: var(--lab-dim); font-size: 12px; margin-top: auto; }
+.lab-keys kbd {
+  display: inline-block; min-width: 18px; padding: 0 4px; margin: 0 1px;
+  border: 1px solid var(--lab-line); text-align: center; font: inherit;
+}
+
+/* --- Compare: one row per take, the slide, then its notes beside it -------- */
 .lab-list { display: flex; flex-direction: column; gap: 20px; }
 .lab-row {
   display: flex; gap: 20px; align-items: flex-start;
   scroll-margin-top: 190px;
 }
-.lab-slide { flex: none; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45); outline: 3px solid transparent; outline-offset: 3px; }
-.lab-row.is-pick .lab-slide { outline-color: var(--lab-accent); }
-.lab-row.is-cut .lab-slide { opacity: 0.5; }
+.lab-slide { flex: none; background: var(--paper); box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45); outline: 3px solid transparent; outline-offset: 3px; }
+.lab-slide.is-pick, .lab-row.is-pick .lab-slide { outline-color: var(--lab-accent); }
+.lab-slide.is-cut, .lab-row.is-cut .lab-slide { opacity: 0.5; }
 .lab-row.is-ref { padding-top: 20px; border-top: 1px dashed var(--lab-line); }
 .lab-fit { overflow: hidden; }
 
@@ -55,7 +67,14 @@ body.lab-solo .slide { margin: 0; box-shadow: none; }
   display: inline-block; min-width: 24px; margin-right: 10px; padding: 0 6px;
   background: var(--lab-text); color: var(--lab-bg); text-align: center;
 }
+.lab-axis {
+  margin-left: 10px; padding: 1px 7px; border: 1px solid var(--lab-line);
+  font-size: 12px; font-weight: 600; color: var(--lab-dim); text-transform: lowercase;
+}
+.lab-identity { font-size: 13px; }
+.lab-identity b { color: var(--lab-text); font-weight: 600; }
 .lab-idea { color: var(--lab-dim); }
+.lab-broken { padding: 32px; background: var(--lab-bg); color: #f0b46a; font: 16px/1.4 ui-monospace, monospace; white-space: pre-wrap; }
 .lab-changes { color: var(--lab-text); }
 .lab-health { font-size: 12px; font-weight: 600; }
 .lab-health.is-ok { color: var(--lab-dim); }
@@ -69,5 +88,5 @@ body.lab-solo .slide { margin: 0; box-shadow: none; }
 
 .lab-measure { position: absolute; left: -10000px; top: 0; visibility: hidden; }
 
-/* Notes across all takes: full width under the bar's top row. */
-.lab-general { flex-basis: 100%; }
+/* Notes across all takes: full width under Compare's bar; Focus has them in the side column. */
+.lab-bar .lab-general { flex-basis: 100%; }
