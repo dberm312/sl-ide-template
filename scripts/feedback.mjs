@@ -30,7 +30,7 @@ export function scrub(report, root) {
   // Only fixed harness names and chrome token names are allowed, never deck tokens.
   const names = vocab.harnessPaths.flatMap(p => [p, path.basename(p)]).join(' ');
   const allowed = new Set([...common, ...tokens(JSON.stringify(vocab)), ...tokens(names), ...tokens((chrome.match(/--[\w-]+/g) ?? []).join(' '))]);
-  const sources = ['src/deck/content.js','src/slides','src/lab/takes','PRODUCT.md','DESIGN.md','README.md','sl-ide.config.json'];
+  const sources = ['src/deck','src/slides','src/lab/takes','PRODUCT.md','DESIGN.md','README.md','sl-ide.config.json'];
   const deckWords = new Set(sources.flatMap(p => files(root,p)).flatMap(p => tokens(read(path.join(root,p)))).filter(w => !allowed.has(w)));
   for (const field of ['mechanism','suggestion']) {
     const text = report[field];

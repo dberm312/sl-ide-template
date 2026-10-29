@@ -1,7 +1,8 @@
 import SlideShell from '../components/SlideShell.jsx';
 import DeckMark from '../components/DeckMark.jsx';
 import { box } from '../components/geometry.js';
-import { cover, META } from '../deck/content.js';
+import { META } from '../deck/content.js';
+import { cover } from '../deck/pages/cover.js';
 
 export const title = cover.title;
 

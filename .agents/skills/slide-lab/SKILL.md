@@ -22,8 +22,8 @@ PDF: `vite build` reads `index.html` only.
 
 ## 1. Start a session
 
-1. Read the page(s) in question: the slide component, its block in
-   `src/deck/content.js`, its CSS block in `src/styles.css`, and any hand
+1. Read the page(s) in question: the slide component, its module in
+   `src/deck/pages/`, its CSS block in `src/styles.css`, and any hand
    references to it listed in `AGENTS.md`.
 2. Ask only what blocks you (e.g. which content must survive). Otherwise
    state your assumptions in each take's `idea` and let the board settle them.
@@ -46,7 +46,7 @@ brief, the take's file name and CSS prefix, and the rules below. You write
   leads. Three is the default; never more than four.
 - Each take is a real slide: `SlideShell` with the page's kind, regions
   placed with `box([x, y, w, h])`, copy in a `const c = {…}` at the top of
-  the file in `content.js`'s shape, so promotion is a move, not a rewrite.
+  the file in its page module's shape, so promotion is a move, not a rewrite.
   Reuse existing content objects and classes where the take keeps them.
 - Every rule in `AGENTS.md` and `DESIGN.md` applies as in the deck: tokens
   only, title size, type floors, one emphasis per page, no colour-only
@@ -100,15 +100,15 @@ says a take is the one.
 
 Only when the user says which take goes in.
 
-1. Copy → `src/deck/content.js` as the page's block (replace, or add for a
-   new page), with dated comments for anything cut or changed.
+1. Copy → the page's module, `src/deck/pages/<key>.js` (replace, or a new
+   file for a new page), with dated comments for anything cut or changed.
 2. Component → `src/slides/` (replacing the old one, or new), reading from
-   `content.js`. CSS → the page's block in `src/styles.css`, renamed from the
+   that module. CSS → the page's block in `src/styles.css`, renamed from the
    take prefix to the page's own.
 3. `src/slides/index.jsx`: entries and appendix `SHORT` names. For removed
-   pages, delete their component, content block and CSS.
+   pages, delete their component, page module and CSS.
 4. Fix hand references to page labels (`AGENTS.md` lists them; `grep` for
-   the old labels in `content.js`). Update the page list in `AGENTS.md`.
+   the old labels in `src/deck/`). Update the page list in `AGENTS.md`.
 5. Look at the page with `pnpm check <label>`, then `pnpm run audit` must pass.
 6. Empty `src/lab/takes/` back to the idle session (an `index.js` with
    `takes: []`, `reference: []`) and delete `.lab/`.

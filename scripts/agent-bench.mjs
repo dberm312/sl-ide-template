@@ -15,7 +15,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import { TASKS, figures } from '../bench/agent-tasks.mjs';
+import { TASKS, deckFiles, figures } from '../bench/agent-tasks.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const run = promisify(execFile);
@@ -158,7 +158,7 @@ async function one(agent, task, n) {
     await git(dir, 'commit', '-qm', 'bench start');
     task.setup?.(dir);
     if (task.setup) await git(dir, 'commit', '-qam', 'bench seed');
-    const base = { 'src/deck/content.js': fs.readFileSync(path.join(dir, 'src/deck/content.js'), 'utf8') };
+    const base = deckFiles(dir);
     const head = (await git(dir, 'rev-parse', 'HEAD')).stdout.trim();
     result = await invoke(agent, task.prompt, dir);
     fs.rmSync(path.join(dir, '.agent-last-message'), { force: true });
@@ -167,13 +167,12 @@ async function one(agent, task, n) {
       .then((r) => ({ ok: true, out: r.stdout }), (e) => ({ ok: false, out: `${e.stdout ?? ''}${e.stderr ?? ''}` }));
     const changed = (await git(dir, 'status', '--porcelain', '--untracked-files=all')).stdout.split('\n').filter(Boolean)
       .map((l) => l.slice(3).replace(/^.* -> /, ''));
-    const content = fs.readFileSync(path.join(dir, 'src/deck/content.js'), 'utf8');
     const checks = {
       'agent completed': result.error === null,
       'audit passes': audit.ok,
       'only allowed files': changed.every((f) => allowedBy(task.allowed, f)),
       'no commit': (await git(dir, 'rev-parse', 'HEAD')).stdout.trim() === head,
-      'figures survive': figures(base['src/deck/content.js']).every((f) => content.includes(f)),
+      'figures survive': figures(Object.values(base).join('\n')).every((f) => Object.values(deckFiles(dir)).join('\n').includes(f)),
       'within caps': !result.capped,
       ...(await task.checks(dir, base, audit.out)),
     };

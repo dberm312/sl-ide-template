@@ -12,9 +12,10 @@ const mode = process.env.FAKE_AGENT_MODE ?? 'good';
 if (mode === 'dependency-env' && process.env.pnpm_config_verify_deps_before_run !== 'false') {
   throw new Error('agent commands must use the installed shared dependencies');
 }
-const file = path.join(dir, 'src/deck/content.js');
+const overflow = mode === 'overflow-comment' || mode === 'overflow-repeat';
+const file = path.join(dir, 'src/deck/pages', overflow ? 'anatomy.js' : 'startHere.js');
 const s = fs.readFileSync(file, 'utf8');
-if (mode === 'overflow-comment' || mode === 'overflow-repeat') {
+if (overflow) {
   const original = s.split('\n').find((line) => line.includes(' It also keeps every number,'));
   const replacement = mode === 'overflow-repeat'
     ? '$1 It also keeps every number, name and source exactly as written.' : '$1';
@@ -33,7 +34,7 @@ if (mode === 'descendant') {
 }
 if (codex) {
   say({ type: 'thread.started' });
-  say({ type: 'item.completed', item: { type: 'command_execution', command: 'cat src/deck/content.js' } });
+  say({ type: 'item.completed', item: { type: 'command_execution', command: 'cat src/deck/pages/startHere.js' } });
   say({ type: 'item.completed', item: { type: 'file_change' } });
   say({ type: 'item.completed', item: { type: 'command_execution', command: 'pnpm run audit' } });
   if (mode === 'error') say({ type: 'turn.failed', error: { message: 'agent execution failed' } });

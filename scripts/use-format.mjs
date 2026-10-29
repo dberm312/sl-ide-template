@@ -25,6 +25,8 @@ if (!FORMATS[format]) die(`usage: pnpm use-format <${Object.keys(FORMATS).join('
 const SLIDE_STARTER = [
   'src/slides/CoverSlide.jsx', 'src/slides/StartHereSlide.jsx', 'src/slides/AnatomySlide.jsx',
   'src/slides/ChecksSlide.jsx', 'src/slides/AppendixDivider.jsx', 'src/slides/FilesSlide.jsx',
+  'src/deck/pages/cover.js', 'src/deck/pages/startHere.js', 'src/deck/pages/anatomy.js',
+  'src/deck/pages/checks.js', 'src/deck/pages/appendixDivider.js',
 ];
 if (!SLIDE_STARTER.every((f) => fs.existsSync(path.join(ROOT, f)))) {
   die('this project no longer has the slide starter, so its pages are your own; switch by hand');

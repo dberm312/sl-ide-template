@@ -18,7 +18,7 @@ commit in step 7, so use it whenever a step goes wrong and say so.
 | Owner | Paths | On a conflict or upstream change |
 |---|---|---|
 | **Harness** | `src/components/`, `src/lab/` (except `takes/`), `src/App.jsx`, `src/main.jsx`, `scripts/` (including `feedback.mjs`, `feedback-schema.mjs`, `feedback-vocab.json`, `feedback-common-words.txt`), `starters/`, `tests/`, `vite.config.js`, `playwright.config.js`, `lab.html`, `CLAUDE.md`, `.gitignore`, `.githooks/`, `.github/`, `.agents/skills/` and `.claude/skills/` (sl-ide's own skills), `.claude/agents/`, `skills-lock.json`, `pnpm-workspace.yaml` | Take upstream's |
-| **Deck** | `src/deck/content.js`, `src/slides/`, `src/fonts/`, `src/lab/takes/`, `public/`, `PRODUCT.md`, `DESIGN.md`, `README.md`, `sl-ide.config.json`, `.sl-ide/` (private feedback settings and history; never touched by a pull) | Keep the deck's |
+| **Deck** | `src/deck/` (`content.js` and the page modules in `pages/`), `src/slides/`, `src/fonts/`, `src/lab/takes/`, `public/`, `PRODUCT.md`, `DESIGN.md`, `README.md`, `sl-ide.config.json`, `.sl-ide/` (private feedback settings and history; never touched by a pull) | Keep the deck's |
 | **Mixed** | `src/styles.css`, `AGENTS.md`, `package.json`, `pnpm-lock.yaml`, `index.html` | Split, below |
 
 Mixed files:
@@ -112,6 +112,16 @@ touched, read `git diff $BASE upstream/main -- <path>` and sort every hunk:
   the deck's version, in the deck's terms. Confirm by grepping the harness
   for the key or name (`git grep -n <name> -- src/components scripts`).
 
+**One module per page.** If the deck still has every page's copy in
+`src/deck/content.js` and no `src/deck/pages/`, split it as part of this
+update. Leave in `content.js` what every page shares (`PX_PER_IN`, `ZONES`,
+`META`, `PRELIMINARY`, `rich()` and its header comment, from upstream's
+version). Move each page's export, with the comments above it, verbatim into
+`src/deck/pages/<key>.js`, exporting the same `<key>`. Point each component's
+import (and `src/slides/index.jsx`'s) at its module; shared names still come
+from `content.js`. Change no copy. A deck mid-way, or with helpers between
+pages, gets the same split by hand; ask if a block belongs to two pages.
+
 A memo deck copied its pages from `starters/memo/`, so also read
 `git diff $BASE upstream/main -- starters/memo` for contract changes to
 port. If a contract change needs the deck's own copy or numbers changed,
@@ -124,7 +134,7 @@ uncommitted so it can be fixed or aborted.
 
 1. `pnpm install`
 2. `node --check` on every `.js`/`.mjs` file the merge touched, and
-   `node --check src/deck/content.js`.
+   `node --check` on `src/deck/content.js` and each `src/deck/pages/*.js`.
 3. `pnpm doctor`
 4. `pnpm run audit`. Every page must read `ok`.
 5. `pnpm pdf`, then `scripts/check-fonts.sh`

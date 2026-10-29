@@ -1,12 +1,13 @@
 import SlideShell from '../components/SlideShell.jsx';
 import Rich from '../components/Rich.jsx';
 import { box } from '../components/geometry.js';
-import { anatomy, PRELIMINARY } from '../deck/content.js';
+import { PRELIMINARY } from '../deck/content.js';
+import { anatomy } from '../deck/pages/anatomy.js';
 
 export const title = anatomy.title;
 
 // Bullets on the left, a stack of cards on the right: the two most common
-// page shapes, and the pattern for placing regions from content.js.
+// page shapes, and the pattern for placing regions from its page module.
 export default function AnatomySlide({ pageNumber }) {
   const { regions } = anatomy;
   return (

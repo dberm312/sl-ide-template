@@ -5,8 +5,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const CONTENT = 'src/deck/content.js';
+const PAGES = 'src/deck/pages';
+const START_HERE = `${PAGES}/startHere.js`;
+const ANATOMY = `${PAGES}/anatomy.js`;
+const CHECKS = `${PAGES}/checks.js`;
+const PAGE_MODULE = /^src\/deck\/pages\/[^/]+\.js$/;
 const read = (dir, f) => fs.readFileSync(path.join(dir, f), 'utf8');
+// Every file under src/deck, by repo-relative path: the agent's copy.
+export const deckFiles = (dir) => Object.fromEntries(['src/deck/content.js',
+  ...fs.readdirSync(path.join(dir, PAGES)).sort().map((f) => `${PAGES}/${f}`)].map((f) => [f, read(dir, f)]));
+const pageText = (files) => Object.entries(files).filter(([f]) => PAGE_MODULE.test(f)).map(([, t]) => t).join('\n');
 const swap = (dir, f, from, to) => {
   const s = read(dir, f);
   if (!s.includes(from)) throw new Error(`task setup: ${f} no longer contains ${JSON.stringify(from)}`);
@@ -23,36 +31,36 @@ export const TASKS = [
   {
     id: 'copy-edit',
     prompt: "Shorten page 2's action title so it reads tighter on one line. Keep its point. Don't change anything else.",
-    allowed: [CONTENT],
+    allowed: [START_HERE],
     checks: (dir, base) => ({
-      'title changed': titleOf(read(dir, CONTENT), 'startHere') !== titleOf(base[CONTENT], 'startHere'),
+      'title changed': titleOf(read(dir, START_HERE), 'startHere') !== titleOf(base[START_HERE], 'startHere'),
     }),
   },
   {
     id: 'overflow-fix',
     prompt: 'pnpm run audit fails on page 3. Fix it.',
-    setup: (dir) => swap(dir, CONTENT, `${CARD}'`, `${CARD}${LONG}'`),
-    allowed: [CONTENT],
+    setup: (dir) => swap(dir, ANATOMY, `${CARD}'`, `${CARD}${LONG}'`),
+    allowed: [ANATOMY],
     checks: async (dir) => {
       let body;
       try {
-        const { anatomy } = await import(pathToFileURL(path.join(dir, CONTENT)).href);
+        const { anatomy } = await import(pathToFileURL(path.join(dir, ANATOMY)).href);
         body = anatomy?.cards?.[1]?.body;
       } catch { /* invalid content also fails the audit */ }
       return {
         // The original wording belongs in // fit:, not in the rendered card.
         'copy shortened': typeof body === 'string' && body.length < (CARD + LONG).length,
-        'fit: mark': /\/\/ fit:/.test(read(dir, CONTENT)),
+        'fit: mark': /\/\/ fit:/.test(read(dir, ANATOMY)),
       };
     },
   },
   {
     id: 'new-page',
-    prompt: "Add an appendix page A2, after A1, titled 'Three numbers to confirm', listing these three numbers: 41% of decks, $2.3M ARR, 17 days to ship. For this benchmark, change only src/deck/content.js, src/slides/index.jsx and src/slides/*.jsx files. Do not update AGENTS.md, src/styles.css or any other files.",
-    allowed: [CONTENT, 'src/slides/index.jsx', /^src\/slides\/[^/]+\.jsx$/],
+    prompt: "Add an appendix page A2, after A1, titled 'Three numbers to confirm', listing these three numbers: 41% of decks, $2.3M ARR, 17 days to ship. For this benchmark, change only src/deck/pages/*.js, src/slides/index.jsx and src/slides/*.jsx files. Do not update AGENTS.md, src/styles.css or any other files.",
+    allowed: [PAGE_MODULE, 'src/slides/index.jsx', /^src\/slides\/[^/]+\.jsx$/],
     checks: (dir, base, audit) => {
-      const all = [CONTENT, 'src/slides/index.jsx', ...fs.readdirSync(path.join(dir, 'src/slides')).map((f) => `src/slides/${f}`)]
-        .map((f) => read(dir, f)).join('\n');
+      const all = [pageText(deckFiles(dir)), ...fs.readdirSync(path.join(dir, 'src/slides')).map((f) => read(dir, `src/slides/${f}`))]
+        .join('\n');
       return {
         'A2 in the audit': /^A2 /m.test(audit),
         'numbers verbatim': ['41%', '$2.3M', '17 days'].every((n) => all.includes(n)),
@@ -67,10 +75,10 @@ export const TASKS = [
       `"${CHECK_ROW}"`,
       `Note: make this read "${CHECK_NEW}"`,
     ].join('\n'),
-    allowed: [CONTENT],
+    allowed: [CHECKS],
     checks: (dir, base) => {
-      const before = base[CONTENT].split('\n');
-      const after = read(dir, CONTENT).split('\n');
+      const before = base[CHECKS].split('\n');
+      const after = read(dir, CHECKS).split('\n');
       const changed = after.filter((l, i) => l !== before[i]);
       return {
         'element changed': after.some((l) => l.includes(CHECK_NEW)) && !after.some((l) => l.includes(CHECK_ROW)),
@@ -80,18 +88,20 @@ export const TASKS = [
   },
   {
     id: 'multi-page',
-    prompt: 'Tighten the copy on every page. For this benchmark, edit only src/deck/content.js. Do not update AGENTS.md, src/styles.css or any other files.',
-    allowed: [CONTENT],
+    prompt: 'Tighten the copy on every page. For this benchmark, edit only the files in src/deck/pages/. Do not update AGENTS.md, src/styles.css or any other files.',
+    allowed: [PAGE_MODULE],
     checks: (dir, base) => {
-      const placeholders = base[CONTENT].match(/\[(?:CONFIRM|TBD):[^\]]*\]/g) ?? [];
+      const before = pageText(base);
+      const after = pageText(deckFiles(dir));
+      const placeholders = before.match(/\[(?:CONFIRM|TBD):[^\]]*\]/g) ?? [];
       return {
-        'placeholders survive': placeholders.every((p) => read(dir, CONTENT).includes(p)),
-        'copy changed': read(dir, CONTENT) !== base[CONTENT],
+        'placeholders survive': placeholders.every((p) => after.includes(p)),
+        'copy changed': after !== before,
       };
     },
   },
 ];
 
-// Every figure inside a content.js string; each must survive every task.
+// Every figure inside a string in src/deck; each must survive every task.
 export const figures = (src) => [...new Set((src.match(/'(?:[^'\\]|\\.)*'/g) ?? [])
   .flatMap((s) => s.match(/[$€£]?\d+(?:[.,]\d+)*%?[MKBk]?/g) ?? []))];

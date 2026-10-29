@@ -29,7 +29,7 @@ test('a correct edit passes for both agents, with turns, tools, tokens and cost 
   assert.deepEqual([claude.turns, claude.cost, claude.tokens, claude.readsBeforeEdit, claude.ranAudit], [3, 0.12, 1000, 2, true]);
   assert.deepEqual(claude.tools, { Read: 2, Edit: 1, Bash: 1 });
   assert.deepEqual([codex.turns, codex.tokens, codex.readsBeforeEdit, codex.ranAudit], [1, 1200, 1, true]);
-  assert.deepEqual(claude.changed, ['src/deck/content.js']);
+  assert.deepEqual(claude.changed, ['src/deck/pages/startHere.js']);
   assert.deepEqual(summary.map((s) => [s.agent, s.passRate]), [['claude', 1], ['codex', 1]]);
 });
 
