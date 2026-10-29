@@ -15,6 +15,14 @@ import { applyPageFormat, PAGE } from '../components/page.js';
 
 applyPageFormat();
 
+// A take that doesn't compile shows its error in its own place on the board
+// (Broken, below). Vite's full-page overlay would hide the takes that work
+// while a subagent is still writing one, so drop it for take files only.
+import.meta.hot?.on('vite:error', ({ err }) => {
+  if (!/\/src\/lab\/takes\//.test(err?.id ?? err?.loc?.file ?? '')) return;
+  requestAnimationFrame(() => document.querySelectorAll('vite-error-overlay').forEach((el) => el.remove()));
+});
+
 const SLIDE_W = PAGE.w;
 const SLIDE_H = PAGE.h;
 const { slug, round, brief, identity, mode = 'default', reference = [], takes } = session;

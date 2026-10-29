@@ -64,7 +64,7 @@ export function editorSuite(format) {
       expect(await cells.count()).toBeGreaterThan(1);
       await cells.nth(1).click();
       await expect(cells.nth(1)).toHaveClass(/is-on/);
-      await page.keyboard.press('k');
+      await page.keyboard.press('ArrowLeft');
       await expect(cells.first()).toHaveClass(/is-on/);
       await page.keyboard.press('s');
       await expect(page.locator('.sorter-cell').first()).toBeVisible();
