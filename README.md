@@ -124,7 +124,7 @@ install it for real work.
 
 | Key | |
 |---|---|
-| `j` / `k` | next / previous page |
+| `→` / `←` (or `↓` / `↑`) | next / previous page |
 | `s` | slide sorter (`+` / `-` to resize) |
 | `v` | viewer: what an audience sees (Esc to come back) |
 | `c` | comment mode: click an element, write a note, ⌘↵ copies a prompt-ready block |

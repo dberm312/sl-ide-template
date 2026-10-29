@@ -267,7 +267,7 @@ export default function SlideRail({
     };
   }, []);
 
-  // Keep the current thumb in view as j/k walk the deck. Scrolls the rail by
+  // Keep the current thumb in view as the arrow keys walk the deck. Scrolls the rail by
   // hand: scrollIntoView would also nudge the window.
   useEffect(() => {
     const rail = railRef.current;

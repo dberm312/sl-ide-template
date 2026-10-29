@@ -282,7 +282,7 @@ export default function DevBar({
     try { localStorage.setItem('dock-place', place); } catch { /* private window */ }
   }, [place]);
 
-  // j/k (and arrows) walk the deck; s drops into the sorter; d moves the bar.
+  // The arrow keys walk the deck; s drops into the sorter; d moves the bar.
   useEffect(() => {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'f') {
@@ -299,8 +299,8 @@ export default function DevBar({
       if (e.key === 'c') { setCommenting((on) => !on); return; }
       if (e.key === '?') { setShowKeys((on) => !on); return; }
       if (e.key === 'd') { setPlace((p) => (p === 'side' ? 'top' : 'side')); return; }
-      const dir = e.key === 'j' || e.key === 'ArrowDown' ? 1
-        : e.key === 'k' || e.key === 'ArrowUp' ? -1 : 0;
+      const dir = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1
+        : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
       if (!dir) return;
       e.preventDefault();
       // "current" is whichever slide's top is nearest the bottom edge of the
@@ -393,7 +393,7 @@ export default function DevBar({
         <SetupChip />
         {showKeys && (
           <span className="devbar-keys">
-            <kbd>j</kbd><kbd>k</kbd> slide · <kbd>s</kbd> sorter · <kbd>v</kbd> view · <kbd>b</kbd> slides · <kbd>d</kbd> dock · <kbd>c</kbd> comment · <kbd>⌘F</kbd> find · <kbd>?</kbd> shortcuts
+            <kbd>←</kbd><kbd>→</kbd> slide · <kbd>s</kbd> sorter · <kbd>v</kbd> view · <kbd>b</kbd> slides · <kbd>d</kbd> dock · <kbd>c</kbd> comment · <kbd>⌘F</kbd> find · <kbd>?</kbd> shortcuts
           </span>
         )}
       </div>
