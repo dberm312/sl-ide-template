@@ -69,6 +69,13 @@ test('two rejects remove text before the outbox, but never permit invalid struct
  fs.writeFileSync(file,JSON.stringify({...r,area:'Northwind'}));
  for(let i=0;i<3;i++)assert.equal(run(root,['send','--json',file,'--dry-run']).status,1);
 });
+test('two rejects drop only the failing text field',t=>{
+ const root=deck(t),suggestion='Give the table more room.',file=input(root,report(root,{mechanism:'Northwind needs a table.',suggestion}));
+ assert.equal(run(root,['send','--json',file,'--dry-run']).status,3);
+ const result=run(root,['send','--json',file,'--dry-run']);assert.equal(result.status,0,result.stderr);
+ const clean=JSON.parse(result.stdout);assert.equal(clean.mechanism,undefined);assert.equal(clean.suggestion,suggestion);
+ assert.match(result.stderr,/dropping mechanism/);assert.doesNotMatch(result.stderr,/dropping suggestion/);
+});
 test('auto off means no ship or struggle report, even when passed --auto',t=>{
  const root=deck(t),file=input(root,report(root,{kind:'struggle'}));
  for(const args of [['send','--auto','--json',file],['ship','--audit','absent']])assert.equal(run(root,args).status,0);

@@ -135,8 +135,14 @@ function cleanReport(report,root) {
     rejects[key]=(rejects[key]??0)+1;
     fs.writeFileSync(rejectsFile,JSON.stringify(rejects),{mode:0o600});
     if (rejects[key]<2) { error.scrub=true; throw error; }
-    console.error('Two scrub rejects: dropping free text; keeping enums only.');
-    return scrub(structured,root);
+    // Drop only the text fields that fail on their own; a clean field survives.
+    const kept={...structured};
+    for (const field of ['mechanism','suggestion']) {
+      if (report[field]===undefined) continue;
+      try { scrub({...structured,[field]:report[field]},root); kept[field]=report[field]; }
+      catch { console.error(`Two scrub rejects: dropping ${field}.`); }
+    }
+    return scrub(kept,root);
   }
 }
 export async function main(args=process.argv.slice(2),root=process.cwd()) {

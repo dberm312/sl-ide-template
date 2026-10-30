@@ -62,7 +62,7 @@ the output, and do not commit or push.
    saved audit output. Add `--note "<mechanism>"` only if something in this
    ship was hard. Launch in the background with output redirected to a local
    file (`> output/feedback-delivery.log 2>&1 &`). Do not wait for the result.
-   Do not report it. Read the give-feedback scrub rules before writing a note.
+   Do not report it. Read the sl-ide-feedback scrub rules before writing a note.
 
 Report in a few lines: the audit result, the PDF path, open placeholders,
 the commit hash and subject, the branch, whether the push landed, and the

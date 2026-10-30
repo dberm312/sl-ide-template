@@ -1,6 +1,6 @@
 ---
-name: give-feedback
-description: Report how sl-ide's harness worked, never deck content. Use for "give feedback", "report this to sl-ide", "this was hard", "turn feedback on/off", or /give-feedback. Also used after an opted-in struggle trigger.
+name: sl-ide-feedback
+description: Report how sl-ide's harness worked, never deck content. Use for "give feedback", "report this to sl-ide", "this was hard", "turn feedback on/off", or /sl-ide-feedback. Also used after an opted-in struggle trigger.
 ---
 
 # Give feedback

@@ -53,7 +53,7 @@ divider and A1 Where things live. It explains the harness; replace it.
 | `copy-pass` | Edit the deck's copy under the deck's rules | this repo, uses copy-editing |
 | `ship-it` | Audit, print, check fonts, commit, push, wait for the publish | this repo |
 | `clean-up` | Remove dead code; fix doc drift | this repo |
-| `give-feedback` | Report harness friction or turn automatic feedback on/off | this repo |
+| `sl-ide-feedback` | Report harness friction or turn automatic feedback on/off | this repo |
 | `update-sl-ide` | Pull the latest harness from sl-ide, keep the deck's own files | this repo |
 | `impeccable` | Product context, visual system, critique and polish | `skills-lock.json` |
 | `copy-editing` | Editing passes on existing copy | `skills-lock.json` |
@@ -208,7 +208,7 @@ its page module, runs `pnpm check <label>` and returns the diff and audit line;
 ## Feedback
 
 If `.sl-ide/feedback.json` has `"auto": true`, file one report with the
-`give-feedback` skill when any of these happen:
+`sl-ide-feedback` skill when any of these happen:
 1. You write a new script or helper because the harness has no way to do the task.
 2. You edit a harness-owned file (see the ownership table in `update-sl-ide`).
 3. You try the same fix 3 or more times, or `pnpm run audit` fails 3 or more times on the same page.
