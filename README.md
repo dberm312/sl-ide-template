@@ -103,7 +103,7 @@ Then follow the guide `pnpm dev` prints:
 3. **Build slides.** Ask for pages in plain words. In the preview, press
    `c` and click anything to copy a comment for your agent, ask for
    `/sl-ide-lab` to compare takes on a page, `/sl-ide-copy-pass` to tighten the
-   words, and `/sl-ide-ship` to audit, print, commit and push, then wait for CI to
+   words, `/sl-ide-review` to see what a cold reader takes away, and `/sl-ide-ship` to audit, print, commit and push, then wait for CI to
    publish it.
 
 The dev bar shows a "Setup · N steps left" chip until steps 1 and 2 are done.
@@ -274,7 +274,7 @@ By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 | `src/lab/` | the slide lab board; `takes/` holds the current session, one `.jsx` and `.css` per take |
 | `PRODUCT.md`, `DESIGN.md` | audience and visual system, written by impeccable |
 | `AGENTS.md` | the working agreement for agents (`CLAUDE.md` imports it) |
-| `.agents/skills/` | sl-ide-setup, sl-ide-lab, sl-ide-copy-pass, sl-ide-ship, sl-ide-clean, sl-ide-update (symlinked into `.claude/skills/`) |
+| `.agents/skills/` | sl-ide-setup, sl-ide-lab, sl-ide-copy-pass, sl-ide-review, sl-ide-ship, sl-ide-clean, sl-ide-update, sl-ide-feedback (symlinked into `.claude/skills/`) |
 | `skills-lock.json` | the third-party skills this repo expects (impeccable, copy-editing, copywriting, typesafe-ai) |
 | `scripts/` | audit, pdf, shots, lab, fonts, doctor |
 

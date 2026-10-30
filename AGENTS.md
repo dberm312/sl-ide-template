@@ -51,6 +51,7 @@ divider and A1 Where things live. It explains the harness; replace it.
 | `sl-ide-setup` | Set or change the deck's purpose, style and format, then the story | this repo |
 | `sl-ide-lab` | Explore 2–4 takes on a page, each on a different axis, flip through them, then promote one | this repo |
 | `sl-ide-copy-pass` | Edit the deck's copy under the deck's rules | this repo, uses copy-editing |
+| `sl-ide-review` | Hand the rendered pages to a cold reader persona, compare their takeaways with the deck's intent | this repo |
 | `sl-ide-ship` | Audit, print, check fonts, commit, push, wait for the publish | this repo |
 | `sl-ide-clean` | Remove dead code; fix doc drift | this repo |
 | `sl-ide-feedback` | Report harness friction or turn automatic feedback on/off | this repo |
@@ -171,13 +172,15 @@ page stops the publish.
 
 ## Working in parallel
 
-Three subagent roles ship in `.claude/agents/` (Claude Code; for another
+Four subagent roles ship in `.claude/agents/` (Claude Code; for another
 agent, pass the file's body as the subagent's instructions):
 `deck-explorer` answers "where is X / what does page N say" read-only from
 `output/map.md`; `page-worker` owns one page, edits only its component and
 its page module, runs `pnpm check <label>` and returns the diff and audit line;
 `take-worker` writes one sl-ide-lab take in its own two files, checks it with
-`pnpm lab <id>` and looks at the screenshot (see the sl-ide-lab skill).
+`pnpm lab <id>` and looks at the screenshot (see the sl-ide-lab skill);
+`deck-reader` sees only the page images and a covering note, and answers
+as the persona it is given (see the sl-ide-review skill).
 
 - **Fan out per page** when a task touches 3 or more pages that are
   independent: one `page-worker` each. Stay serial for token, `styles.css`,
