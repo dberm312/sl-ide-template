@@ -39,12 +39,14 @@ pnpm create sl-ide my-deck
 ```
 
 That's [sl-ide-create](https://github.com/dberm312/sl-ide-create). It asks a
-few questions, then:
+few questions, shows the folder, GitHub repo and slug it is about to create
+and asks to go ahead, then:
 
 - clones the **latest** sl-ide template from GitHub, keeping its history as
   the `upstream` remote, so later editor updates arrive with
   `git pull upstream main`;
-- creates the deck's own GitHub repo (private by default);
+- creates the deck's own GitHub repo (private by default) and makes it `gh`'s
+  default repo in the deck, so `gh` never acts on the template `upstream`;
 - asks about automatic anonymous harness feedback (Off by default; `--feedback auto` opts in);
 - sets it up to publish to [sl-ide cloud](https://app.sl-ide.com): you approve a
   sign-in in your browser, it saves a token for your account, writes

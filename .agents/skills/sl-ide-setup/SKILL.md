@@ -92,9 +92,9 @@ user wants anyone with the link to open it, tell them to save “Anyone with the
 link” under Sharing on `app.sl-ide.com/decks/<slug>` after the first publish. Confirm the
 repo has the `SL_IDE_PUBLISH_TOKEN` secret
 (`gh secret list -R "$(git remote get-url origin)"`); if not, have
-the user run `! pnpm create sl-ide login` and set it from the token saved in
-`~/.config/sl-ide/credentials.json`, under `servers["https://app.sl-ide.com"].teams.<team>.token`
-(never print the token).
+the user run `! pnpm create sl-ide@latest token` in the deck. It checks that
+their account may publish the slug and sets the secret on the repo `origin`
+names to a deck token for that slug only (never print the token).
 
 ## 2. Visual system: DESIGN.md and the tokens
 
