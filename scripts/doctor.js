@@ -10,7 +10,7 @@
 //
 // Setup is three things: the agent skills are reachable, PRODUCT.md exists,
 // and DESIGN.md exists. Impeccable writes both docs (init, then a style pass);
-// the /deck-setup skill runs it. Chrome is reported but optional for preview.
+// the /sl-ide-setup skill runs it. Chrome is reported but optional for preview.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -92,14 +92,14 @@ export function status(root = ROOT) {
         label: 'PRODUCT.md',
         ok: has('PRODUCT.md'),
         detail: has('PRODUCT.md') ? 'audience and purpose captured' : 'who the deck is for, and what it must do',
-        fix: 'run /deck-setup in Claude Code ($deck-setup in Codex)',
+        fix: 'run /sl-ide-setup in Claude Code ($sl-ide-setup in Codex)',
       },
       {
         id: 'design',
         label: 'DESIGN.md',
         ok: has('DESIGN.md'),
         detail: has('DESIGN.md') ? 'visual system recorded' : 'the style impeccable learns from your brand',
-        fix: 'finish /deck-setup: impeccable learns the style',
+        fix: 'finish /sl-ide-setup: impeccable learns the style',
       },
     ],
   };
@@ -190,7 +190,7 @@ export function banner(st = status(), url = 'http://localhost:5173/') {
     return [
       '',
       `  ${logo}  ${c.d('ready.')} Ask Claude or Codex for pages; ${c.b('c')} on a slide copies a comment for them.`,
-      `  ${c.d('/slide-lab for options · /copy-pass for copy · pnpm run audit · pnpm pdf · /ship-it')}`,
+      `  ${c.d('/sl-ide-lab for options · /sl-ide-copy-pass for copy · pnpm run audit · pnpm pdf · /sl-ide-ship')}`,
       '',
     ].join('\n');
   }
@@ -211,10 +211,10 @@ export function banner(st = status(), url = 'http://localhost:5173/') {
         `    1. Install the skills (impeccable, copy-editing, copywriting):  ${c.cy('pnpm skills')}`,
         `       ${c.d('Restores them from skills-lock.json into .agents/ and .claude/ (gitignored). Installed globally already? Then this step is done.')}`,
       ]),
-    `    2. Learn the style. Open Claude Code or Codex here and run ${c.cy('/deck-setup')} ${c.d('(Codex: $deck-setup)')}.`,
+    `    2. Learn the style. Open Claude Code or Codex here and run ${c.cy('/sl-ide-setup')} ${c.d('(Codex: $sl-ide-setup)')}.`,
     `       ${c.d('It runs impeccable: init writes PRODUCT.md, then it reads your brand (a site, a PDF, a guide) and writes DESIGN.md and the tokens.')}`,
     `    3. Build slides. Ask for pages in plain words; watch them land at ${c.cy(url)}`,
-    `       ${c.d('c = comment on any element · /slide-lab = compare takes · /copy-pass = tighten copy · /ship-it = audit, PDF, commit')}`,
+    `       ${c.d('c = comment on any element · /sl-ide-lab = compare takes · /sl-ide-copy-pass = tighten copy · /sl-ide-ship = audit, PDF, commit')}`,
     '',
   ].join('\n');
 }

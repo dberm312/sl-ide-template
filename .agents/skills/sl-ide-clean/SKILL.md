@@ -1,6 +1,6 @@
 ---
-name: clean-up
-description: Find and remove vestigial code (unused CSS, components, exports, content keys, assets, fonts) and bring the docs (README, AGENTS.md, DESIGN.md, PRODUCT.md, skills) back in line with the deck. The user is the source of truth, so any conflict is asked, never guessed. Use when the user says "clean up", "cleanup", "tidy", "vestigial", "doc drift", or /clean-up.
+name: sl-ide-clean
+description: Find and remove vestigial code (unused CSS, components, exports, content keys, assets, fonts) and bring the docs (README, AGENTS.md, DESIGN.md, PRODUCT.md, skills) back in line with the deck. The user is the source of truth, so any conflict is asked, never guessed. Use when the user says "clean up", "cleanup", "tidy", "vestigial", "doc drift", or /sl-ide-clean.
 ---
 
 # Clean up
@@ -11,7 +11,7 @@ When they disagree and the answer isn't obvious, ask. Don't pick a side.
 
 ## 1. Scan for dead code
 
-From the repo root run `python3 .agents/skills/clean-up/scan.py`. Every hit
+From the repo root run `python3 .agents/skills/sl-ide-clean/scan.py`. Every hit
 is a lead, not a verdict. Before calling one dead, grep for how it might be
 built at runtime:
 

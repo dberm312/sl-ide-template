@@ -6,7 +6,7 @@ import { applyPageFormat, PAGE } from '../components/page.js';
 // The slide lab: rival takes on one page, shown one at a time at full size
 // (Focus) or stacked for scrolling (Compare), so you can judge them, mark each
 // one and send the verdicts back to the agent. See
-// .claude/skills/slide-lab/SKILL.md for the loop this page serves.
+// .claude/skills/sl-ide-lab/SKILL.md for the loop this page serves.
 //
 // Routes (URL hash):
 //   (none)          the board: Focus or Compare, verdicts and notes
@@ -416,7 +416,7 @@ function Board() {
         {view === 'compare' && <GeneralNote fb={fb} setFb={setFb} />}
       </header>
 
-      {takes.length === 0 && <p className="lab-idea">No takes in this session. Ask your agent for some (/slide-lab).</p>}
+      {takes.length === 0 && <p className="lab-idea">No takes in this session. Ask your agent for some (/sl-ide-lab).</p>}
 
       {view === 'focus'
         ? <Focus current={current} mods={mods} health={health} fb={fb} setFb={setFb} setTake={setTake} />

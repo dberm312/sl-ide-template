@@ -23,7 +23,7 @@ function deck(t) {
   fs.writeFileSync(path.join(root,'sl-ide.config.json'),'{"slug":"confidential-pitch"}');
   return root;
 }
-const report=(root,extra={})=>({v:1,projectId:settings(root).projectId,kind:'manual',harness:'unknown',agent:'other',format:'slides',area:'table',element:'table',outcome:'worked_around',workaround:'split_content',touched:[],skill:'ship-it',mechanism:'Page frame padding leaves too little room for a wide table.',...extra});
+const report=(root,extra={})=>({v:1,projectId:settings(root).projectId,kind:'manual',harness:'unknown',agent:'other',format:'slides',area:'table',element:'table',outcome:'worked_around',workaround:'split_content',touched:[],skill:'sl-ide-ship',mechanism:'Page frame padding leaves too little room for a wide table.',...extra});
 const run=(root,args,env={})=>spawnSync(process.execPath,[script,...args],{cwd:root,env:{...process.env,SL_IDE_AGENT:'other',DO_NOT_TRACK:'',SL_IDE_FEEDBACK:'',SL_IDE_FEEDBACK_DEBUG:'1',...env},encoding:'utf8'});
 const input=(root,r)=>{const file=path.join(root,'input.json');fs.writeFileSync(file,JSON.stringify(r));return file;};
 const names=(root,dir)=>{try{return fs.readdirSync(path.join(root,'.sl-ide',dir));}catch{return[];}};

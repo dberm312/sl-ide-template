@@ -1,6 +1,6 @@
 ---
-name: copy-pass
-description: Edit the deck's copy in src/deck/pages/ with the copy-editing skill, under the deck's rules (numbers never change, placeholders stay, every page still fits). Use when the user says "copy pass", "tighten the copy", "edit the words", "proofread the deck", "this sounds like AI", "de-slop", "/copy-pass", or asks to improve the writing on one page or all of them.
+name: sl-ide-copy-pass
+description: Edit the deck's copy in src/deck/pages/ with the copy-editing skill, under the deck's rules (numbers never change, placeholders stay, every page still fits). Use when the user says "copy pass", "tighten the copy", "edit the words", "proofread the deck", "this sounds like AI", "de-slop", "/sl-ide-copy-pass", or asks to improve the writing on one page or all of them.
 ---
 
 # Copy pass

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Vestige scan for the deck. Run from the repo root: python3 .agents/skills/clean-up/scan.py
+"""Vestige scan for the deck. Run from the repo root: python3 .agents/skills/sl-ide-clean/scan.py
 
 Prints candidates only. Every hit is a lead to verify by hand: classes and
 keys are often built at runtime (`is-${key}`, `${prefix}-${level}`,

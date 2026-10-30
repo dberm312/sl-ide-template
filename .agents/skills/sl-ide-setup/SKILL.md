@@ -1,6 +1,6 @@
 ---
-name: deck-setup
-description: Set or change what a deck is for, how it looks and its format. Captures the audience and purpose (PRODUCT.md), learns the visual style from a brand source (DESIGN.md and the tokens in src/styles.css), sets the format (16:9 slides or a US Letter memo), then outlines the story (action titles, or a memo's headings) and builds the pages. Runs on a fresh project from the starter, and again whenever the purpose, style or format changes. Use when the user says "set up the deck", "new deck", "start a deck", "new memo", "change the style", "restyle", "rebrand", "learn the style", "change the audience", "switch to a memo", "switch to slides", "/deck-setup", or when PRODUCT.md or DESIGN.md is missing and they ask for slides.
+name: sl-ide-setup
+description: Set or change what a deck is for, how it looks and its format. Captures the audience and purpose (PRODUCT.md), learns the visual style from a brand source (DESIGN.md and the tokens in src/styles.css), sets the format (16:9 slides or a US Letter memo), then outlines the story (action titles, or a memo's headings) and builds the pages. Runs on a fresh project from the starter, and again whenever the purpose, style or format changes. Use when the user says "set up the deck", "new deck", "start a deck", "new memo", "change the style", "restyle", "rebrand", "learn the style", "change the audience", "switch to a memo", "switch to slides", "/sl-ide-setup", or when PRODUCT.md or DESIGN.md is missing and they ask for slides.
 ---
 
 # Deck setup
@@ -177,8 +177,8 @@ Once the titles are approved:
    line linking to [sl-ide](https://github.com/dberm312/sl-ide-template) and what
    it is, then the deck's purpose, audience, published link and how to
    run it. Drop the copied harness docs.
-7. Suggest a next step: `/copy-pass` once the content is in, `/slide-lab`
-   for any page they're unsure of, `/ship-it` when they want a PDF.
+7. Suggest a next step: `/sl-ide-copy-pass` once the content is in, `/sl-ide-lab`
+   for any page they're unsure of, `/sl-ide-ship` when they want a PDF.
 
 **For a memo**, replace `memo.body` in `src/deck/pages/memo.js` with the approved
 outline as blocks (the shapes are listed at the top of

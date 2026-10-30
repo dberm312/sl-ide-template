@@ -1,6 +1,6 @@
 ---
-name: update-sl-ide
-description: Pull the latest sl-ide harness into this deck from the `upstream` remote, keep the deck's own pages, copy and styles, drop any starter content the pull brings along, port the changes the harness now needs, check the deck still prints, and commit the merge. Use when the user says "update sl-ide", "pull upstream", "pull the template", "get the latest editor", or /update-sl-ide.
+name: sl-ide-update
+description: Pull the latest sl-ide harness into this deck from the `upstream` remote, keep the deck's own pages, copy and styles, drop any starter content the pull brings along, port the changes the harness now needs, check the deck still prints, and commit the merge. Use when the user says "update sl-ide", "pull upstream", "pull the template", "get the latest editor", or /sl-ide-update.
 ---
 
 # Update sl-ide
@@ -145,16 +145,16 @@ uncommitted so it can be fixed or aborted.
 
 ## 7. Clean up and commit
 
-1. `python3 .agents/skills/clean-up/scan.py`. Remove only what this merge
+1. `python3 .agents/skills/sl-ide-clean/scan.py`. Remove only what this merge
    orphaned, such as styles or content keys for a harness feature upstream
-   removed. Anything older is for /clean-up: mention it, don't touch it.
+   removed. Anything older is for /sl-ide-clean: mention it, don't touch it.
 2. Commit the merge. This skill is standing permission to commit it, not to
    push. Subject: `Pull sl-ide <short upstream sha>`, and a body with the
    update's highlights and anything kept, dropped or ported by hand.
 
 Report in a few lines: the upstream range pulled, what it brings, the
 deck-owned paths kept or dropped, contract changes ported, the check
-results and the commit hash. Say that `/ship-it` pushes and publishes it.
-Push only with ship-it, or with `git pull --no-rebase` then `git push`;
+results and the commit hash. Say that `/sl-ide-ship` pushes and publishes it.
+Push only with sl-ide-ship, or with `git pull --no-rebase` then `git push`;
 never `git pull --rebase`, which flattens the merge and loses its
 resolution.

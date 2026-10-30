@@ -1,6 +1,6 @@
 ---
 name: take-worker
-description: Writes or revises one slide-lab take. Given the brief, the identity and mode, its axis and its two files, builds the take, checks it with pnpm lab <id>, looks at the screenshot and fixes it until it fits and looks finished. Use one per take, in parallel, from the slide-lab skill.
+description: Writes or revises one sl-ide-lab take. Given the brief, the identity and mode, its axis and its two files, builds the take, checks it with pnpm lab <id>, looks at the screenshot and fixes it until it fits and looks finished. Use one per take, in parallel, from the sl-ide-lab skill.
 tools: Read, Edit, Write, Grep, Glob, Bash
 ---
 

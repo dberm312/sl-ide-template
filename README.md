@@ -8,14 +8,14 @@ the layout checks; the agent writes and edits your slides.
 
 | Works with | | How |
 |---|---|---|
-| **Anthropic** | <img src=".github/agents/claude.svg" height="20" alt="" align="absmiddle"> Claude &nbsp; <img src=".github/agents/claude-code.svg" height="20" alt="" align="absmiddle"> Claude Code | Skills as slash commands: `/deck-setup`, `/slide-lab`, `/ship-it` |
-| **OpenAI** | <img src=".github/agents/chatgpt.svg" height="20" alt="" align="absmiddle"> ChatGPT &nbsp; <img src=".github/agents/codex.svg" height="20" alt="" align="absmiddle"> Codex | The same skills: `$deck-setup`, `$slide-lab`, `$ship-it` |
+| **Anthropic** | <img src=".github/agents/claude.svg" height="20" alt="" align="absmiddle"> Claude &nbsp; <img src=".github/agents/claude-code.svg" height="20" alt="" align="absmiddle"> Claude Code | Skills as slash commands: `/sl-ide-setup`, `/sl-ide-lab`, `/sl-ide-ship` |
+| **OpenAI** | <img src=".github/agents/chatgpt.svg" height="20" alt="" align="absmiddle"> ChatGPT &nbsp; <img src=".github/agents/codex.svg" height="20" alt="" align="absmiddle"> Codex | The same skills: `$sl-ide-setup`, `$sl-ide-lab`, `$sl-ide-ship` |
 | **Any AI agent** | Works natively | Everything is plain files in the repo (`AGENTS.md`, skills, scripts), so any agent that reads files and runs commands picks it up. No plugin. |
 
 Logos belong to their owners.
 
 > **Agents: this README is sl-ide's, not the deck's.** When you set up a new
-> project from this template (`/deck-setup`), rewrite it for that project.
+> project from this template (`/sl-ide-setup`), rewrite it for that project.
 > Keep one line at the top linking back to
 > [sl-ide](https://github.com/dberm312/sl-ide-template) and saying what it is (the
 > IDE this deck is built in, with its docs and commands). Everything below
@@ -71,7 +71,7 @@ next to it. `pnpm create sl-ide login` switches the signed-in account.
 `PRODUCT.md`, `DESIGN.md`, `sl-ide.config.json` and the "This deck" section
 of `AGENTS.md`. Fix a harness bug in sl-ide first, then pull it into the
 decks, so it never has to be redone per deck. In a deck, the
-**update-sl-ide** skill (`/update-sl-ide`) does the pull: it takes the
+**sl-ide-update** skill (`/sl-ide-update`) does the pull: it takes the
 harness, keeps the deck's own files, drops any starter pages the pull brings
 along and checks the deck still prints. A deck made before the skill existed
 needs one plain `git pull upstream main` to get it.
@@ -93,15 +93,15 @@ Then follow the guide `pnpm dev` prints:
    ([marketingskills](https://github.com/coreyhaines31/marketingskills))
    from `skills-lock.json`. Skip it if you have them installed globally.
 2. **Learn the style.** Open Claude Code (or Codex) here and run
-   `/deck-setup` (`$deck-setup` in Codex). Impeccable interviews you for
+   `/sl-ide-setup` (`$sl-ide-setup` in Codex). Impeccable interviews you for
    `PRODUCT.md` (who reads the deck, and what it must do), then reads your
    brand from a website, a PDF or a guide and writes `DESIGN.md` and the
    tokens. Then it drafts the story as action titles for you to approve.
    Run it again whenever the deck's purpose, style or format changes.
 3. **Build slides.** Ask for pages in plain words. In the preview, press
    `c` and click anything to copy a comment for your agent, ask for
-   `/slide-lab` to compare takes on a page, `/copy-pass` to tighten the
-   words, and `/ship-it` to audit, print, commit and push, then wait for CI to
+   `/sl-ide-lab` to compare takes on a page, `/sl-ide-copy-pass` to tighten the
+   words, and `/sl-ide-ship` to audit, print, commit and push, then wait for CI to
    publish it.
 
 The dev bar shows a "Setup · N steps left" chip until steps 1 and 2 are done.
@@ -187,7 +187,7 @@ point at one).
 `pnpm ask` puts typed questions about the pages to
 [TypeSafe](https://typesafe.ai)'s Jev and prints its answers as JSON, with
 calibrated probabilities: `fit` sends each page's shot (or any PNG or JPEG,
-such as a slide-lab take) and asks whether its picture fits; `find` sends
+such as a lab take) and asks whether its picture fits; `find` sends
 every page's text and asks which pages mention a topic. The questions and the
 thresholds that turn answers into verdicts are in `scripts/ask-questions.mjs`;
 `--dry-run` prints the requests without sending them. A failed call exits 1
@@ -272,7 +272,7 @@ By hand: `pnpm build && pnpm pdf && SL_IDE_PUBLISH_TOKEN=… pnpm publish-deck`.
 | `src/lab/` | the slide lab board; `takes/` holds the current session, one `.jsx` and `.css` per take |
 | `PRODUCT.md`, `DESIGN.md` | audience and visual system, written by impeccable |
 | `AGENTS.md` | the working agreement for agents (`CLAUDE.md` imports it) |
-| `.agents/skills/` | deck-setup, slide-lab, copy-pass, ship-it, clean-up, update-sl-ide (symlinked into `.claude/skills/`) |
+| `.agents/skills/` | sl-ide-setup, sl-ide-lab, sl-ide-copy-pass, sl-ide-ship, sl-ide-clean, sl-ide-update (symlinked into `.claude/skills/`) |
 | `skills-lock.json` | the third-party skills this repo expects (impeccable, copy-editing, copywriting, typesafe-ai) |
 | `scripts/` | audit, pdf, shots, lab, fonts, doctor |
 
@@ -375,7 +375,7 @@ previews a manual report and asks “Send?” even when automatic feedback is of
 Reports are scrubbed before being saved to `.sl-ide/outbox/`, and again before
 retrying. Delivery times out after five seconds. Failed deliveries stay queued
 (up to 20 reports) for a later run; successful ones move to `.sl-ide/sent/`.
-Existing decks get the scripts through `/update-sl-ide` and stay opted out.
+Existing decks get the scripts through `/sl-ide-update` and stay opted out.
 
 ## Agent benchmark
 

@@ -1,6 +1,6 @@
 ---
-name: ship-it
-description: Audit, build and print the deck PDF, check its fonts, commit and push, then wait for CI to publish it and give the sl-ide cloud link, or the failing step and its fix. Use when the user says "ship it", "ship", or /ship-it.
+name: sl-ide-ship
+description: Audit, build and print the deck PDF, check its fonts, commit and push, then wait for CI to publish it and give the sl-ide cloud link, or the failing step and its fix. Use when the user says "ship it", "ship", or /sl-ide-ship.
 ---
 
 # Ship it
@@ -21,7 +21,7 @@ the output, and do not commit or push.
 6. **Push:** if there is a remote, bring in what origin has, then `git push`
    to the current branch. No remote: say so and stop.
    - If `git rev-list --merges @{u}..HEAD` lists anything (an unpushed
-     `Pull sl-ide` merge from update-sl-ide), `git pull --no-rebase`. A
+     `Pull sl-ide` merge from sl-ide-update), `git pull --no-rebase`. A
      rebase would replay upstream's commits one by one and drop the
      merge's resolution, even with `--rebase=merges`.
    - Otherwise `git pull --rebase`.

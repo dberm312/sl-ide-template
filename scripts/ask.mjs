@@ -2,7 +2,7 @@
 // Typed questions about the deck, answered fast by TypeSafe's Jev (SL-72).
 //
 //   pnpm ask fit 2 A1            -> does the picture on each page fit it?
-//   pnpm ask fit output/lab/a.png  (any PNG or JPEG, e.g. a slide-lab take)
+//   pnpm ask fit output/lab/a.png  (any PNG or JPEG, e.g. a lab take)
 //   pnpm ask find "the pricing"  -> which pages mention a topic?
 //   --dry-run                    -> print the request payloads, send nothing
 //

@@ -10,7 +10,7 @@ imports it.
 ## Getting started
 
 If `PRODUCT.md` or `DESIGN.md` is missing, the deck hasn't been set up. When
-the user asks for slides, run the **deck-setup** skill first. It runs
+the user asks for slides, run the **sl-ide-setup** skill first. It runs
 **impeccable** to capture the audience and purpose (PRODUCT.md), learns the
 style from a brand source (DESIGN.md and the tokens), sets the format, then
 outlines the story. Run it again when the purpose, style or format changes.
@@ -28,12 +28,12 @@ new deck"), with sl-ide as the `upstream` remote. Harness files belong to sl-ide
 `src/components/`, `src/lab/` (except `takes/`), `scripts/`, `starters/`,
 `vite.config.js`, `.github/`, `.agents/skills/` and `.claude/agents/`. When a fix
 belongs in the harness rather than one deck, say so and suggest making it in
-sl-ide and pulling it in with the **update-sl-ide** skill, so decks don't
+sl-ide and pulling it in with the **sl-ide-update** skill, so decks don't
 drift apart. In the sl-ide-template repo itself, keep everything brand-neutral.
 
 ## This deck
 
-<!-- deck-setup fills this in: the page list in order (one line each: label,
+<!-- sl-ide-setup fills this in: the page list in order (one line each: label,
      action title, what the page shows) and the standing decisions about
      story, numbers and voice, each dated and attributed, e.g.
      "(Alex, 2026-10-14)". Keep it a description of the deck as it is now. -->
@@ -48,13 +48,13 @@ divider and A1 Where things live. It explains the harness; replace it.
 
 | Skill | When | Source |
 |---|---|---|
-| `deck-setup` | Set or change the deck's purpose, style and format, then the story | this repo |
-| `slide-lab` | Explore 2–4 takes on a page, each on a different axis, flip through them, then promote one | this repo |
-| `copy-pass` | Edit the deck's copy under the deck's rules | this repo, uses copy-editing |
-| `ship-it` | Audit, print, check fonts, commit, push, wait for the publish | this repo |
-| `clean-up` | Remove dead code; fix doc drift | this repo |
+| `sl-ide-setup` | Set or change the deck's purpose, style and format, then the story | this repo |
+| `sl-ide-lab` | Explore 2–4 takes on a page, each on a different axis, flip through them, then promote one | this repo |
+| `sl-ide-copy-pass` | Edit the deck's copy under the deck's rules | this repo, uses copy-editing |
+| `sl-ide-ship` | Audit, print, check fonts, commit, push, wait for the publish | this repo |
+| `sl-ide-clean` | Remove dead code; fix doc drift | this repo |
 | `sl-ide-feedback` | Report harness friction or turn automatic feedback on/off | this repo |
-| `update-sl-ide` | Pull the latest harness from sl-ide, keep the deck's own files | this repo |
+| `sl-ide-update` | Pull the latest harness from sl-ide, keep the deck's own files | this repo |
 | `impeccable` | Product context, visual system, critique and polish | `skills-lock.json` |
 | `copy-editing` | Editing passes on existing copy | `skills-lock.json` |
 | `copywriting` | Writing new copy from scratch | `skills-lock.json` |
@@ -176,8 +176,8 @@ agent, pass the file's body as the subagent's instructions):
 `deck-explorer` answers "where is X / what does page N say" read-only from
 `output/map.md`; `page-worker` owns one page, edits only its component and
 its page module, runs `pnpm check <label>` and returns the diff and audit line;
-`take-worker` writes one slide-lab take in its own two files, checks it with
-`pnpm lab <id>` and looks at the screenshot (see the slide-lab skill).
+`take-worker` writes one sl-ide-lab take in its own two files, checks it with
+`pnpm lab <id>` and looks at the screenshot (see the sl-ide-lab skill).
 
 - **Fan out per page** when a task touches 3 or more pages that are
   independent: one `page-worker` each. Stay serial for token, `styles.css`,
@@ -198,11 +198,11 @@ its page module, runs `pnpm check <label>` and returns the diff and audit line;
   and pastes a block naming the slide, a CSS path and the element's text.
   Find the element from the path and the text, and edit the page's module in
   `src/deck/pages/` or its component, not the DOM.
-- When asked for options on a page, use **slide-lab** rather than describing
+- When asked for options on a page, use **sl-ide-lab** rather than describing
   alternatives in chat.
 - Record standing decisions in "This deck" above, dated and attributed, the
   moment the user makes them.
-- pnpm, not npm. Don't commit unless asked (ship-it is standing permission).
+- pnpm, not npm. Don't commit unless asked (sl-ide-ship is standing permission).
   Say which branch you're on whenever you commit or push.
 
 ## Feedback
@@ -210,7 +210,7 @@ its page module, runs `pnpm check <label>` and returns the diff and audit line;
 If `.sl-ide/feedback.json` has `"auto": true`, file one report with the
 `sl-ide-feedback` skill when any of these happen:
 1. You write a new script or helper because the harness has no way to do the task.
-2. You edit a harness-owned file (see the ownership table in `update-sl-ide`).
+2. You edit a harness-owned file (see the ownership table in `sl-ide-update`).
 3. You try the same fix 3 or more times, or `pnpm run audit` fails 3 or more times on the same page.
 4. The user corrects you about how sl-ide works.
 

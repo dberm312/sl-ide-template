@@ -1,5 +1,5 @@
 ---
-name: slide-lab
+name: sl-ide-lab
 description: Explore rival takes on a deck page in a temporary comparison page (lab.html), iterate on the user's verdicts and notes, then promote the winner into the deck. Use when the user asks for options, takes, variants, alternatives or ideas for a page, to make a page bolder, quieter, simpler or laid out differently, to compare versions, to merge or redesign pages, says "lab", "slide lab", or "lab feedback", or asks to put a chosen take into the deck.
 ---
 
@@ -176,4 +176,4 @@ Only when the user says which take goes in.
 5. Look at the page with `pnpm check <label>`, then `pnpm run audit` must pass.
 6. Empty `src/lab/takes/` back to just the idle session (an `index.js`
    with `takes: []`, `reference: []`) and delete `.lab/`.
-7. Don't commit unless asked; offer `/ship-it`.
+7. Don't commit unless asked; offer `/sl-ide-ship`.
