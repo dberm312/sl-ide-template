@@ -17,7 +17,7 @@ commit in step 7, so use it whenever a step goes wrong and say so.
 
 | Owner | Paths | On a conflict or upstream change |
 |---|---|---|
-| **Harness** | `src/components/`, `src/lab/` (except `takes/`), `src/App.jsx`, `src/main.jsx`, `scripts/` (including `feedback.mjs`, `feedback-schema.mjs`, `feedback-vocab.json`, `feedback-common-words.txt`), `starters/`, `tests/`, `vite.config.js`, `playwright.config.js`, `lab.html`, `CLAUDE.md`, `.gitignore`, `.githooks/`, `.github/`, `.agents/skills/` and `.claude/skills/` (sl-ide's own skills), `.claude/agents/`, `skills-lock.json`, `pnpm-workspace.yaml` | Take upstream's |
+| **Harness** | `src/components/`, `src/lab/` (except `takes/`), `src/App.tsx`, `src/main.tsx`, `src/App.jsx` and `src/main.jsx` (compatibility entry points), `tsconfig.json`, `scripts/` (including `feedback.mjs`, `feedback-schema.mjs`, `feedback-vocab.json`, `feedback-common-words.txt`), `starters/`, `tests/`, `vite.config.js`, `playwright.config.js`, `lab.html`, `CLAUDE.md`, `.gitignore`, `.githooks/`, `.github/`, `.agents/skills/` and `.claude/skills/` (sl-ide's own skills), `.claude/agents/`, `skills-lock.json`, `pnpm-workspace.yaml` | Take upstream's |
 | **Deck** | `src/deck/` (`content.js` and the page modules in `pages/`), `src/slides/`, `src/fonts/`, `src/lab/takes/`, `public/`, `PRODUCT.md`, `DESIGN.md`, `README.md`, `sl-ide.config.json`, `.sl-ide/` (private feedback settings and history; never touched by a pull) | Keep the deck's |
 | **Mixed** | `src/styles.css`, `AGENTS.md`, `package.json`, `pnpm-lock.yaml`, `index.html` | Split, below |
 
@@ -112,6 +112,13 @@ touched, read `git diff $BASE upstream/main -- <path>` and sort every hunk:
   the deck's version, in the deck's terms. Confirm by grepping the harness
   for the key or name (`git grep -n <name> -- src/components scripts`).
 
+**TypeScript harness.** Take upstream's `.ts` / `.tsx` implementations, shared
+contracts and `tsconfig.json`, along with the JavaScript compatibility entry
+points. Preserve the deck's `.js` / `.jsx` content, slides and lab takes;
+existing imports still work. Do not convert deck files as part of this update.
+`page.js` and `geometry.js` remain Node-readable. Keep any deck-specific
+TypeScript configuration when merging `tsconfig.json`.
+
 **One module per page.** If the deck still has every page's copy in
 `src/deck/content.js` and no `src/deck/pages/`, split it as part of this
 update. Leave in `content.js` what every page shares (`PX_PER_IN`, `ZONES`,
@@ -135,7 +142,7 @@ uncommitted so it can be fixed or aborted.
 1. `pnpm install`
 2. `node --check` on every `.js`/`.mjs` file the merge touched, and
    `node --check` on `src/deck/content.js` and each `src/deck/pages/*.js`.
-3. `pnpm doctor`
+3. `pnpm typecheck`, then `pnpm doctor`
 4. `pnpm run audit`. Every page must read `ok`.
 5. `pnpm pdf`, then `scripts/check-fonts.sh`
 6. `pnpm shots` and compare with `output/shots-before/`. The deck's pages

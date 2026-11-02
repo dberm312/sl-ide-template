@@ -27,6 +27,7 @@ jobs:
           node-version: 22
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
       - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
       # Same runner configuration as publish.yml; retain Chrome's sandbox.
       - name: Allow Chrome sandbox
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0

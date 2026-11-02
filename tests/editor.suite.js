@@ -25,6 +25,8 @@ export function editorSuite(format) {
         await promisify(execFile)(process.execPath, ['scripts/use-format.mjs', 'memo'], { cwd: dir });
         expect((await readdir(path.join(dir, 'src/deck/pages'))).sort()).toEqual(['files.js', 'memo.js']);
       }
+      // Both untouched JavaScript starters must work with the typed harness.
+      await promisify(execFile)('pnpm', ['typecheck'], { cwd: dir });
       // The runner loader avoids writing Vite's bundled config through the
       // node_modules symlink. Mutable files stay in this disposable project.
       dev = await createServer({ root: dir, configLoader: 'runner', server: { host: '127.0.0.1', port: 0 } });

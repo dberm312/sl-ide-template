@@ -24,7 +24,8 @@
     "test:smoke": "playwright test",
     "bench": "node scripts/bench.mjs",
     "feedback": "node scripts/feedback.mjs",
-    "agent-bench": "node scripts/agent-bench.mjs"
+    "agent-bench": "node scripts/agent-bench.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -32,7 +33,11 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "typescript": "^7.0.2",
     "vite": "^8.3.4"
   }
 }

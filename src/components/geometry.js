@@ -1,6 +1,8 @@
+// @ts-check
 import { PX_PER_IN } from '../deck/content.js';
 
 // Region boxes are [x, y, w, h] in inches; the page is 1280 px wide, 96 px/in.
+/** @param {import('./types').InchBox} bounds */
 export function box([x, y, w, h]) {
   return {
     left: Math.round(x * PX_PER_IN * 10) / 10,

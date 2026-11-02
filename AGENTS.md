@@ -26,10 +26,25 @@ blocks on each printed page. Then open just those files.
 Each deck is its own repo made by `pnpm create sl-ide` (README, "Start a
 new deck"), with sl-ide as the `upstream` remote. Harness files belong to sl-ide:
 `src/components/`, `src/lab/` (except `takes/`), `scripts/`, `starters/`,
-`vite.config.js`, `.github/`, `.agents/skills/` and `.claude/agents/`. When a fix
+`src/App.tsx`, `src/main.tsx`, `tsconfig.json`, `vite.config.js`, `.github/`,
+`.agents/skills/` and `.claude/agents/`. When a fix
 belongs in the harness rather than one deck, say so and suggest making it in
 sl-ide and pulling it in with the **sl-ide-update** skill, so decks don't
 drift apart. In the sl-ide-template repo itself, keep everything brand-neutral.
+
+## TypeScript
+
+The shared editor and lab implementations use `.ts` / `.tsx`, checked with
+`pnpm typecheck` (also a CI gate). Deck content in `src/deck/`, slide components
+in `src/slides/` and lab takes may stay `.js` / `.jsx`; no deck migration is
+required. Existing harness `.jsx` imports are compatibility entry points;
+edit the matching `.tsx` implementation. `components/page.js` and `geometry.js`
+stay Node-readable JavaScript with checked JSDoc signatures.
+
+Shared contracts live in `src/components/types.ts`. `metadata.ts` describes
+legacy JavaScript deck metadata at the harness boundary; it does not validate
+content at runtime. For new TypeScript deck files, use those contracts. Keep
+`pnpm run audit` and the browser checks: types cannot verify rendered layout.
 
 ## This deck
 
@@ -155,6 +170,7 @@ has the slide starter.
 |---|---|
 | `pnpm check [labels] [--changed]` | the audit plus `output/shots/page-<label>.png` in one call, in well under a second once warm: it measures the running `pnpm dev` and keeps one Chrome up per worktree. `--changed` shoots the pages `git diff` touches. Exits 1 where the audit would. Use it while editing. |
 | `pnpm map [--json]` | `output/map.md` (and `map.json`): the deck map above |
+| `pnpm typecheck` | strict TypeScript checks for the shared editor and lab; JavaScript deck authoring stays supported |
 | `pnpm run audit` | CLIPPED / SPILL / OVERLAP / WORDY per page, LONG per memo; exits 1 on any. RAGGED and RUNT are advisory. Not `pnpm audit`, which audits dependencies. |
 | `pnpm shots [labels]` | `output/shots/page-<label>.png` at 1:1 (`SCALE=2` for 2x) |
 | `pnpm pdf` | `output/<META.pdfName>.pdf`, plus `output/cover.png` (the first page, for the deck list on sl-ide cloud) |
@@ -167,8 +183,9 @@ has the slide starter.
 
 While editing, check with `pnpm check <label>` (or `--changed`) after each
 change and look at the shot. Commits don't run the audit, so they stay fast.
-Run `pnpm run audit`, a clean build, before pushing a deck change. CI on push audits the pushed commit, and a failing
-page stops the publish.
+Run `pnpm typecheck`, `pnpm run audit` and a clean build before pushing a deck
+change. CI on push checks types and audits the pushed commit; a failure stops
+the publish.
 
 ## Working in parallel
 

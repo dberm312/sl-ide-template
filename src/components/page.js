@@ -1,4 +1,7 @@
-import { META } from '../deck/content.js';
+// @ts-check
+import { META as deckMeta } from '../deck/content.js';
+// JavaScript metadata widens literals such as format: 'memo' to string.
+const META = /** @type {import('./types').DeckMeta} */ (deckMeta);
 
 // The page every component and script sizes against. A project is one
 // format, set once in META.format (src/deck/content.js):

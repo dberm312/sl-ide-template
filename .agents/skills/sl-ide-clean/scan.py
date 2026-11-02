@@ -31,7 +31,7 @@ def strip_comments(text, blank_strings=False):
 
 css_files = ['src/styles.css', 'src/lab/lab.css', *sorted(glob.glob('src/lab/takes/*.css'))]
 css = strip_comments('\n'.join(read(f) for f in css_files if os.path.exists(f)))
-code_files = [f for f in glob.glob('src/**/*', recursive=True) if f.endswith(('.js', '.jsx'))]
+code_files = [f for f in glob.glob('src/**/*', recursive=True) if f.endswith(('.js', '.jsx', '.ts', '.tsx'))]
 code = {f: read(f) for f in code_files}
 all_code = '\n'.join(code.values()) + read('index.html') + read('lab.html')
 
@@ -56,7 +56,7 @@ for v in sorted(set(re.findall(r'(--[\w-]+)\s*:', css))):
 
 section('className tokens with no CSS rule (often harmless semantic hooks)')
 seen = set()
-for f in sorted(glob.glob('src/**/*.jsx', recursive=True)):
+for f in sorted([f for f in code_files if f.endswith(('.jsx', '.tsx'))]):
     for a, b in re.findall(r'className=(?:"([^"]*)"|\{`([^`]*)`\})', code[f]):
         for c in re.sub(r'\$\{[^}]*\}', ' ', a or b).split():
             if c.endswith('-') or (f, c) in seen:

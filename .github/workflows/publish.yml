@@ -50,13 +50,16 @@ jobs:
 
       # Node's corepack fetches the pnpm that packageManager names in about a
       # second; pnpm/action-setup took five. No dependency cache: there are
-      # only four, and restoring one takes as long as installing them.
+      # few dependencies, and restoring one takes as long as installing them.
       - name: Enable pnpm
         run: corepack enable
         env:
           COREPACK_ENABLE_DOWNLOAD_PROMPT: 0
 
       - run: node scripts/timed.mjs Install pnpm install --frozen-lockfile
+
+      - name: Check harness types
+        run: node scripts/timed.mjs Typecheck pnpm typecheck
 
       - name: Build deck
         run: node scripts/timed.mjs Build pnpm run build

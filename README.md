@@ -64,6 +64,17 @@ Without prompts: `pnpm create sl-ide my-deck --yes`.
 From inside an existing deck, `pnpm new-project my-next-deck` does the same,
 next to it. `pnpm create sl-ide login` switches the signed-in account.
 
+**TypeScript in the editor, JavaScript for your deck.** The shared editor and
+slide lab use TypeScript. Your content modules, slide components and lab takes
+can stay JavaScript, including existing decks. Run `pnpm typecheck` to check
+the harness; CI runs it before publishing. Vite's build alone does not check
+types. Layout still needs `pnpm run audit`.
+
+Harness `.jsx` files forward existing imports to their `.tsx` implementations.
+Edit the `.tsx` file when changing the editor. `src/components/types.ts`
+defines page, memo block, metadata and geometry contracts for TypeScript code;
+`page.js` and `geometry.js` remain usable directly from Node scripts.
+
 **Keeping pulls clean.** Harness files belong to sl-ide: `src/components/`,
 `src/lab/` (except `takes/`), `scripts/`, `vite.config.js`,
 `.github/` and the skills in `.agents/skills/`. A deck's own work goes in
